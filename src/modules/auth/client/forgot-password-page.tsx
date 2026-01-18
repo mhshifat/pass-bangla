@@ -19,10 +19,11 @@ import {
 } from "@/components/ui/form"
 import { trpc } from "@/trpc/client"
 import { toast } from "sonner"
-import { Mail, Loader2, ArrowLeft } from "lucide-react"
+import { Mail, Loader2, ArrowLeft, HelpCircle } from "lucide-react"
 import Link from "next/link"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { CheckCircle2 } from "lucide-react"
+import { CheckCircle2, Info } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -32,6 +33,7 @@ type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>
 
 export function ForgotPasswordPage() {
   const { t } = useTranslation()
+  const router = useRouter()
   const [emailSent, setEmailSent] = React.useState(false)
 
   const form = useForm<ForgotPasswordFormValues>({
@@ -143,6 +145,33 @@ export function ForgotPasswordPage() {
               </Button>
             </form>
           </Form>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                {t("common.or")}
+              </span>
+            </div>
+          </div>
+
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              {t("auth.forgotPassword.securityQuestionsInfo")}
+            </AlertDescription>
+          </Alert>
+
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => router.push("/recover-via-questions")}
+          >
+            <HelpCircle className="mr-2 h-4 w-4" />
+            {t("auth.forgotPassword.useSecurityQuestions")}
+          </Button>
 
           <div className="text-center text-sm">
             <Link href="/login" className="text-primary hover:underline">

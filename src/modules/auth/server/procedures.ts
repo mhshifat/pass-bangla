@@ -2703,6 +2703,110 @@ export const authRouter = createTRPCRouter({
             return { success: true, userId: user.id }
         }),
 
+    // Get security questions for recovery (without authentication)
+    getUserSecurityQuestionsForRecovery: baseProcedure
+        .input(
+            z.object({
+                email: z.string().email("Invalid email address"),
+            })
+        )
+        .mutation(async ({ input, ctx }) => {
+            // Get companyId from subdomain if available (for multi-tenancy)
+            let companyId: string | undefined = undefined
+            if (ctx.subdomain) {
+                const company = await prisma.company.findUnique({
+                    where: { subdomain: ctx.subdomain },
+                    select: { id: true },
+                })
+                if (company) {
+                    companyId = company.id
+                }
+            }
+
+            // Find user by email or recovery email
+            const user = await prisma.user.findFirst({
+                where: {
+                    OR: [
+                        { email: input.email },
+                        { recoveryEmail: input.email },
+                    ],
+                    companyId: companyId || undefined,
+                },
+                select: { id: true },
+            })
+
+            if (!user) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "No account found with this email address",
+                })
+            }
+
+            // Get user's security questions (without answers)
+            const { getUserSecurityQuestions } = await import("@/lib/security-questions")
+            const questions = await getUserSecurityQuestions(user.id)
+
+            if (!questions || questions.length === 0) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "No security questions set for this account. Please use email recovery instead.",
+                })
+            }
+
+            // Return questions without answers
+            return {
+                questions: questions.map((q) => ({
+                    id: q.id,
+                    question: q.question,
+                })),
+            }
+        }),
+
+    // Reset password via security questions (without authentication)
+    resetPasswordViaSecurityQuestions: baseProcedure
+        .input(
+            z.object({
+                userId: z.string(),
+                newPassword: z.string().min(8, "Password must be at least 8 characters"),
+            })
+        )
+        .mutation(async ({ input }) => {
+            // Validate password
+            const { validatePassword } = await import("@/lib/password-validation")
+            const validation = await validatePassword(input.newPassword)
+            if (!validation.isValid) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: validation.errors.join(". "),
+                })
+            }
+
+            // Hash new password
+            const hashedPassword = await hashPassword(input.newPassword)
+
+            // Update user password
+            await prisma.user.update({
+                where: { id: input.userId },
+                data: { password: hashedPassword },
+            })
+
+            // Invalidate all sessions for security
+            await prisma.session.deleteMany({
+                where: { userId: input.userId },
+            })
+
+            // Create audit log
+            const { createAuditLog } = await import("@/lib/audit-log")
+            await createAuditLog({
+                action: "PASSWORD_RESET_VIA_SECURITY_QUESTIONS",
+                resource: "User",
+                resourceId: input.userId,
+                userId: input.userId,
+            })
+
+            return { success: true }
+        }),
+
     // Recovery Email Management
     setRecoveryEmail: baseProcedure
         .use(async ({ ctx, next }) => {
