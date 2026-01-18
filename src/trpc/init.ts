@@ -18,7 +18,24 @@ export const createTRPCContext = cache(async (): Promise<Context> => {
    * @see: https://trpc.io/docs/server/context
    */
   const headersList = await headers();
-  const subdomain = headersList.get("x-subdomain") || null;
+  
+  // Get subdomain from header (set by middleware) or detect from host
+  let subdomain = headersList.get("x-subdomain") || null;
+  
+  // If middleware didn't set subdomain (e.g., API routes), detect it from host
+  if (!subdomain) {
+    const host = headersList.get("host") || headersList.get("x-forwarded-host") || "";
+    const hostWithoutPort = host.split(":")[0];
+    const parts = hostWithoutPort.split(".");
+    
+    // Extract subdomain for: subdomain.localhost or subdomain.domain.tld
+    if (parts.length >= 3 || (parts.length === 2 && parts[1].includes("localhost"))) {
+      const detectedSubdomain = parts[0];
+      if (detectedSubdomain && detectedSubdomain !== "www" && detectedSubdomain !== "localhost") {
+        subdomain = detectedSubdomain;
+      }
+    }
+  }
   
   // Check for session token in header (for extensions)
   const sessionTokenFromHeader = headersList.get("x-session-token");

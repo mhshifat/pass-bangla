@@ -149,6 +149,11 @@ export type MfaCredential = $Result.DefaultSelection<Prisma.$MfaCredentialPayloa
  */
 export type RecoveryCode = $Result.DefaultSelection<Prisma.$RecoveryCodePayload>
 /**
+ * Model PasskeyCredential
+ * 
+ */
+export type PasskeyCredential = $Result.DefaultSelection<Prisma.$PasskeyCredentialPayload>
+/**
  * Model SavedSearch
  * 
  */
@@ -738,6 +743,16 @@ export class PrismaClient<
     * ```
     */
   get recoveryCode(): Prisma.RecoveryCodeDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.passkeyCredential`: Exposes CRUD operations for the **PasskeyCredential** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more PasskeyCredentials
+    * const passkeyCredentials = await prisma.passkeyCredential.findMany()
+    * ```
+    */
+  get passkeyCredential(): Prisma.PasskeyCredentialDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.savedSearch`: Exposes CRUD operations for the **SavedSearch** model.
@@ -1349,6 +1364,7 @@ export namespace Prisma {
     RolePermission: 'RolePermission',
     MfaCredential: 'MfaCredential',
     RecoveryCode: 'RecoveryCode',
+    PasskeyCredential: 'PasskeyCredential',
     SavedSearch: 'SavedSearch',
     SearchHistory: 'SearchHistory',
     PasswordTemplate: 'PasswordTemplate',
@@ -1379,7 +1395,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "company" | "user" | "account" | "session" | "password" | "passwordHistory" | "passwordBreach" | "passwordRotationPolicy" | "passwordRotation" | "folder" | "passwordShare" | "temporaryPasswordShare" | "team" | "teamMember" | "tag" | "passwordTag" | "auditLog" | "auditLogArchive" | "auditLogSearch" | "settings" | "threatEvent" | "rateLimit" | "role" | "permission" | "rolePermission" | "mfaCredential" | "recoveryCode" | "savedSearch" | "searchHistory" | "passwordTemplate" | "emailVerificationToken" | "passwordResetToken" | "securityQuestion" | "ipWhitelist" | "geographicRestriction" | "passwordPolicy" | "dataRetentionPolicy" | "dataExport" | "dataDeletionRequest" | "report" | "reportTemplate" | "scheduledReport"
+      modelProps: "company" | "user" | "account" | "session" | "password" | "passwordHistory" | "passwordBreach" | "passwordRotationPolicy" | "passwordRotation" | "folder" | "passwordShare" | "temporaryPasswordShare" | "team" | "teamMember" | "tag" | "passwordTag" | "auditLog" | "auditLogArchive" | "auditLogSearch" | "settings" | "threatEvent" | "rateLimit" | "role" | "permission" | "rolePermission" | "mfaCredential" | "recoveryCode" | "passkeyCredential" | "savedSearch" | "searchHistory" | "passwordTemplate" | "emailVerificationToken" | "passwordResetToken" | "securityQuestion" | "ipWhitelist" | "geographicRestriction" | "passwordPolicy" | "dataRetentionPolicy" | "dataExport" | "dataDeletionRequest" | "report" | "reportTemplate" | "scheduledReport"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -3381,6 +3397,80 @@ export namespace Prisma {
           }
         }
       }
+      PasskeyCredential: {
+        payload: Prisma.$PasskeyCredentialPayload<ExtArgs>
+        fields: Prisma.PasskeyCredentialFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.PasskeyCredentialFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PasskeyCredentialPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.PasskeyCredentialFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PasskeyCredentialPayload>
+          }
+          findFirst: {
+            args: Prisma.PasskeyCredentialFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PasskeyCredentialPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.PasskeyCredentialFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PasskeyCredentialPayload>
+          }
+          findMany: {
+            args: Prisma.PasskeyCredentialFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PasskeyCredentialPayload>[]
+          }
+          create: {
+            args: Prisma.PasskeyCredentialCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PasskeyCredentialPayload>
+          }
+          createMany: {
+            args: Prisma.PasskeyCredentialCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.PasskeyCredentialCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PasskeyCredentialPayload>[]
+          }
+          delete: {
+            args: Prisma.PasskeyCredentialDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PasskeyCredentialPayload>
+          }
+          update: {
+            args: Prisma.PasskeyCredentialUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PasskeyCredentialPayload>
+          }
+          deleteMany: {
+            args: Prisma.PasskeyCredentialDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.PasskeyCredentialUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.PasskeyCredentialUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PasskeyCredentialPayload>[]
+          }
+          upsert: {
+            args: Prisma.PasskeyCredentialUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PasskeyCredentialPayload>
+          }
+          aggregate: {
+            args: Prisma.PasskeyCredentialAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregatePasskeyCredential>
+          }
+          groupBy: {
+            args: Prisma.PasskeyCredentialGroupByArgs<ExtArgs>
+            result: $Utils.Optional<PasskeyCredentialGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.PasskeyCredentialCountArgs<ExtArgs>
+            result: $Utils.Optional<PasskeyCredentialCountAggregateOutputType> | number
+          }
+        }
+      }
       SavedSearch: {
         payload: Prisma.$SavedSearchPayload<ExtArgs>
         fields: Prisma.SavedSearchFieldRefs
@@ -4610,6 +4700,7 @@ export namespace Prisma {
     rolePermission?: RolePermissionOmit
     mfaCredential?: MfaCredentialOmit
     recoveryCode?: RecoveryCodeOmit
+    passkeyCredential?: PasskeyCredentialOmit
     savedSearch?: SavedSearchOmit
     searchHistory?: SearchHistoryOmit
     passwordTemplate?: PasswordTemplateOmit
@@ -4871,6 +4962,7 @@ export namespace Prisma {
     accounts: number
     mfaCredentials: number
     recoveryCodes: number
+    passkeyCredentials: number
     passwordHistory: number
     passwordBreachesChecked: number
     passwordBreachesResolved: number
@@ -4909,6 +5001,7 @@ export namespace Prisma {
     accounts?: boolean | UserCountOutputTypeCountAccountsArgs
     mfaCredentials?: boolean | UserCountOutputTypeCountMfaCredentialsArgs
     recoveryCodes?: boolean | UserCountOutputTypeCountRecoveryCodesArgs
+    passkeyCredentials?: boolean | UserCountOutputTypeCountPasskeyCredentialsArgs
     passwordHistory?: boolean | UserCountOutputTypeCountPasswordHistoryArgs
     passwordBreachesChecked?: boolean | UserCountOutputTypeCountPasswordBreachesCheckedArgs
     passwordBreachesResolved?: boolean | UserCountOutputTypeCountPasswordBreachesResolvedArgs
@@ -5009,6 +5102,13 @@ export namespace Prisma {
    */
   export type UserCountOutputTypeCountRecoveryCodesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: RecoveryCodeWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountPasskeyCredentialsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PasskeyCredentialWhereInput
   }
 
   /**
@@ -7333,6 +7433,7 @@ export namespace Prisma {
     accounts?: boolean | User$accountsArgs<ExtArgs>
     mfaCredentials?: boolean | User$mfaCredentialsArgs<ExtArgs>
     recoveryCodes?: boolean | User$recoveryCodesArgs<ExtArgs>
+    passkeyCredentials?: boolean | User$passkeyCredentialsArgs<ExtArgs>
     passwordHistory?: boolean | User$passwordHistoryArgs<ExtArgs>
     passwordBreachesChecked?: boolean | User$passwordBreachesCheckedArgs<ExtArgs>
     passwordBreachesResolved?: boolean | User$passwordBreachesResolvedArgs<ExtArgs>
@@ -7451,6 +7552,7 @@ export namespace Prisma {
     accounts?: boolean | User$accountsArgs<ExtArgs>
     mfaCredentials?: boolean | User$mfaCredentialsArgs<ExtArgs>
     recoveryCodes?: boolean | User$recoveryCodesArgs<ExtArgs>
+    passkeyCredentials?: boolean | User$passkeyCredentialsArgs<ExtArgs>
     passwordHistory?: boolean | User$passwordHistoryArgs<ExtArgs>
     passwordBreachesChecked?: boolean | User$passwordBreachesCheckedArgs<ExtArgs>
     passwordBreachesResolved?: boolean | User$passwordBreachesResolvedArgs<ExtArgs>
@@ -7502,6 +7604,7 @@ export namespace Prisma {
       accounts: Prisma.$AccountPayload<ExtArgs>[]
       mfaCredentials: Prisma.$MfaCredentialPayload<ExtArgs>[]
       recoveryCodes: Prisma.$RecoveryCodePayload<ExtArgs>[]
+      passkeyCredentials: Prisma.$PasskeyCredentialPayload<ExtArgs>[]
       passwordHistory: Prisma.$PasswordHistoryPayload<ExtArgs>[]
       passwordBreachesChecked: Prisma.$PasswordBreachPayload<ExtArgs>[]
       passwordBreachesResolved: Prisma.$PasswordBreachPayload<ExtArgs>[]
@@ -7956,6 +8059,7 @@ export namespace Prisma {
     accounts<T extends User$accountsArgs<ExtArgs> = {}>(args?: Subset<T, User$accountsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     mfaCredentials<T extends User$mfaCredentialsArgs<ExtArgs> = {}>(args?: Subset<T, User$mfaCredentialsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MfaCredentialPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     recoveryCodes<T extends User$recoveryCodesArgs<ExtArgs> = {}>(args?: Subset<T, User$recoveryCodesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RecoveryCodePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    passkeyCredentials<T extends User$passkeyCredentialsArgs<ExtArgs> = {}>(args?: Subset<T, User$passkeyCredentialsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PasskeyCredentialPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     passwordHistory<T extends User$passwordHistoryArgs<ExtArgs> = {}>(args?: Subset<T, User$passwordHistoryArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PasswordHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     passwordBreachesChecked<T extends User$passwordBreachesCheckedArgs<ExtArgs> = {}>(args?: Subset<T, User$passwordBreachesCheckedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PasswordBreachPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     passwordBreachesResolved<T extends User$passwordBreachesResolvedArgs<ExtArgs> = {}>(args?: Subset<T, User$passwordBreachesResolvedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PasswordBreachPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -8661,6 +8765,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: RecoveryCodeScalarFieldEnum | RecoveryCodeScalarFieldEnum[]
+  }
+
+  /**
+   * User.passkeyCredentials
+   */
+  export type User$passkeyCredentialsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PasskeyCredential
+     */
+    select?: PasskeyCredentialSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PasskeyCredential
+     */
+    omit?: PasskeyCredentialOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PasskeyCredentialInclude<ExtArgs> | null
+    where?: PasskeyCredentialWhereInput
+    orderBy?: PasskeyCredentialOrderByWithRelationInput | PasskeyCredentialOrderByWithRelationInput[]
+    cursor?: PasskeyCredentialWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PasskeyCredentialScalarFieldEnum | PasskeyCredentialScalarFieldEnum[]
   }
 
   /**
@@ -38117,6 +38245,1176 @@ export namespace Prisma {
 
 
   /**
+   * Model PasskeyCredential
+   */
+
+  export type AggregatePasskeyCredential = {
+    _count: PasskeyCredentialCountAggregateOutputType | null
+    _avg: PasskeyCredentialAvgAggregateOutputType | null
+    _sum: PasskeyCredentialSumAggregateOutputType | null
+    _min: PasskeyCredentialMinAggregateOutputType | null
+    _max: PasskeyCredentialMaxAggregateOutputType | null
+  }
+
+  export type PasskeyCredentialAvgAggregateOutputType = {
+    counter: number | null
+  }
+
+  export type PasskeyCredentialSumAggregateOutputType = {
+    counter: bigint | null
+  }
+
+  export type PasskeyCredentialMinAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    name: string | null
+    credentialId: string | null
+    publicKey: string | null
+    counter: bigint | null
+    deviceType: string | null
+    backedUp: boolean | null
+    transports: string | null
+    createdAt: Date | null
+    lastUsedAt: Date | null
+  }
+
+  export type PasskeyCredentialMaxAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    name: string | null
+    credentialId: string | null
+    publicKey: string | null
+    counter: bigint | null
+    deviceType: string | null
+    backedUp: boolean | null
+    transports: string | null
+    createdAt: Date | null
+    lastUsedAt: Date | null
+  }
+
+  export type PasskeyCredentialCountAggregateOutputType = {
+    id: number
+    userId: number
+    name: number
+    credentialId: number
+    publicKey: number
+    counter: number
+    deviceType: number
+    backedUp: number
+    transports: number
+    createdAt: number
+    lastUsedAt: number
+    _all: number
+  }
+
+
+  export type PasskeyCredentialAvgAggregateInputType = {
+    counter?: true
+  }
+
+  export type PasskeyCredentialSumAggregateInputType = {
+    counter?: true
+  }
+
+  export type PasskeyCredentialMinAggregateInputType = {
+    id?: true
+    userId?: true
+    name?: true
+    credentialId?: true
+    publicKey?: true
+    counter?: true
+    deviceType?: true
+    backedUp?: true
+    transports?: true
+    createdAt?: true
+    lastUsedAt?: true
+  }
+
+  export type PasskeyCredentialMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    name?: true
+    credentialId?: true
+    publicKey?: true
+    counter?: true
+    deviceType?: true
+    backedUp?: true
+    transports?: true
+    createdAt?: true
+    lastUsedAt?: true
+  }
+
+  export type PasskeyCredentialCountAggregateInputType = {
+    id?: true
+    userId?: true
+    name?: true
+    credentialId?: true
+    publicKey?: true
+    counter?: true
+    deviceType?: true
+    backedUp?: true
+    transports?: true
+    createdAt?: true
+    lastUsedAt?: true
+    _all?: true
+  }
+
+  export type PasskeyCredentialAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PasskeyCredential to aggregate.
+     */
+    where?: PasskeyCredentialWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PasskeyCredentials to fetch.
+     */
+    orderBy?: PasskeyCredentialOrderByWithRelationInput | PasskeyCredentialOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: PasskeyCredentialWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PasskeyCredentials from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PasskeyCredentials.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned PasskeyCredentials
+    **/
+    _count?: true | PasskeyCredentialCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: PasskeyCredentialAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: PasskeyCredentialSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: PasskeyCredentialMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: PasskeyCredentialMaxAggregateInputType
+  }
+
+  export type GetPasskeyCredentialAggregateType<T extends PasskeyCredentialAggregateArgs> = {
+        [P in keyof T & keyof AggregatePasskeyCredential]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregatePasskeyCredential[P]>
+      : GetScalarType<T[P], AggregatePasskeyCredential[P]>
+  }
+
+
+
+
+  export type PasskeyCredentialGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PasskeyCredentialWhereInput
+    orderBy?: PasskeyCredentialOrderByWithAggregationInput | PasskeyCredentialOrderByWithAggregationInput[]
+    by: PasskeyCredentialScalarFieldEnum[] | PasskeyCredentialScalarFieldEnum
+    having?: PasskeyCredentialScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: PasskeyCredentialCountAggregateInputType | true
+    _avg?: PasskeyCredentialAvgAggregateInputType
+    _sum?: PasskeyCredentialSumAggregateInputType
+    _min?: PasskeyCredentialMinAggregateInputType
+    _max?: PasskeyCredentialMaxAggregateInputType
+  }
+
+  export type PasskeyCredentialGroupByOutputType = {
+    id: string
+    userId: string
+    name: string
+    credentialId: string
+    publicKey: string
+    counter: bigint
+    deviceType: string | null
+    backedUp: boolean
+    transports: string | null
+    createdAt: Date
+    lastUsedAt: Date | null
+    _count: PasskeyCredentialCountAggregateOutputType | null
+    _avg: PasskeyCredentialAvgAggregateOutputType | null
+    _sum: PasskeyCredentialSumAggregateOutputType | null
+    _min: PasskeyCredentialMinAggregateOutputType | null
+    _max: PasskeyCredentialMaxAggregateOutputType | null
+  }
+
+  type GetPasskeyCredentialGroupByPayload<T extends PasskeyCredentialGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<PasskeyCredentialGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof PasskeyCredentialGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], PasskeyCredentialGroupByOutputType[P]>
+            : GetScalarType<T[P], PasskeyCredentialGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type PasskeyCredentialSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    name?: boolean
+    credentialId?: boolean
+    publicKey?: boolean
+    counter?: boolean
+    deviceType?: boolean
+    backedUp?: boolean
+    transports?: boolean
+    createdAt?: boolean
+    lastUsedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["passkeyCredential"]>
+
+  export type PasskeyCredentialSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    name?: boolean
+    credentialId?: boolean
+    publicKey?: boolean
+    counter?: boolean
+    deviceType?: boolean
+    backedUp?: boolean
+    transports?: boolean
+    createdAt?: boolean
+    lastUsedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["passkeyCredential"]>
+
+  export type PasskeyCredentialSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    name?: boolean
+    credentialId?: boolean
+    publicKey?: boolean
+    counter?: boolean
+    deviceType?: boolean
+    backedUp?: boolean
+    transports?: boolean
+    createdAt?: boolean
+    lastUsedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["passkeyCredential"]>
+
+  export type PasskeyCredentialSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    name?: boolean
+    credentialId?: boolean
+    publicKey?: boolean
+    counter?: boolean
+    deviceType?: boolean
+    backedUp?: boolean
+    transports?: boolean
+    createdAt?: boolean
+    lastUsedAt?: boolean
+  }
+
+  export type PasskeyCredentialOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "name" | "credentialId" | "publicKey" | "counter" | "deviceType" | "backedUp" | "transports" | "createdAt" | "lastUsedAt", ExtArgs["result"]["passkeyCredential"]>
+  export type PasskeyCredentialInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type PasskeyCredentialIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type PasskeyCredentialIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $PasskeyCredentialPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "PasskeyCredential"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      userId: string
+      name: string
+      credentialId: string
+      publicKey: string
+      counter: bigint
+      deviceType: string | null
+      backedUp: boolean
+      transports: string | null
+      createdAt: Date
+      lastUsedAt: Date | null
+    }, ExtArgs["result"]["passkeyCredential"]>
+    composites: {}
+  }
+
+  type PasskeyCredentialGetPayload<S extends boolean | null | undefined | PasskeyCredentialDefaultArgs> = $Result.GetResult<Prisma.$PasskeyCredentialPayload, S>
+
+  type PasskeyCredentialCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<PasskeyCredentialFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: PasskeyCredentialCountAggregateInputType | true
+    }
+
+  export interface PasskeyCredentialDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['PasskeyCredential'], meta: { name: 'PasskeyCredential' } }
+    /**
+     * Find zero or one PasskeyCredential that matches the filter.
+     * @param {PasskeyCredentialFindUniqueArgs} args - Arguments to find a PasskeyCredential
+     * @example
+     * // Get one PasskeyCredential
+     * const passkeyCredential = await prisma.passkeyCredential.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends PasskeyCredentialFindUniqueArgs>(args: SelectSubset<T, PasskeyCredentialFindUniqueArgs<ExtArgs>>): Prisma__PasskeyCredentialClient<$Result.GetResult<Prisma.$PasskeyCredentialPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one PasskeyCredential that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {PasskeyCredentialFindUniqueOrThrowArgs} args - Arguments to find a PasskeyCredential
+     * @example
+     * // Get one PasskeyCredential
+     * const passkeyCredential = await prisma.passkeyCredential.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends PasskeyCredentialFindUniqueOrThrowArgs>(args: SelectSubset<T, PasskeyCredentialFindUniqueOrThrowArgs<ExtArgs>>): Prisma__PasskeyCredentialClient<$Result.GetResult<Prisma.$PasskeyCredentialPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first PasskeyCredential that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PasskeyCredentialFindFirstArgs} args - Arguments to find a PasskeyCredential
+     * @example
+     * // Get one PasskeyCredential
+     * const passkeyCredential = await prisma.passkeyCredential.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends PasskeyCredentialFindFirstArgs>(args?: SelectSubset<T, PasskeyCredentialFindFirstArgs<ExtArgs>>): Prisma__PasskeyCredentialClient<$Result.GetResult<Prisma.$PasskeyCredentialPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first PasskeyCredential that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PasskeyCredentialFindFirstOrThrowArgs} args - Arguments to find a PasskeyCredential
+     * @example
+     * // Get one PasskeyCredential
+     * const passkeyCredential = await prisma.passkeyCredential.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends PasskeyCredentialFindFirstOrThrowArgs>(args?: SelectSubset<T, PasskeyCredentialFindFirstOrThrowArgs<ExtArgs>>): Prisma__PasskeyCredentialClient<$Result.GetResult<Prisma.$PasskeyCredentialPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more PasskeyCredentials that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PasskeyCredentialFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all PasskeyCredentials
+     * const passkeyCredentials = await prisma.passkeyCredential.findMany()
+     * 
+     * // Get first 10 PasskeyCredentials
+     * const passkeyCredentials = await prisma.passkeyCredential.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const passkeyCredentialWithIdOnly = await prisma.passkeyCredential.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends PasskeyCredentialFindManyArgs>(args?: SelectSubset<T, PasskeyCredentialFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PasskeyCredentialPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a PasskeyCredential.
+     * @param {PasskeyCredentialCreateArgs} args - Arguments to create a PasskeyCredential.
+     * @example
+     * // Create one PasskeyCredential
+     * const PasskeyCredential = await prisma.passkeyCredential.create({
+     *   data: {
+     *     // ... data to create a PasskeyCredential
+     *   }
+     * })
+     * 
+     */
+    create<T extends PasskeyCredentialCreateArgs>(args: SelectSubset<T, PasskeyCredentialCreateArgs<ExtArgs>>): Prisma__PasskeyCredentialClient<$Result.GetResult<Prisma.$PasskeyCredentialPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many PasskeyCredentials.
+     * @param {PasskeyCredentialCreateManyArgs} args - Arguments to create many PasskeyCredentials.
+     * @example
+     * // Create many PasskeyCredentials
+     * const passkeyCredential = await prisma.passkeyCredential.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends PasskeyCredentialCreateManyArgs>(args?: SelectSubset<T, PasskeyCredentialCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many PasskeyCredentials and returns the data saved in the database.
+     * @param {PasskeyCredentialCreateManyAndReturnArgs} args - Arguments to create many PasskeyCredentials.
+     * @example
+     * // Create many PasskeyCredentials
+     * const passkeyCredential = await prisma.passkeyCredential.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many PasskeyCredentials and only return the `id`
+     * const passkeyCredentialWithIdOnly = await prisma.passkeyCredential.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends PasskeyCredentialCreateManyAndReturnArgs>(args?: SelectSubset<T, PasskeyCredentialCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PasskeyCredentialPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a PasskeyCredential.
+     * @param {PasskeyCredentialDeleteArgs} args - Arguments to delete one PasskeyCredential.
+     * @example
+     * // Delete one PasskeyCredential
+     * const PasskeyCredential = await prisma.passkeyCredential.delete({
+     *   where: {
+     *     // ... filter to delete one PasskeyCredential
+     *   }
+     * })
+     * 
+     */
+    delete<T extends PasskeyCredentialDeleteArgs>(args: SelectSubset<T, PasskeyCredentialDeleteArgs<ExtArgs>>): Prisma__PasskeyCredentialClient<$Result.GetResult<Prisma.$PasskeyCredentialPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one PasskeyCredential.
+     * @param {PasskeyCredentialUpdateArgs} args - Arguments to update one PasskeyCredential.
+     * @example
+     * // Update one PasskeyCredential
+     * const passkeyCredential = await prisma.passkeyCredential.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends PasskeyCredentialUpdateArgs>(args: SelectSubset<T, PasskeyCredentialUpdateArgs<ExtArgs>>): Prisma__PasskeyCredentialClient<$Result.GetResult<Prisma.$PasskeyCredentialPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more PasskeyCredentials.
+     * @param {PasskeyCredentialDeleteManyArgs} args - Arguments to filter PasskeyCredentials to delete.
+     * @example
+     * // Delete a few PasskeyCredentials
+     * const { count } = await prisma.passkeyCredential.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends PasskeyCredentialDeleteManyArgs>(args?: SelectSubset<T, PasskeyCredentialDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PasskeyCredentials.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PasskeyCredentialUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many PasskeyCredentials
+     * const passkeyCredential = await prisma.passkeyCredential.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends PasskeyCredentialUpdateManyArgs>(args: SelectSubset<T, PasskeyCredentialUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PasskeyCredentials and returns the data updated in the database.
+     * @param {PasskeyCredentialUpdateManyAndReturnArgs} args - Arguments to update many PasskeyCredentials.
+     * @example
+     * // Update many PasskeyCredentials
+     * const passkeyCredential = await prisma.passkeyCredential.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more PasskeyCredentials and only return the `id`
+     * const passkeyCredentialWithIdOnly = await prisma.passkeyCredential.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends PasskeyCredentialUpdateManyAndReturnArgs>(args: SelectSubset<T, PasskeyCredentialUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PasskeyCredentialPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one PasskeyCredential.
+     * @param {PasskeyCredentialUpsertArgs} args - Arguments to update or create a PasskeyCredential.
+     * @example
+     * // Update or create a PasskeyCredential
+     * const passkeyCredential = await prisma.passkeyCredential.upsert({
+     *   create: {
+     *     // ... data to create a PasskeyCredential
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the PasskeyCredential we want to update
+     *   }
+     * })
+     */
+    upsert<T extends PasskeyCredentialUpsertArgs>(args: SelectSubset<T, PasskeyCredentialUpsertArgs<ExtArgs>>): Prisma__PasskeyCredentialClient<$Result.GetResult<Prisma.$PasskeyCredentialPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of PasskeyCredentials.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PasskeyCredentialCountArgs} args - Arguments to filter PasskeyCredentials to count.
+     * @example
+     * // Count the number of PasskeyCredentials
+     * const count = await prisma.passkeyCredential.count({
+     *   where: {
+     *     // ... the filter for the PasskeyCredentials we want to count
+     *   }
+     * })
+    **/
+    count<T extends PasskeyCredentialCountArgs>(
+      args?: Subset<T, PasskeyCredentialCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], PasskeyCredentialCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a PasskeyCredential.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PasskeyCredentialAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends PasskeyCredentialAggregateArgs>(args: Subset<T, PasskeyCredentialAggregateArgs>): Prisma.PrismaPromise<GetPasskeyCredentialAggregateType<T>>
+
+    /**
+     * Group by PasskeyCredential.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PasskeyCredentialGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends PasskeyCredentialGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: PasskeyCredentialGroupByArgs['orderBy'] }
+        : { orderBy?: PasskeyCredentialGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, PasskeyCredentialGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPasskeyCredentialGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the PasskeyCredential model
+   */
+  readonly fields: PasskeyCredentialFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for PasskeyCredential.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__PasskeyCredentialClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the PasskeyCredential model
+   */
+  interface PasskeyCredentialFieldRefs {
+    readonly id: FieldRef<"PasskeyCredential", 'String'>
+    readonly userId: FieldRef<"PasskeyCredential", 'String'>
+    readonly name: FieldRef<"PasskeyCredential", 'String'>
+    readonly credentialId: FieldRef<"PasskeyCredential", 'String'>
+    readonly publicKey: FieldRef<"PasskeyCredential", 'String'>
+    readonly counter: FieldRef<"PasskeyCredential", 'BigInt'>
+    readonly deviceType: FieldRef<"PasskeyCredential", 'String'>
+    readonly backedUp: FieldRef<"PasskeyCredential", 'Boolean'>
+    readonly transports: FieldRef<"PasskeyCredential", 'String'>
+    readonly createdAt: FieldRef<"PasskeyCredential", 'DateTime'>
+    readonly lastUsedAt: FieldRef<"PasskeyCredential", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * PasskeyCredential findUnique
+   */
+  export type PasskeyCredentialFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PasskeyCredential
+     */
+    select?: PasskeyCredentialSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PasskeyCredential
+     */
+    omit?: PasskeyCredentialOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PasskeyCredentialInclude<ExtArgs> | null
+    /**
+     * Filter, which PasskeyCredential to fetch.
+     */
+    where: PasskeyCredentialWhereUniqueInput
+  }
+
+  /**
+   * PasskeyCredential findUniqueOrThrow
+   */
+  export type PasskeyCredentialFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PasskeyCredential
+     */
+    select?: PasskeyCredentialSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PasskeyCredential
+     */
+    omit?: PasskeyCredentialOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PasskeyCredentialInclude<ExtArgs> | null
+    /**
+     * Filter, which PasskeyCredential to fetch.
+     */
+    where: PasskeyCredentialWhereUniqueInput
+  }
+
+  /**
+   * PasskeyCredential findFirst
+   */
+  export type PasskeyCredentialFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PasskeyCredential
+     */
+    select?: PasskeyCredentialSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PasskeyCredential
+     */
+    omit?: PasskeyCredentialOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PasskeyCredentialInclude<ExtArgs> | null
+    /**
+     * Filter, which PasskeyCredential to fetch.
+     */
+    where?: PasskeyCredentialWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PasskeyCredentials to fetch.
+     */
+    orderBy?: PasskeyCredentialOrderByWithRelationInput | PasskeyCredentialOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PasskeyCredentials.
+     */
+    cursor?: PasskeyCredentialWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PasskeyCredentials from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PasskeyCredentials.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PasskeyCredentials.
+     */
+    distinct?: PasskeyCredentialScalarFieldEnum | PasskeyCredentialScalarFieldEnum[]
+  }
+
+  /**
+   * PasskeyCredential findFirstOrThrow
+   */
+  export type PasskeyCredentialFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PasskeyCredential
+     */
+    select?: PasskeyCredentialSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PasskeyCredential
+     */
+    omit?: PasskeyCredentialOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PasskeyCredentialInclude<ExtArgs> | null
+    /**
+     * Filter, which PasskeyCredential to fetch.
+     */
+    where?: PasskeyCredentialWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PasskeyCredentials to fetch.
+     */
+    orderBy?: PasskeyCredentialOrderByWithRelationInput | PasskeyCredentialOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PasskeyCredentials.
+     */
+    cursor?: PasskeyCredentialWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PasskeyCredentials from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PasskeyCredentials.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PasskeyCredentials.
+     */
+    distinct?: PasskeyCredentialScalarFieldEnum | PasskeyCredentialScalarFieldEnum[]
+  }
+
+  /**
+   * PasskeyCredential findMany
+   */
+  export type PasskeyCredentialFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PasskeyCredential
+     */
+    select?: PasskeyCredentialSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PasskeyCredential
+     */
+    omit?: PasskeyCredentialOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PasskeyCredentialInclude<ExtArgs> | null
+    /**
+     * Filter, which PasskeyCredentials to fetch.
+     */
+    where?: PasskeyCredentialWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PasskeyCredentials to fetch.
+     */
+    orderBy?: PasskeyCredentialOrderByWithRelationInput | PasskeyCredentialOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing PasskeyCredentials.
+     */
+    cursor?: PasskeyCredentialWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PasskeyCredentials from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PasskeyCredentials.
+     */
+    skip?: number
+    distinct?: PasskeyCredentialScalarFieldEnum | PasskeyCredentialScalarFieldEnum[]
+  }
+
+  /**
+   * PasskeyCredential create
+   */
+  export type PasskeyCredentialCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PasskeyCredential
+     */
+    select?: PasskeyCredentialSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PasskeyCredential
+     */
+    omit?: PasskeyCredentialOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PasskeyCredentialInclude<ExtArgs> | null
+    /**
+     * The data needed to create a PasskeyCredential.
+     */
+    data: XOR<PasskeyCredentialCreateInput, PasskeyCredentialUncheckedCreateInput>
+  }
+
+  /**
+   * PasskeyCredential createMany
+   */
+  export type PasskeyCredentialCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many PasskeyCredentials.
+     */
+    data: PasskeyCredentialCreateManyInput | PasskeyCredentialCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PasskeyCredential createManyAndReturn
+   */
+  export type PasskeyCredentialCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PasskeyCredential
+     */
+    select?: PasskeyCredentialSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the PasskeyCredential
+     */
+    omit?: PasskeyCredentialOmit<ExtArgs> | null
+    /**
+     * The data used to create many PasskeyCredentials.
+     */
+    data: PasskeyCredentialCreateManyInput | PasskeyCredentialCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PasskeyCredentialIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * PasskeyCredential update
+   */
+  export type PasskeyCredentialUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PasskeyCredential
+     */
+    select?: PasskeyCredentialSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PasskeyCredential
+     */
+    omit?: PasskeyCredentialOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PasskeyCredentialInclude<ExtArgs> | null
+    /**
+     * The data needed to update a PasskeyCredential.
+     */
+    data: XOR<PasskeyCredentialUpdateInput, PasskeyCredentialUncheckedUpdateInput>
+    /**
+     * Choose, which PasskeyCredential to update.
+     */
+    where: PasskeyCredentialWhereUniqueInput
+  }
+
+  /**
+   * PasskeyCredential updateMany
+   */
+  export type PasskeyCredentialUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update PasskeyCredentials.
+     */
+    data: XOR<PasskeyCredentialUpdateManyMutationInput, PasskeyCredentialUncheckedUpdateManyInput>
+    /**
+     * Filter which PasskeyCredentials to update
+     */
+    where?: PasskeyCredentialWhereInput
+    /**
+     * Limit how many PasskeyCredentials to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * PasskeyCredential updateManyAndReturn
+   */
+  export type PasskeyCredentialUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PasskeyCredential
+     */
+    select?: PasskeyCredentialSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the PasskeyCredential
+     */
+    omit?: PasskeyCredentialOmit<ExtArgs> | null
+    /**
+     * The data used to update PasskeyCredentials.
+     */
+    data: XOR<PasskeyCredentialUpdateManyMutationInput, PasskeyCredentialUncheckedUpdateManyInput>
+    /**
+     * Filter which PasskeyCredentials to update
+     */
+    where?: PasskeyCredentialWhereInput
+    /**
+     * Limit how many PasskeyCredentials to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PasskeyCredentialIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * PasskeyCredential upsert
+   */
+  export type PasskeyCredentialUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PasskeyCredential
+     */
+    select?: PasskeyCredentialSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PasskeyCredential
+     */
+    omit?: PasskeyCredentialOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PasskeyCredentialInclude<ExtArgs> | null
+    /**
+     * The filter to search for the PasskeyCredential to update in case it exists.
+     */
+    where: PasskeyCredentialWhereUniqueInput
+    /**
+     * In case the PasskeyCredential found by the `where` argument doesn't exist, create a new PasskeyCredential with this data.
+     */
+    create: XOR<PasskeyCredentialCreateInput, PasskeyCredentialUncheckedCreateInput>
+    /**
+     * In case the PasskeyCredential was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<PasskeyCredentialUpdateInput, PasskeyCredentialUncheckedUpdateInput>
+  }
+
+  /**
+   * PasskeyCredential delete
+   */
+  export type PasskeyCredentialDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PasskeyCredential
+     */
+    select?: PasskeyCredentialSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PasskeyCredential
+     */
+    omit?: PasskeyCredentialOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PasskeyCredentialInclude<ExtArgs> | null
+    /**
+     * Filter which PasskeyCredential to delete.
+     */
+    where: PasskeyCredentialWhereUniqueInput
+  }
+
+  /**
+   * PasskeyCredential deleteMany
+   */
+  export type PasskeyCredentialDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PasskeyCredentials to delete
+     */
+    where?: PasskeyCredentialWhereInput
+    /**
+     * Limit how many PasskeyCredentials to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * PasskeyCredential without action
+   */
+  export type PasskeyCredentialDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PasskeyCredential
+     */
+    select?: PasskeyCredentialSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PasskeyCredential
+     */
+    omit?: PasskeyCredentialOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PasskeyCredentialInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Model SavedSearch
    */
 
@@ -56307,6 +57605,23 @@ export namespace Prisma {
   export type RecoveryCodeScalarFieldEnum = (typeof RecoveryCodeScalarFieldEnum)[keyof typeof RecoveryCodeScalarFieldEnum]
 
 
+  export const PasskeyCredentialScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    name: 'name',
+    credentialId: 'credentialId',
+    publicKey: 'publicKey',
+    counter: 'counter',
+    deviceType: 'deviceType',
+    backedUp: 'backedUp',
+    transports: 'transports',
+    createdAt: 'createdAt',
+    lastUsedAt: 'lastUsedAt'
+  };
+
+  export type PasskeyCredentialScalarFieldEnum = (typeof PasskeyCredentialScalarFieldEnum)[keyof typeof PasskeyCredentialScalarFieldEnum]
+
+
   export const SavedSearchScalarFieldEnum: {
     id: 'id',
     userId: 'userId',
@@ -56960,6 +58275,7 @@ export namespace Prisma {
     accounts?: AccountListRelationFilter
     mfaCredentials?: MfaCredentialListRelationFilter
     recoveryCodes?: RecoveryCodeListRelationFilter
+    passkeyCredentials?: PasskeyCredentialListRelationFilter
     passwordHistory?: PasswordHistoryListRelationFilter
     passwordBreachesChecked?: PasswordBreachListRelationFilter
     passwordBreachesResolved?: PasswordBreachListRelationFilter
@@ -57021,6 +58337,7 @@ export namespace Prisma {
     accounts?: AccountOrderByRelationAggregateInput
     mfaCredentials?: MfaCredentialOrderByRelationAggregateInput
     recoveryCodes?: RecoveryCodeOrderByRelationAggregateInput
+    passkeyCredentials?: PasskeyCredentialOrderByRelationAggregateInput
     passwordHistory?: PasswordHistoryOrderByRelationAggregateInput
     passwordBreachesChecked?: PasswordBreachOrderByRelationAggregateInput
     passwordBreachesResolved?: PasswordBreachOrderByRelationAggregateInput
@@ -57085,6 +58402,7 @@ export namespace Prisma {
     accounts?: AccountListRelationFilter
     mfaCredentials?: MfaCredentialListRelationFilter
     recoveryCodes?: RecoveryCodeListRelationFilter
+    passkeyCredentials?: PasskeyCredentialListRelationFilter
     passwordHistory?: PasswordHistoryListRelationFilter
     passwordBreachesChecked?: PasswordBreachListRelationFilter
     passwordBreachesResolved?: PasswordBreachListRelationFilter
@@ -59154,6 +60472,93 @@ export namespace Prisma {
     createdAt?: DateTimeWithAggregatesFilter<"RecoveryCode"> | Date | string
   }
 
+  export type PasskeyCredentialWhereInput = {
+    AND?: PasskeyCredentialWhereInput | PasskeyCredentialWhereInput[]
+    OR?: PasskeyCredentialWhereInput[]
+    NOT?: PasskeyCredentialWhereInput | PasskeyCredentialWhereInput[]
+    id?: StringFilter<"PasskeyCredential"> | string
+    userId?: StringFilter<"PasskeyCredential"> | string
+    name?: StringFilter<"PasskeyCredential"> | string
+    credentialId?: StringFilter<"PasskeyCredential"> | string
+    publicKey?: StringFilter<"PasskeyCredential"> | string
+    counter?: BigIntFilter<"PasskeyCredential"> | bigint | number
+    deviceType?: StringNullableFilter<"PasskeyCredential"> | string | null
+    backedUp?: BoolFilter<"PasskeyCredential"> | boolean
+    transports?: StringNullableFilter<"PasskeyCredential"> | string | null
+    createdAt?: DateTimeFilter<"PasskeyCredential"> | Date | string
+    lastUsedAt?: DateTimeNullableFilter<"PasskeyCredential"> | Date | string | null
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }
+
+  export type PasskeyCredentialOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    name?: SortOrder
+    credentialId?: SortOrder
+    publicKey?: SortOrder
+    counter?: SortOrder
+    deviceType?: SortOrderInput | SortOrder
+    backedUp?: SortOrder
+    transports?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    lastUsedAt?: SortOrderInput | SortOrder
+    user?: UserOrderByWithRelationInput
+  }
+
+  export type PasskeyCredentialWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    credentialId?: string
+    AND?: PasskeyCredentialWhereInput | PasskeyCredentialWhereInput[]
+    OR?: PasskeyCredentialWhereInput[]
+    NOT?: PasskeyCredentialWhereInput | PasskeyCredentialWhereInput[]
+    userId?: StringFilter<"PasskeyCredential"> | string
+    name?: StringFilter<"PasskeyCredential"> | string
+    publicKey?: StringFilter<"PasskeyCredential"> | string
+    counter?: BigIntFilter<"PasskeyCredential"> | bigint | number
+    deviceType?: StringNullableFilter<"PasskeyCredential"> | string | null
+    backedUp?: BoolFilter<"PasskeyCredential"> | boolean
+    transports?: StringNullableFilter<"PasskeyCredential"> | string | null
+    createdAt?: DateTimeFilter<"PasskeyCredential"> | Date | string
+    lastUsedAt?: DateTimeNullableFilter<"PasskeyCredential"> | Date | string | null
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }, "id" | "credentialId">
+
+  export type PasskeyCredentialOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    name?: SortOrder
+    credentialId?: SortOrder
+    publicKey?: SortOrder
+    counter?: SortOrder
+    deviceType?: SortOrderInput | SortOrder
+    backedUp?: SortOrder
+    transports?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    lastUsedAt?: SortOrderInput | SortOrder
+    _count?: PasskeyCredentialCountOrderByAggregateInput
+    _avg?: PasskeyCredentialAvgOrderByAggregateInput
+    _max?: PasskeyCredentialMaxOrderByAggregateInput
+    _min?: PasskeyCredentialMinOrderByAggregateInput
+    _sum?: PasskeyCredentialSumOrderByAggregateInput
+  }
+
+  export type PasskeyCredentialScalarWhereWithAggregatesInput = {
+    AND?: PasskeyCredentialScalarWhereWithAggregatesInput | PasskeyCredentialScalarWhereWithAggregatesInput[]
+    OR?: PasskeyCredentialScalarWhereWithAggregatesInput[]
+    NOT?: PasskeyCredentialScalarWhereWithAggregatesInput | PasskeyCredentialScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"PasskeyCredential"> | string
+    userId?: StringWithAggregatesFilter<"PasskeyCredential"> | string
+    name?: StringWithAggregatesFilter<"PasskeyCredential"> | string
+    credentialId?: StringWithAggregatesFilter<"PasskeyCredential"> | string
+    publicKey?: StringWithAggregatesFilter<"PasskeyCredential"> | string
+    counter?: BigIntWithAggregatesFilter<"PasskeyCredential"> | bigint | number
+    deviceType?: StringNullableWithAggregatesFilter<"PasskeyCredential"> | string | null
+    backedUp?: BoolWithAggregatesFilter<"PasskeyCredential"> | boolean
+    transports?: StringNullableWithAggregatesFilter<"PasskeyCredential"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"PasskeyCredential"> | Date | string
+    lastUsedAt?: DateTimeNullableWithAggregatesFilter<"PasskeyCredential"> | Date | string | null
+  }
+
   export type SavedSearchWhereInput = {
     AND?: SavedSearchWhereInput | SavedSearchWhereInput[]
     OR?: SavedSearchWhereInput[]
@@ -60649,6 +62054,7 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachCreateNestedManyWithoutResolvedByUserInput
@@ -60709,6 +62115,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialUncheckedCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeUncheckedCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialUncheckedCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryUncheckedCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachUncheckedCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachUncheckedCreateNestedManyWithoutResolvedByUserInput
@@ -60767,6 +62174,7 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUpdateManyWithoutResolvedByUserNestedInput
@@ -60827,6 +62235,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUncheckedUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUncheckedUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUncheckedUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUncheckedUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUncheckedUpdateManyWithoutResolvedByUserNestedInput
@@ -63053,6 +64462,103 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type PasskeyCredentialCreateInput = {
+    id?: string
+    name: string
+    credentialId: string
+    publicKey: string
+    counter?: bigint | number
+    deviceType?: string | null
+    backedUp?: boolean
+    transports?: string | null
+    createdAt?: Date | string
+    lastUsedAt?: Date | string | null
+    user: UserCreateNestedOneWithoutPasskeyCredentialsInput
+  }
+
+  export type PasskeyCredentialUncheckedCreateInput = {
+    id?: string
+    userId: string
+    name: string
+    credentialId: string
+    publicKey: string
+    counter?: bigint | number
+    deviceType?: string | null
+    backedUp?: boolean
+    transports?: string | null
+    createdAt?: Date | string
+    lastUsedAt?: Date | string | null
+  }
+
+  export type PasskeyCredentialUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    credentialId?: StringFieldUpdateOperationsInput | string
+    publicKey?: StringFieldUpdateOperationsInput | string
+    counter?: BigIntFieldUpdateOperationsInput | bigint | number
+    deviceType?: NullableStringFieldUpdateOperationsInput | string | null
+    backedUp?: BoolFieldUpdateOperationsInput | boolean
+    transports?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastUsedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    user?: UserUpdateOneRequiredWithoutPasskeyCredentialsNestedInput
+  }
+
+  export type PasskeyCredentialUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    credentialId?: StringFieldUpdateOperationsInput | string
+    publicKey?: StringFieldUpdateOperationsInput | string
+    counter?: BigIntFieldUpdateOperationsInput | bigint | number
+    deviceType?: NullableStringFieldUpdateOperationsInput | string | null
+    backedUp?: BoolFieldUpdateOperationsInput | boolean
+    transports?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastUsedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type PasskeyCredentialCreateManyInput = {
+    id?: string
+    userId: string
+    name: string
+    credentialId: string
+    publicKey: string
+    counter?: bigint | number
+    deviceType?: string | null
+    backedUp?: boolean
+    transports?: string | null
+    createdAt?: Date | string
+    lastUsedAt?: Date | string | null
+  }
+
+  export type PasskeyCredentialUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    credentialId?: StringFieldUpdateOperationsInput | string
+    publicKey?: StringFieldUpdateOperationsInput | string
+    counter?: BigIntFieldUpdateOperationsInput | bigint | number
+    deviceType?: NullableStringFieldUpdateOperationsInput | string | null
+    backedUp?: BoolFieldUpdateOperationsInput | boolean
+    transports?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastUsedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type PasskeyCredentialUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    credentialId?: StringFieldUpdateOperationsInput | string
+    publicKey?: StringFieldUpdateOperationsInput | string
+    counter?: BigIntFieldUpdateOperationsInput | bigint | number
+    deviceType?: NullableStringFieldUpdateOperationsInput | string | null
+    backedUp?: BoolFieldUpdateOperationsInput | boolean
+    transports?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastUsedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
   export type SavedSearchCreateInput = {
     id?: string
     name: string
@@ -64866,6 +66372,12 @@ export namespace Prisma {
     none?: RecoveryCodeWhereInput
   }
 
+  export type PasskeyCredentialListRelationFilter = {
+    every?: PasskeyCredentialWhereInput
+    some?: PasskeyCredentialWhereInput
+    none?: PasskeyCredentialWhereInput
+  }
+
   export type PasswordHistoryListRelationFilter = {
     every?: PasswordHistoryWhereInput
     some?: PasswordHistoryWhereInput
@@ -64971,6 +66483,10 @@ export namespace Prisma {
   }
 
   export type RecoveryCodeOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type PasskeyCredentialOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -66462,6 +67978,56 @@ export namespace Prisma {
     createdAt?: SortOrder
   }
 
+  export type PasskeyCredentialCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    name?: SortOrder
+    credentialId?: SortOrder
+    publicKey?: SortOrder
+    counter?: SortOrder
+    deviceType?: SortOrder
+    backedUp?: SortOrder
+    transports?: SortOrder
+    createdAt?: SortOrder
+    lastUsedAt?: SortOrder
+  }
+
+  export type PasskeyCredentialAvgOrderByAggregateInput = {
+    counter?: SortOrder
+  }
+
+  export type PasskeyCredentialMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    name?: SortOrder
+    credentialId?: SortOrder
+    publicKey?: SortOrder
+    counter?: SortOrder
+    deviceType?: SortOrder
+    backedUp?: SortOrder
+    transports?: SortOrder
+    createdAt?: SortOrder
+    lastUsedAt?: SortOrder
+  }
+
+  export type PasskeyCredentialMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    name?: SortOrder
+    credentialId?: SortOrder
+    publicKey?: SortOrder
+    counter?: SortOrder
+    deviceType?: SortOrder
+    backedUp?: SortOrder
+    transports?: SortOrder
+    createdAt?: SortOrder
+    lastUsedAt?: SortOrder
+  }
+
+  export type PasskeyCredentialSumOrderByAggregateInput = {
+    counter?: SortOrder
+  }
+
   export type StringNullableListFilter<$PrismaModel = never> = {
     equals?: string[] | ListStringFieldRefInput<$PrismaModel> | null
     has?: string | StringFieldRefInput<$PrismaModel> | null
@@ -67934,6 +69500,13 @@ export namespace Prisma {
     connect?: RecoveryCodeWhereUniqueInput | RecoveryCodeWhereUniqueInput[]
   }
 
+  export type PasskeyCredentialCreateNestedManyWithoutUserInput = {
+    create?: XOR<PasskeyCredentialCreateWithoutUserInput, PasskeyCredentialUncheckedCreateWithoutUserInput> | PasskeyCredentialCreateWithoutUserInput[] | PasskeyCredentialUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: PasskeyCredentialCreateOrConnectWithoutUserInput | PasskeyCredentialCreateOrConnectWithoutUserInput[]
+    createMany?: PasskeyCredentialCreateManyUserInputEnvelope
+    connect?: PasskeyCredentialWhereUniqueInput | PasskeyCredentialWhereUniqueInput[]
+  }
+
   export type PasswordHistoryCreateNestedManyWithoutChangedByUserInput = {
     create?: XOR<PasswordHistoryCreateWithoutChangedByUserInput, PasswordHistoryUncheckedCreateWithoutChangedByUserInput> | PasswordHistoryCreateWithoutChangedByUserInput[] | PasswordHistoryUncheckedCreateWithoutChangedByUserInput[]
     connectOrCreate?: PasswordHistoryCreateOrConnectWithoutChangedByUserInput | PasswordHistoryCreateOrConnectWithoutChangedByUserInput[]
@@ -68183,6 +69756,13 @@ export namespace Prisma {
     connectOrCreate?: RecoveryCodeCreateOrConnectWithoutUserInput | RecoveryCodeCreateOrConnectWithoutUserInput[]
     createMany?: RecoveryCodeCreateManyUserInputEnvelope
     connect?: RecoveryCodeWhereUniqueInput | RecoveryCodeWhereUniqueInput[]
+  }
+
+  export type PasskeyCredentialUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<PasskeyCredentialCreateWithoutUserInput, PasskeyCredentialUncheckedCreateWithoutUserInput> | PasskeyCredentialCreateWithoutUserInput[] | PasskeyCredentialUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: PasskeyCredentialCreateOrConnectWithoutUserInput | PasskeyCredentialCreateOrConnectWithoutUserInput[]
+    createMany?: PasskeyCredentialCreateManyUserInputEnvelope
+    connect?: PasskeyCredentialWhereUniqueInput | PasskeyCredentialWhereUniqueInput[]
   }
 
   export type PasswordHistoryUncheckedCreateNestedManyWithoutChangedByUserInput = {
@@ -68517,6 +70097,20 @@ export namespace Prisma {
     update?: RecoveryCodeUpdateWithWhereUniqueWithoutUserInput | RecoveryCodeUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: RecoveryCodeUpdateManyWithWhereWithoutUserInput | RecoveryCodeUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: RecoveryCodeScalarWhereInput | RecoveryCodeScalarWhereInput[]
+  }
+
+  export type PasskeyCredentialUpdateManyWithoutUserNestedInput = {
+    create?: XOR<PasskeyCredentialCreateWithoutUserInput, PasskeyCredentialUncheckedCreateWithoutUserInput> | PasskeyCredentialCreateWithoutUserInput[] | PasskeyCredentialUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: PasskeyCredentialCreateOrConnectWithoutUserInput | PasskeyCredentialCreateOrConnectWithoutUserInput[]
+    upsert?: PasskeyCredentialUpsertWithWhereUniqueWithoutUserInput | PasskeyCredentialUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: PasskeyCredentialCreateManyUserInputEnvelope
+    set?: PasskeyCredentialWhereUniqueInput | PasskeyCredentialWhereUniqueInput[]
+    disconnect?: PasskeyCredentialWhereUniqueInput | PasskeyCredentialWhereUniqueInput[]
+    delete?: PasskeyCredentialWhereUniqueInput | PasskeyCredentialWhereUniqueInput[]
+    connect?: PasskeyCredentialWhereUniqueInput | PasskeyCredentialWhereUniqueInput[]
+    update?: PasskeyCredentialUpdateWithWhereUniqueWithoutUserInput | PasskeyCredentialUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: PasskeyCredentialUpdateManyWithWhereWithoutUserInput | PasskeyCredentialUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: PasskeyCredentialScalarWhereInput | PasskeyCredentialScalarWhereInput[]
   }
 
   export type PasswordHistoryUpdateManyWithoutChangedByUserNestedInput = {
@@ -69017,6 +70611,20 @@ export namespace Prisma {
     update?: RecoveryCodeUpdateWithWhereUniqueWithoutUserInput | RecoveryCodeUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: RecoveryCodeUpdateManyWithWhereWithoutUserInput | RecoveryCodeUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: RecoveryCodeScalarWhereInput | RecoveryCodeScalarWhereInput[]
+  }
+
+  export type PasskeyCredentialUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<PasskeyCredentialCreateWithoutUserInput, PasskeyCredentialUncheckedCreateWithoutUserInput> | PasskeyCredentialCreateWithoutUserInput[] | PasskeyCredentialUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: PasskeyCredentialCreateOrConnectWithoutUserInput | PasskeyCredentialCreateOrConnectWithoutUserInput[]
+    upsert?: PasskeyCredentialUpsertWithWhereUniqueWithoutUserInput | PasskeyCredentialUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: PasskeyCredentialCreateManyUserInputEnvelope
+    set?: PasskeyCredentialWhereUniqueInput | PasskeyCredentialWhereUniqueInput[]
+    disconnect?: PasskeyCredentialWhereUniqueInput | PasskeyCredentialWhereUniqueInput[]
+    delete?: PasskeyCredentialWhereUniqueInput | PasskeyCredentialWhereUniqueInput[]
+    connect?: PasskeyCredentialWhereUniqueInput | PasskeyCredentialWhereUniqueInput[]
+    update?: PasskeyCredentialUpdateWithWhereUniqueWithoutUserInput | PasskeyCredentialUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: PasskeyCredentialUpdateManyWithWhereWithoutUserInput | PasskeyCredentialUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: PasskeyCredentialScalarWhereInput | PasskeyCredentialScalarWhereInput[]
   }
 
   export type PasswordHistoryUncheckedUpdateManyWithoutChangedByUserNestedInput = {
@@ -70645,6 +72253,20 @@ export namespace Prisma {
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutRecoveryCodesInput, UserUpdateWithoutRecoveryCodesInput>, UserUncheckedUpdateWithoutRecoveryCodesInput>
   }
 
+  export type UserCreateNestedOneWithoutPasskeyCredentialsInput = {
+    create?: XOR<UserCreateWithoutPasskeyCredentialsInput, UserUncheckedCreateWithoutPasskeyCredentialsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutPasskeyCredentialsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type UserUpdateOneRequiredWithoutPasskeyCredentialsNestedInput = {
+    create?: XOR<UserCreateWithoutPasskeyCredentialsInput, UserUncheckedCreateWithoutPasskeyCredentialsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutPasskeyCredentialsInput
+    upsert?: UserUpsertWithoutPasskeyCredentialsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutPasskeyCredentialsInput, UserUpdateWithoutPasskeyCredentialsInput>, UserUncheckedUpdateWithoutPasskeyCredentialsInput>
+  }
+
   export type SavedSearchCreatefolderIdsInput = {
     set: string[]
   }
@@ -71646,6 +73268,7 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachCreateNestedManyWithoutResolvedByUserInput
@@ -71705,6 +73328,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialUncheckedCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeUncheckedCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialUncheckedCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryUncheckedCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachUncheckedCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachUncheckedCreateNestedManyWithoutResolvedByUserInput
@@ -73294,6 +74918,42 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type PasskeyCredentialCreateWithoutUserInput = {
+    id?: string
+    name: string
+    credentialId: string
+    publicKey: string
+    counter?: bigint | number
+    deviceType?: string | null
+    backedUp?: boolean
+    transports?: string | null
+    createdAt?: Date | string
+    lastUsedAt?: Date | string | null
+  }
+
+  export type PasskeyCredentialUncheckedCreateWithoutUserInput = {
+    id?: string
+    name: string
+    credentialId: string
+    publicKey: string
+    counter?: bigint | number
+    deviceType?: string | null
+    backedUp?: boolean
+    transports?: string | null
+    createdAt?: Date | string
+    lastUsedAt?: Date | string | null
+  }
+
+  export type PasskeyCredentialCreateOrConnectWithoutUserInput = {
+    where: PasskeyCredentialWhereUniqueInput
+    create: XOR<PasskeyCredentialCreateWithoutUserInput, PasskeyCredentialUncheckedCreateWithoutUserInput>
+  }
+
+  export type PasskeyCredentialCreateManyUserInputEnvelope = {
+    data: PasskeyCredentialCreateManyUserInput | PasskeyCredentialCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
   export type PasswordHistoryCreateWithoutChangedByUserInput = {
     id?: string
     name: string
@@ -73800,6 +75460,7 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachCreateNestedManyWithoutResolvedByUserInput
@@ -73859,6 +75520,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialUncheckedCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeUncheckedCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialUncheckedCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryUncheckedCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachUncheckedCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachUncheckedCreateNestedManyWithoutResolvedByUserInput
@@ -73921,6 +75583,7 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachCreateNestedManyWithoutResolvedByUserInput
@@ -73979,6 +75642,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialUncheckedCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeUncheckedCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialUncheckedCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryUncheckedCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachUncheckedCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachUncheckedCreateNestedManyWithoutResolvedByUserInput
@@ -74765,6 +76429,39 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"RecoveryCode"> | Date | string
   }
 
+  export type PasskeyCredentialUpsertWithWhereUniqueWithoutUserInput = {
+    where: PasskeyCredentialWhereUniqueInput
+    update: XOR<PasskeyCredentialUpdateWithoutUserInput, PasskeyCredentialUncheckedUpdateWithoutUserInput>
+    create: XOR<PasskeyCredentialCreateWithoutUserInput, PasskeyCredentialUncheckedCreateWithoutUserInput>
+  }
+
+  export type PasskeyCredentialUpdateWithWhereUniqueWithoutUserInput = {
+    where: PasskeyCredentialWhereUniqueInput
+    data: XOR<PasskeyCredentialUpdateWithoutUserInput, PasskeyCredentialUncheckedUpdateWithoutUserInput>
+  }
+
+  export type PasskeyCredentialUpdateManyWithWhereWithoutUserInput = {
+    where: PasskeyCredentialScalarWhereInput
+    data: XOR<PasskeyCredentialUpdateManyMutationInput, PasskeyCredentialUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type PasskeyCredentialScalarWhereInput = {
+    AND?: PasskeyCredentialScalarWhereInput | PasskeyCredentialScalarWhereInput[]
+    OR?: PasskeyCredentialScalarWhereInput[]
+    NOT?: PasskeyCredentialScalarWhereInput | PasskeyCredentialScalarWhereInput[]
+    id?: StringFilter<"PasskeyCredential"> | string
+    userId?: StringFilter<"PasskeyCredential"> | string
+    name?: StringFilter<"PasskeyCredential"> | string
+    credentialId?: StringFilter<"PasskeyCredential"> | string
+    publicKey?: StringFilter<"PasskeyCredential"> | string
+    counter?: BigIntFilter<"PasskeyCredential"> | bigint | number
+    deviceType?: StringNullableFilter<"PasskeyCredential"> | string | null
+    backedUp?: BoolFilter<"PasskeyCredential"> | boolean
+    transports?: StringNullableFilter<"PasskeyCredential"> | string | null
+    createdAt?: DateTimeFilter<"PasskeyCredential"> | Date | string
+    lastUsedAt?: DateTimeNullableFilter<"PasskeyCredential"> | Date | string | null
+  }
+
   export type PasswordHistoryUpsertWithWhereUniqueWithoutChangedByUserInput = {
     where: PasswordHistoryWhereUniqueInput
     update: XOR<PasswordHistoryUpdateWithoutChangedByUserInput, PasswordHistoryUncheckedUpdateWithoutChangedByUserInput>
@@ -75120,6 +76817,7 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUpdateManyWithoutResolvedByUserNestedInput
@@ -75179,6 +76877,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUncheckedUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUncheckedUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUncheckedUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUncheckedUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUncheckedUpdateManyWithoutResolvedByUserNestedInput
@@ -75510,6 +77209,7 @@ export namespace Prisma {
     sessions?: SessionCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachCreateNestedManyWithoutResolvedByUserInput
@@ -75569,6 +77269,7 @@ export namespace Prisma {
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialUncheckedCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeUncheckedCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialUncheckedCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryUncheckedCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachUncheckedCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachUncheckedCreateNestedManyWithoutResolvedByUserInput
@@ -75642,6 +77343,7 @@ export namespace Prisma {
     sessions?: SessionUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUpdateManyWithoutResolvedByUserNestedInput
@@ -75701,6 +77403,7 @@ export namespace Prisma {
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUncheckedUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUncheckedUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUncheckedUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUncheckedUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUncheckedUpdateManyWithoutResolvedByUserNestedInput
@@ -75758,6 +77461,7 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachCreateNestedManyWithoutResolvedByUserInput
@@ -75817,6 +77521,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialUncheckedCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeUncheckedCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialUncheckedCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryUncheckedCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachUncheckedCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachUncheckedCreateNestedManyWithoutResolvedByUserInput
@@ -75890,6 +77595,7 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUpdateManyWithoutResolvedByUserNestedInput
@@ -75949,6 +77655,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUncheckedUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUncheckedUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUncheckedUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUncheckedUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUncheckedUpdateManyWithoutResolvedByUserNestedInput
@@ -76006,6 +77713,7 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachCreateNestedManyWithoutResolvedByUserInput
@@ -76065,6 +77773,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialUncheckedCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeUncheckedCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialUncheckedCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryUncheckedCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachUncheckedCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachUncheckedCreateNestedManyWithoutResolvedByUserInput
@@ -76408,6 +78117,7 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUpdateManyWithoutResolvedByUserNestedInput
@@ -76467,6 +78177,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUncheckedUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUncheckedUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUncheckedUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUncheckedUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUncheckedUpdateManyWithoutResolvedByUserNestedInput
@@ -76762,6 +78473,7 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialCreateNestedManyWithoutUserInput
     passwordBreachesChecked?: PasswordBreachCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachCreateNestedManyWithoutResolvedByUserInput
     rotationPolicies?: PasswordRotationPolicyCreateNestedManyWithoutOwnerInput
@@ -76821,6 +78533,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialUncheckedCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeUncheckedCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialUncheckedCreateNestedManyWithoutUserInput
     passwordBreachesChecked?: PasswordBreachUncheckedCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachUncheckedCreateNestedManyWithoutResolvedByUserInput
     rotationPolicies?: PasswordRotationPolicyUncheckedCreateNestedManyWithoutOwnerInput
@@ -76953,6 +78666,7 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUpdateManyWithoutUserNestedInput
     passwordBreachesChecked?: PasswordBreachUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUpdateManyWithoutResolvedByUserNestedInput
     rotationPolicies?: PasswordRotationPolicyUpdateManyWithoutOwnerNestedInput
@@ -77012,6 +78726,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUncheckedUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUncheckedUpdateManyWithoutUserNestedInput
     passwordBreachesChecked?: PasswordBreachUncheckedUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUncheckedUpdateManyWithoutResolvedByUserNestedInput
     rotationPolicies?: PasswordRotationPolicyUncheckedUpdateManyWithoutOwnerNestedInput
@@ -77122,6 +78837,7 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryCreateNestedManyWithoutChangedByUserInput
     passwordBreachesResolved?: PasswordBreachCreateNestedManyWithoutResolvedByUserInput
     rotationPolicies?: PasswordRotationPolicyCreateNestedManyWithoutOwnerInput
@@ -77181,6 +78897,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialUncheckedCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeUncheckedCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialUncheckedCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryUncheckedCreateNestedManyWithoutChangedByUserInput
     passwordBreachesResolved?: PasswordBreachUncheckedCreateNestedManyWithoutResolvedByUserInput
     rotationPolicies?: PasswordRotationPolicyUncheckedCreateNestedManyWithoutOwnerInput
@@ -77243,6 +78960,7 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachCreateNestedManyWithoutCheckedByUserInput
     rotationPolicies?: PasswordRotationPolicyCreateNestedManyWithoutOwnerInput
@@ -77302,6 +79020,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialUncheckedCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeUncheckedCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialUncheckedCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryUncheckedCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachUncheckedCreateNestedManyWithoutCheckedByUserInput
     rotationPolicies?: PasswordRotationPolicyUncheckedCreateNestedManyWithoutOwnerInput
@@ -77434,6 +79153,7 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUpdateManyWithoutResolvedByUserNestedInput
     rotationPolicies?: PasswordRotationPolicyUpdateManyWithoutOwnerNestedInput
@@ -77493,6 +79213,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUncheckedUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUncheckedUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUncheckedUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUncheckedUpdateManyWithoutResolvedByUserNestedInput
     rotationPolicies?: PasswordRotationPolicyUncheckedUpdateManyWithoutOwnerNestedInput
@@ -77561,6 +79282,7 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUpdateManyWithoutCheckedByUserNestedInput
     rotationPolicies?: PasswordRotationPolicyUpdateManyWithoutOwnerNestedInput
@@ -77620,6 +79342,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUncheckedUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUncheckedUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUncheckedUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUncheckedUpdateManyWithoutCheckedByUserNestedInput
     rotationPolicies?: PasswordRotationPolicyUncheckedUpdateManyWithoutOwnerNestedInput
@@ -77677,6 +79400,7 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachCreateNestedManyWithoutResolvedByUserInput
@@ -77736,6 +79460,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialUncheckedCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeUncheckedCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialUncheckedCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryUncheckedCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachUncheckedCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachUncheckedCreateNestedManyWithoutResolvedByUserInput
@@ -77905,6 +79630,7 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUpdateManyWithoutResolvedByUserNestedInput
@@ -77964,6 +79690,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUncheckedUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUncheckedUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUncheckedUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUncheckedUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUncheckedUpdateManyWithoutResolvedByUserNestedInput
@@ -78141,6 +79868,7 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachCreateNestedManyWithoutResolvedByUserInput
@@ -78200,6 +79928,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialUncheckedCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeUncheckedCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialUncheckedCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryUncheckedCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachUncheckedCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachUncheckedCreateNestedManyWithoutResolvedByUserInput
@@ -78373,6 +80102,7 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUpdateManyWithoutResolvedByUserNestedInput
@@ -78432,6 +80162,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUncheckedUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUncheckedUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUncheckedUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUncheckedUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUncheckedUpdateManyWithoutResolvedByUserNestedInput
@@ -78847,6 +80578,7 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachCreateNestedManyWithoutResolvedByUserInput
@@ -78906,6 +80638,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialUncheckedCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeUncheckedCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialUncheckedCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryUncheckedCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachUncheckedCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachUncheckedCreateNestedManyWithoutResolvedByUserInput
@@ -79063,6 +80796,7 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUpdateManyWithoutResolvedByUserNestedInput
@@ -79122,6 +80856,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUncheckedUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUncheckedUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUncheckedUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUncheckedUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUncheckedUpdateManyWithoutResolvedByUserNestedInput
@@ -79264,6 +80999,7 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachCreateNestedManyWithoutResolvedByUserInput
@@ -79323,6 +81059,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialUncheckedCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeUncheckedCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialUncheckedCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryUncheckedCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachUncheckedCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachUncheckedCreateNestedManyWithoutResolvedByUserInput
@@ -79455,6 +81192,7 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUpdateManyWithoutResolvedByUserNestedInput
@@ -79514,6 +81252,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUncheckedUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUncheckedUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUncheckedUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUncheckedUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUncheckedUpdateManyWithoutResolvedByUserNestedInput
@@ -79791,6 +81530,7 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachCreateNestedManyWithoutResolvedByUserInput
@@ -79850,6 +81590,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialUncheckedCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeUncheckedCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialUncheckedCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryUncheckedCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachUncheckedCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachUncheckedCreateNestedManyWithoutResolvedByUserInput
@@ -79954,6 +81695,7 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUpdateManyWithoutResolvedByUserNestedInput
@@ -80013,6 +81755,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUncheckedUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUncheckedUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUncheckedUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUncheckedUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUncheckedUpdateManyWithoutResolvedByUserNestedInput
@@ -80268,6 +82011,7 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachCreateNestedManyWithoutResolvedByUserInput
@@ -80327,6 +82071,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialUncheckedCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeUncheckedCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialUncheckedCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryUncheckedCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachUncheckedCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachUncheckedCreateNestedManyWithoutResolvedByUserInput
@@ -80400,6 +82145,7 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUpdateManyWithoutResolvedByUserNestedInput
@@ -80459,6 +82205,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUncheckedUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUncheckedUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUncheckedUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUncheckedUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUncheckedUpdateManyWithoutResolvedByUserNestedInput
@@ -80570,6 +82317,7 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachCreateNestedManyWithoutResolvedByUserInput
@@ -80629,6 +82377,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialUncheckedCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeUncheckedCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialUncheckedCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryUncheckedCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachUncheckedCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachUncheckedCreateNestedManyWithoutResolvedByUserInput
@@ -80761,6 +82510,7 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUpdateManyWithoutResolvedByUserNestedInput
@@ -80820,6 +82570,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUncheckedUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUncheckedUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUncheckedUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUncheckedUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUncheckedUpdateManyWithoutResolvedByUserNestedInput
@@ -80877,6 +82628,7 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachCreateNestedManyWithoutResolvedByUserInput
@@ -80936,6 +82688,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialUncheckedCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeUncheckedCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialUncheckedCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryUncheckedCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachUncheckedCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachUncheckedCreateNestedManyWithoutResolvedByUserInput
@@ -81062,6 +82815,7 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUpdateManyWithoutResolvedByUserNestedInput
@@ -81121,6 +82875,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUncheckedUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUncheckedUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUncheckedUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUncheckedUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUncheckedUpdateManyWithoutResolvedByUserNestedInput
@@ -81236,6 +82991,7 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachCreateNestedManyWithoutResolvedByUserInput
@@ -81295,6 +83051,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialUncheckedCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeUncheckedCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialUncheckedCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryUncheckedCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachUncheckedCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachUncheckedCreateNestedManyWithoutResolvedByUserInput
@@ -81421,6 +83178,7 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUpdateManyWithoutResolvedByUserNestedInput
@@ -81480,6 +83238,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUncheckedUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUncheckedUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUncheckedUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUncheckedUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUncheckedUpdateManyWithoutResolvedByUserNestedInput
@@ -81709,6 +83468,7 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachCreateNestedManyWithoutResolvedByUserInput
@@ -81768,6 +83528,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialUncheckedCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeUncheckedCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialUncheckedCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryUncheckedCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachUncheckedCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachUncheckedCreateNestedManyWithoutResolvedByUserInput
@@ -81863,6 +83624,7 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUpdateManyWithoutResolvedByUserNestedInput
@@ -81922,6 +83684,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUncheckedUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUncheckedUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUncheckedUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUncheckedUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUncheckedUpdateManyWithoutResolvedByUserNestedInput
@@ -82154,6 +83917,7 @@ export namespace Prisma {
     sessions?: SessionCreateNestedManyWithoutUserInput
     accounts?: AccountCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachCreateNestedManyWithoutResolvedByUserInput
@@ -82213,6 +83977,7 @@ export namespace Prisma {
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeUncheckedCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialUncheckedCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryUncheckedCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachUncheckedCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachUncheckedCreateNestedManyWithoutResolvedByUserInput
@@ -82286,6 +84051,7 @@ export namespace Prisma {
     sessions?: SessionUpdateManyWithoutUserNestedInput
     accounts?: AccountUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUpdateManyWithoutResolvedByUserNestedInput
@@ -82345,6 +84111,7 @@ export namespace Prisma {
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUncheckedUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUncheckedUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUncheckedUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUncheckedUpdateManyWithoutResolvedByUserNestedInput
@@ -82402,6 +84169,7 @@ export namespace Prisma {
     sessions?: SessionCreateNestedManyWithoutUserInput
     accounts?: AccountCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachCreateNestedManyWithoutResolvedByUserInput
@@ -82461,6 +84229,7 @@ export namespace Prisma {
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialUncheckedCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialUncheckedCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryUncheckedCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachUncheckedCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachUncheckedCreateNestedManyWithoutResolvedByUserInput
@@ -82534,6 +84303,7 @@ export namespace Prisma {
     sessions?: SessionUpdateManyWithoutUserNestedInput
     accounts?: AccountUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUpdateManyWithoutResolvedByUserNestedInput
@@ -82593,6 +84363,259 @@ export namespace Prisma {
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUncheckedUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUncheckedUpdateManyWithoutUserNestedInput
+    passwordHistory?: PasswordHistoryUncheckedUpdateManyWithoutChangedByUserNestedInput
+    passwordBreachesChecked?: PasswordBreachUncheckedUpdateManyWithoutCheckedByUserNestedInput
+    passwordBreachesResolved?: PasswordBreachUncheckedUpdateManyWithoutResolvedByUserNestedInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedUpdateManyWithoutOwnerNestedInput
+    passwordRotations?: PasswordRotationUncheckedUpdateManyWithoutRotatedByUserNestedInput
+    temporaryPasswordShares?: TemporaryPasswordShareUncheckedUpdateManyWithoutCreatorNestedInput
+    savedSearches?: SavedSearchUncheckedUpdateManyWithoutUserNestedInput
+    searchHistory?: SearchHistoryUncheckedUpdateManyWithoutUserNestedInput
+    passwordTemplates?: PasswordTemplateUncheckedUpdateManyWithoutOwnerNestedInput
+    reports?: ReportUncheckedUpdateManyWithoutCreatedByNestedInput
+    reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
+    scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCreatedByNestedInput
+    createdUsers?: UserUncheckedUpdateManyWithoutCreatedByNestedInput
+    createdRoles?: RoleUncheckedUpdateManyWithoutCreatedByNestedInput
+    dataExports?: DataExportUncheckedUpdateManyWithoutUserNestedInput
+    dataDeletionRequests?: DataDeletionRequestUncheckedUpdateManyWithoutUserNestedInput
+    processedDeletions?: DataDeletionRequestUncheckedUpdateManyWithoutProcessorNestedInput
+    auditLogArchives?: AuditLogArchiveUncheckedUpdateManyWithoutArchiverNestedInput
+    auditLogSearches?: AuditLogSearchUncheckedUpdateManyWithoutUserNestedInput
+    emailVerificationTokens?: EmailVerificationTokenUncheckedUpdateManyWithoutUserNestedInput
+    passwordResetTokens?: PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
+    securityQuestions?: SecurityQuestionUncheckedUpdateManyWithoutUserNestedInput
+    ipWhitelists?: IpWhitelistUncheckedUpdateManyWithoutUserNestedInput
+    geographicRestrictions?: GeographicRestrictionUncheckedUpdateManyWithoutUserNestedInput
+    createdIpWhitelists?: IpWhitelistUncheckedUpdateManyWithoutCreatorNestedInput
+    createdGeographicRestrictions?: GeographicRestrictionUncheckedUpdateManyWithoutCreatorNestedInput
+  }
+
+  export type UserCreateWithoutPasskeyCredentialsInput = {
+    id?: string
+    name: string
+    email: string
+    emailVerified?: Date | string | null
+    recoveryEmail?: string | null
+    recoveryEmailVerified?: Date | string | null
+    image?: string | null
+    password?: string | null
+    phoneNumber?: string | null
+    bio?: string | null
+    preferences?: NullableJsonNullValueInput | InputJsonValue
+    role?: string
+    isActive?: boolean
+    mfaEnabled?: boolean
+    mfaSecret?: string | null
+    mfaMethod?: $Enums.MfaMethod | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    lastLoginAt?: Date | string | null
+    company?: CompanyCreateNestedOneWithoutUsersInput
+    ownedPasswords?: PasswordCreateNestedManyWithoutOwnerInput
+    sharedPasswords?: PasswordShareCreateNestedManyWithoutUserInput
+    teamMemberships?: TeamMemberCreateNestedManyWithoutUserInput
+    auditLogs?: AuditLogCreateNestedManyWithoutUserInput
+    threatEvents?: ThreatEventCreateNestedManyWithoutUserInput
+    sessions?: SessionCreateNestedManyWithoutUserInput
+    accounts?: AccountCreateNestedManyWithoutUserInput
+    mfaCredentials?: MfaCredentialCreateNestedManyWithoutUserInput
+    recoveryCodes?: RecoveryCodeCreateNestedManyWithoutUserInput
+    passwordHistory?: PasswordHistoryCreateNestedManyWithoutChangedByUserInput
+    passwordBreachesChecked?: PasswordBreachCreateNestedManyWithoutCheckedByUserInput
+    passwordBreachesResolved?: PasswordBreachCreateNestedManyWithoutResolvedByUserInput
+    rotationPolicies?: PasswordRotationPolicyCreateNestedManyWithoutOwnerInput
+    passwordRotations?: PasswordRotationCreateNestedManyWithoutRotatedByUserInput
+    temporaryPasswordShares?: TemporaryPasswordShareCreateNestedManyWithoutCreatorInput
+    savedSearches?: SavedSearchCreateNestedManyWithoutUserInput
+    searchHistory?: SearchHistoryCreateNestedManyWithoutUserInput
+    passwordTemplates?: PasswordTemplateCreateNestedManyWithoutOwnerInput
+    reports?: ReportCreateNestedManyWithoutCreatedByInput
+    reportTemplates?: ReportTemplateCreateNestedManyWithoutCreatedByInput
+    scheduledReports?: ScheduledReportCreateNestedManyWithoutCreatedByInput
+    createdBy?: UserCreateNestedOneWithoutCreatedUsersInput
+    createdUsers?: UserCreateNestedManyWithoutCreatedByInput
+    createdRoles?: RoleCreateNestedManyWithoutCreatedByInput
+    dataExports?: DataExportCreateNestedManyWithoutUserInput
+    dataDeletionRequests?: DataDeletionRequestCreateNestedManyWithoutUserInput
+    processedDeletions?: DataDeletionRequestCreateNestedManyWithoutProcessorInput
+    auditLogArchives?: AuditLogArchiveCreateNestedManyWithoutArchiverInput
+    auditLogSearches?: AuditLogSearchCreateNestedManyWithoutUserInput
+    emailVerificationTokens?: EmailVerificationTokenCreateNestedManyWithoutUserInput
+    passwordResetTokens?: PasswordResetTokenCreateNestedManyWithoutUserInput
+    securityQuestions?: SecurityQuestionCreateNestedManyWithoutUserInput
+    ipWhitelists?: IpWhitelistCreateNestedManyWithoutUserInput
+    geographicRestrictions?: GeographicRestrictionCreateNestedManyWithoutUserInput
+    createdIpWhitelists?: IpWhitelistCreateNestedManyWithoutCreatorInput
+    createdGeographicRestrictions?: GeographicRestrictionCreateNestedManyWithoutCreatorInput
+  }
+
+  export type UserUncheckedCreateWithoutPasskeyCredentialsInput = {
+    id?: string
+    name: string
+    email: string
+    emailVerified?: Date | string | null
+    recoveryEmail?: string | null
+    recoveryEmailVerified?: Date | string | null
+    image?: string | null
+    password?: string | null
+    phoneNumber?: string | null
+    bio?: string | null
+    preferences?: NullableJsonNullValueInput | InputJsonValue
+    role?: string
+    isActive?: boolean
+    mfaEnabled?: boolean
+    mfaSecret?: string | null
+    mfaMethod?: $Enums.MfaMethod | null
+    companyId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    lastLoginAt?: Date | string | null
+    createdById?: string | null
+    ownedPasswords?: PasswordUncheckedCreateNestedManyWithoutOwnerInput
+    sharedPasswords?: PasswordShareUncheckedCreateNestedManyWithoutUserInput
+    teamMemberships?: TeamMemberUncheckedCreateNestedManyWithoutUserInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutUserInput
+    threatEvents?: ThreatEventUncheckedCreateNestedManyWithoutUserInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
+    accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
+    mfaCredentials?: MfaCredentialUncheckedCreateNestedManyWithoutUserInput
+    recoveryCodes?: RecoveryCodeUncheckedCreateNestedManyWithoutUserInput
+    passwordHistory?: PasswordHistoryUncheckedCreateNestedManyWithoutChangedByUserInput
+    passwordBreachesChecked?: PasswordBreachUncheckedCreateNestedManyWithoutCheckedByUserInput
+    passwordBreachesResolved?: PasswordBreachUncheckedCreateNestedManyWithoutResolvedByUserInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedCreateNestedManyWithoutOwnerInput
+    passwordRotations?: PasswordRotationUncheckedCreateNestedManyWithoutRotatedByUserInput
+    temporaryPasswordShares?: TemporaryPasswordShareUncheckedCreateNestedManyWithoutCreatorInput
+    savedSearches?: SavedSearchUncheckedCreateNestedManyWithoutUserInput
+    searchHistory?: SearchHistoryUncheckedCreateNestedManyWithoutUserInput
+    passwordTemplates?: PasswordTemplateUncheckedCreateNestedManyWithoutOwnerInput
+    reports?: ReportUncheckedCreateNestedManyWithoutCreatedByInput
+    reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCreatedByInput
+    scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCreatedByInput
+    createdUsers?: UserUncheckedCreateNestedManyWithoutCreatedByInput
+    createdRoles?: RoleUncheckedCreateNestedManyWithoutCreatedByInput
+    dataExports?: DataExportUncheckedCreateNestedManyWithoutUserInput
+    dataDeletionRequests?: DataDeletionRequestUncheckedCreateNestedManyWithoutUserInput
+    processedDeletions?: DataDeletionRequestUncheckedCreateNestedManyWithoutProcessorInput
+    auditLogArchives?: AuditLogArchiveUncheckedCreateNestedManyWithoutArchiverInput
+    auditLogSearches?: AuditLogSearchUncheckedCreateNestedManyWithoutUserInput
+    emailVerificationTokens?: EmailVerificationTokenUncheckedCreateNestedManyWithoutUserInput
+    passwordResetTokens?: PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
+    securityQuestions?: SecurityQuestionUncheckedCreateNestedManyWithoutUserInput
+    ipWhitelists?: IpWhitelistUncheckedCreateNestedManyWithoutUserInput
+    geographicRestrictions?: GeographicRestrictionUncheckedCreateNestedManyWithoutUserInput
+    createdIpWhitelists?: IpWhitelistUncheckedCreateNestedManyWithoutCreatorInput
+    createdGeographicRestrictions?: GeographicRestrictionUncheckedCreateNestedManyWithoutCreatorInput
+  }
+
+  export type UserCreateOrConnectWithoutPasskeyCredentialsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutPasskeyCredentialsInput, UserUncheckedCreateWithoutPasskeyCredentialsInput>
+  }
+
+  export type UserUpsertWithoutPasskeyCredentialsInput = {
+    update: XOR<UserUpdateWithoutPasskeyCredentialsInput, UserUncheckedUpdateWithoutPasskeyCredentialsInput>
+    create: XOR<UserCreateWithoutPasskeyCredentialsInput, UserUncheckedCreateWithoutPasskeyCredentialsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutPasskeyCredentialsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutPasskeyCredentialsInput, UserUncheckedUpdateWithoutPasskeyCredentialsInput>
+  }
+
+  export type UserUpdateWithoutPasskeyCredentialsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    recoveryEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    recoveryEmailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    phoneNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    bio?: NullableStringFieldUpdateOperationsInput | string | null
+    preferences?: NullableJsonNullValueInput | InputJsonValue
+    role?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    mfaEnabled?: BoolFieldUpdateOperationsInput | boolean
+    mfaSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaMethod?: NullableEnumMfaMethodFieldUpdateOperationsInput | $Enums.MfaMethod | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    company?: CompanyUpdateOneWithoutUsersNestedInput
+    ownedPasswords?: PasswordUpdateManyWithoutOwnerNestedInput
+    sharedPasswords?: PasswordShareUpdateManyWithoutUserNestedInput
+    teamMemberships?: TeamMemberUpdateManyWithoutUserNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutUserNestedInput
+    threatEvents?: ThreatEventUpdateManyWithoutUserNestedInput
+    sessions?: SessionUpdateManyWithoutUserNestedInput
+    accounts?: AccountUpdateManyWithoutUserNestedInput
+    mfaCredentials?: MfaCredentialUpdateManyWithoutUserNestedInput
+    recoveryCodes?: RecoveryCodeUpdateManyWithoutUserNestedInput
+    passwordHistory?: PasswordHistoryUpdateManyWithoutChangedByUserNestedInput
+    passwordBreachesChecked?: PasswordBreachUpdateManyWithoutCheckedByUserNestedInput
+    passwordBreachesResolved?: PasswordBreachUpdateManyWithoutResolvedByUserNestedInput
+    rotationPolicies?: PasswordRotationPolicyUpdateManyWithoutOwnerNestedInput
+    passwordRotations?: PasswordRotationUpdateManyWithoutRotatedByUserNestedInput
+    temporaryPasswordShares?: TemporaryPasswordShareUpdateManyWithoutCreatorNestedInput
+    savedSearches?: SavedSearchUpdateManyWithoutUserNestedInput
+    searchHistory?: SearchHistoryUpdateManyWithoutUserNestedInput
+    passwordTemplates?: PasswordTemplateUpdateManyWithoutOwnerNestedInput
+    reports?: ReportUpdateManyWithoutCreatedByNestedInput
+    reportTemplates?: ReportTemplateUpdateManyWithoutCreatedByNestedInput
+    scheduledReports?: ScheduledReportUpdateManyWithoutCreatedByNestedInput
+    createdBy?: UserUpdateOneWithoutCreatedUsersNestedInput
+    createdUsers?: UserUpdateManyWithoutCreatedByNestedInput
+    createdRoles?: RoleUpdateManyWithoutCreatedByNestedInput
+    dataExports?: DataExportUpdateManyWithoutUserNestedInput
+    dataDeletionRequests?: DataDeletionRequestUpdateManyWithoutUserNestedInput
+    processedDeletions?: DataDeletionRequestUpdateManyWithoutProcessorNestedInput
+    auditLogArchives?: AuditLogArchiveUpdateManyWithoutArchiverNestedInput
+    auditLogSearches?: AuditLogSearchUpdateManyWithoutUserNestedInput
+    emailVerificationTokens?: EmailVerificationTokenUpdateManyWithoutUserNestedInput
+    passwordResetTokens?: PasswordResetTokenUpdateManyWithoutUserNestedInput
+    securityQuestions?: SecurityQuestionUpdateManyWithoutUserNestedInput
+    ipWhitelists?: IpWhitelistUpdateManyWithoutUserNestedInput
+    geographicRestrictions?: GeographicRestrictionUpdateManyWithoutUserNestedInput
+    createdIpWhitelists?: IpWhitelistUpdateManyWithoutCreatorNestedInput
+    createdGeographicRestrictions?: GeographicRestrictionUpdateManyWithoutCreatorNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutPasskeyCredentialsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    recoveryEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    recoveryEmailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    phoneNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    bio?: NullableStringFieldUpdateOperationsInput | string | null
+    preferences?: NullableJsonNullValueInput | InputJsonValue
+    role?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    mfaEnabled?: BoolFieldUpdateOperationsInput | boolean
+    mfaSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    mfaMethod?: NullableEnumMfaMethodFieldUpdateOperationsInput | $Enums.MfaMethod | null
+    companyId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdById?: NullableStringFieldUpdateOperationsInput | string | null
+    ownedPasswords?: PasswordUncheckedUpdateManyWithoutOwnerNestedInput
+    sharedPasswords?: PasswordShareUncheckedUpdateManyWithoutUserNestedInput
+    teamMemberships?: TeamMemberUncheckedUpdateManyWithoutUserNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutUserNestedInput
+    threatEvents?: ThreatEventUncheckedUpdateManyWithoutUserNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
+    accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
+    mfaCredentials?: MfaCredentialUncheckedUpdateManyWithoutUserNestedInput
+    recoveryCodes?: RecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUncheckedUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUncheckedUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUncheckedUpdateManyWithoutResolvedByUserNestedInput
@@ -82651,6 +84674,7 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachCreateNestedManyWithoutResolvedByUserInput
@@ -82710,6 +84734,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialUncheckedCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeUncheckedCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialUncheckedCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryUncheckedCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachUncheckedCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachUncheckedCreateNestedManyWithoutResolvedByUserInput
@@ -82783,6 +84808,7 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUpdateManyWithoutResolvedByUserNestedInput
@@ -82842,6 +84868,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUncheckedUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUncheckedUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUncheckedUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUncheckedUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUncheckedUpdateManyWithoutResolvedByUserNestedInput
@@ -82899,6 +84926,7 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachCreateNestedManyWithoutResolvedByUserInput
@@ -82958,6 +84986,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialUncheckedCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeUncheckedCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialUncheckedCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryUncheckedCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachUncheckedCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachUncheckedCreateNestedManyWithoutResolvedByUserInput
@@ -83031,6 +85060,7 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUpdateManyWithoutResolvedByUserNestedInput
@@ -83090,6 +85120,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUncheckedUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUncheckedUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUncheckedUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUncheckedUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUncheckedUpdateManyWithoutResolvedByUserNestedInput
@@ -83147,6 +85178,7 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachCreateNestedManyWithoutResolvedByUserInput
@@ -83206,6 +85238,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialUncheckedCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeUncheckedCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialUncheckedCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryUncheckedCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachUncheckedCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachUncheckedCreateNestedManyWithoutResolvedByUserInput
@@ -83332,6 +85365,7 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUpdateManyWithoutResolvedByUserNestedInput
@@ -83391,6 +85425,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUncheckedUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUncheckedUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUncheckedUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUncheckedUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUncheckedUpdateManyWithoutResolvedByUserNestedInput
@@ -83507,6 +85542,7 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachCreateNestedManyWithoutResolvedByUserInput
@@ -83566,6 +85602,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialUncheckedCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeUncheckedCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialUncheckedCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryUncheckedCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachUncheckedCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachUncheckedCreateNestedManyWithoutResolvedByUserInput
@@ -83639,6 +85676,7 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUpdateManyWithoutResolvedByUserNestedInput
@@ -83698,6 +85736,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUncheckedUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUncheckedUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUncheckedUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUncheckedUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUncheckedUpdateManyWithoutResolvedByUserNestedInput
@@ -83755,6 +85794,7 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachCreateNestedManyWithoutResolvedByUserInput
@@ -83814,6 +85854,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialUncheckedCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeUncheckedCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialUncheckedCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryUncheckedCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachUncheckedCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachUncheckedCreateNestedManyWithoutResolvedByUserInput
@@ -83887,6 +85928,7 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUpdateManyWithoutResolvedByUserNestedInput
@@ -83946,6 +85988,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUncheckedUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUncheckedUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUncheckedUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUncheckedUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUncheckedUpdateManyWithoutResolvedByUserNestedInput
@@ -84003,6 +86046,7 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachCreateNestedManyWithoutResolvedByUserInput
@@ -84062,6 +86106,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialUncheckedCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeUncheckedCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialUncheckedCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryUncheckedCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachUncheckedCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachUncheckedCreateNestedManyWithoutResolvedByUserInput
@@ -84135,6 +86180,7 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUpdateManyWithoutResolvedByUserNestedInput
@@ -84194,6 +86240,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUncheckedUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUncheckedUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUncheckedUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUncheckedUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUncheckedUpdateManyWithoutResolvedByUserNestedInput
@@ -84251,6 +86298,7 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachCreateNestedManyWithoutResolvedByUserInput
@@ -84310,6 +86358,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialUncheckedCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeUncheckedCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialUncheckedCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryUncheckedCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachUncheckedCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachUncheckedCreateNestedManyWithoutResolvedByUserInput
@@ -84425,6 +86474,7 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachCreateNestedManyWithoutResolvedByUserInput
@@ -84484,6 +86534,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialUncheckedCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeUncheckedCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialUncheckedCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryUncheckedCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachUncheckedCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachUncheckedCreateNestedManyWithoutResolvedByUserInput
@@ -84557,6 +86608,7 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUpdateManyWithoutResolvedByUserNestedInput
@@ -84616,6 +86668,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUncheckedUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUncheckedUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUncheckedUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUncheckedUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUncheckedUpdateManyWithoutResolvedByUserNestedInput
@@ -84743,6 +86796,7 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUpdateManyWithoutResolvedByUserNestedInput
@@ -84802,6 +86856,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUncheckedUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUncheckedUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUncheckedUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUncheckedUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUncheckedUpdateManyWithoutResolvedByUserNestedInput
@@ -84859,6 +86914,7 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachCreateNestedManyWithoutResolvedByUserInput
@@ -84918,6 +86974,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialUncheckedCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeUncheckedCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialUncheckedCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryUncheckedCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachUncheckedCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachUncheckedCreateNestedManyWithoutResolvedByUserInput
@@ -85033,6 +87090,7 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachCreateNestedManyWithoutResolvedByUserInput
@@ -85092,6 +87150,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialUncheckedCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeUncheckedCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialUncheckedCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryUncheckedCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachUncheckedCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachUncheckedCreateNestedManyWithoutResolvedByUserInput
@@ -85165,6 +87224,7 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUpdateManyWithoutResolvedByUserNestedInput
@@ -85224,6 +87284,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUncheckedUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUncheckedUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUncheckedUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUncheckedUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUncheckedUpdateManyWithoutResolvedByUserNestedInput
@@ -85351,6 +87412,7 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUpdateManyWithoutResolvedByUserNestedInput
@@ -85410,6 +87472,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUncheckedUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUncheckedUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUncheckedUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUncheckedUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUncheckedUpdateManyWithoutResolvedByUserNestedInput
@@ -85691,6 +87754,7 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachCreateNestedManyWithoutResolvedByUserInput
@@ -85750,6 +87814,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialUncheckedCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeUncheckedCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialUncheckedCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryUncheckedCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachUncheckedCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachUncheckedCreateNestedManyWithoutResolvedByUserInput
@@ -85876,6 +87941,7 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUpdateManyWithoutResolvedByUserNestedInput
@@ -85935,6 +88001,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUncheckedUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUncheckedUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUncheckedUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUncheckedUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUncheckedUpdateManyWithoutResolvedByUserNestedInput
@@ -86051,6 +88118,7 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachCreateNestedManyWithoutResolvedByUserInput
@@ -86110,6 +88178,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialUncheckedCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeUncheckedCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialUncheckedCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryUncheckedCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachUncheckedCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachUncheckedCreateNestedManyWithoutResolvedByUserInput
@@ -86225,6 +88294,7 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachCreateNestedManyWithoutResolvedByUserInput
@@ -86284,6 +88354,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialUncheckedCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeUncheckedCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialUncheckedCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryUncheckedCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachUncheckedCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachUncheckedCreateNestedManyWithoutResolvedByUserInput
@@ -86357,6 +88428,7 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUpdateManyWithoutResolvedByUserNestedInput
@@ -86416,6 +88488,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUncheckedUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUncheckedUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUncheckedUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUncheckedUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUncheckedUpdateManyWithoutResolvedByUserNestedInput
@@ -86543,6 +88616,7 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUpdateManyWithoutResolvedByUserNestedInput
@@ -86602,6 +88676,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUncheckedUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUncheckedUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUncheckedUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUncheckedUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUncheckedUpdateManyWithoutResolvedByUserNestedInput
@@ -86659,6 +88734,7 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachCreateNestedManyWithoutResolvedByUserInput
@@ -86718,6 +88794,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialUncheckedCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeUncheckedCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialUncheckedCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryUncheckedCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachUncheckedCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachUncheckedCreateNestedManyWithoutResolvedByUserInput
@@ -86883,6 +88960,7 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUpdateManyWithoutResolvedByUserNestedInput
@@ -86942,6 +89020,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUncheckedUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUncheckedUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUncheckedUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUncheckedUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUncheckedUpdateManyWithoutResolvedByUserNestedInput
@@ -87103,6 +89182,7 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachCreateNestedManyWithoutResolvedByUserInput
@@ -87162,6 +89242,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialUncheckedCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeUncheckedCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialUncheckedCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryUncheckedCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachUncheckedCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachUncheckedCreateNestedManyWithoutResolvedByUserInput
@@ -87382,6 +89463,7 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUpdateManyWithoutResolvedByUserNestedInput
@@ -87441,6 +89523,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUncheckedUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUncheckedUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUncheckedUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUncheckedUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUncheckedUpdateManyWithoutResolvedByUserNestedInput
@@ -87589,6 +89672,7 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachCreateNestedManyWithoutResolvedByUserInput
@@ -87648,6 +89732,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     mfaCredentials?: MfaCredentialUncheckedCreateNestedManyWithoutUserInput
     recoveryCodes?: RecoveryCodeUncheckedCreateNestedManyWithoutUserInput
+    passkeyCredentials?: PasskeyCredentialUncheckedCreateNestedManyWithoutUserInput
     passwordHistory?: PasswordHistoryUncheckedCreateNestedManyWithoutChangedByUserInput
     passwordBreachesChecked?: PasswordBreachUncheckedCreateNestedManyWithoutCheckedByUserInput
     passwordBreachesResolved?: PasswordBreachUncheckedCreateNestedManyWithoutResolvedByUserInput
@@ -87813,6 +89898,7 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUpdateManyWithoutResolvedByUserNestedInput
@@ -87872,6 +89958,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUncheckedUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUncheckedUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUncheckedUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUncheckedUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUncheckedUpdateManyWithoutResolvedByUserNestedInput
@@ -88240,6 +90327,7 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUpdateManyWithoutResolvedByUserNestedInput
@@ -88299,6 +90387,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUncheckedUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUncheckedUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUncheckedUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUncheckedUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUncheckedUpdateManyWithoutResolvedByUserNestedInput
@@ -89026,6 +91115,19 @@ export namespace Prisma {
     createdAt?: Date | string
   }
 
+  export type PasskeyCredentialCreateManyUserInput = {
+    id?: string
+    name: string
+    credentialId: string
+    publicKey: string
+    counter?: bigint | number
+    deviceType?: string | null
+    backedUp?: boolean
+    transports?: string | null
+    createdAt?: Date | string
+    lastUsedAt?: Date | string | null
+  }
+
   export type PasswordHistoryCreateManyChangedByUserInput = {
     id?: string
     passwordId: string
@@ -89705,6 +91807,45 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type PasskeyCredentialUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    credentialId?: StringFieldUpdateOperationsInput | string
+    publicKey?: StringFieldUpdateOperationsInput | string
+    counter?: BigIntFieldUpdateOperationsInput | bigint | number
+    deviceType?: NullableStringFieldUpdateOperationsInput | string | null
+    backedUp?: BoolFieldUpdateOperationsInput | boolean
+    transports?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastUsedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type PasskeyCredentialUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    credentialId?: StringFieldUpdateOperationsInput | string
+    publicKey?: StringFieldUpdateOperationsInput | string
+    counter?: BigIntFieldUpdateOperationsInput | bigint | number
+    deviceType?: NullableStringFieldUpdateOperationsInput | string | null
+    backedUp?: BoolFieldUpdateOperationsInput | boolean
+    transports?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastUsedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type PasskeyCredentialUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    credentialId?: StringFieldUpdateOperationsInput | string
+    publicKey?: StringFieldUpdateOperationsInput | string
+    counter?: BigIntFieldUpdateOperationsInput | bigint | number
+    deviceType?: NullableStringFieldUpdateOperationsInput | string | null
+    backedUp?: BoolFieldUpdateOperationsInput | boolean
+    transports?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastUsedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
   export type PasswordHistoryUpdateWithoutChangedByUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
@@ -90265,6 +92406,7 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUpdateManyWithoutResolvedByUserNestedInput
@@ -90323,6 +92465,7 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     mfaCredentials?: MfaCredentialUncheckedUpdateManyWithoutUserNestedInput
     recoveryCodes?: RecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+    passkeyCredentials?: PasskeyCredentialUncheckedUpdateManyWithoutUserNestedInput
     passwordHistory?: PasswordHistoryUncheckedUpdateManyWithoutChangedByUserNestedInput
     passwordBreachesChecked?: PasswordBreachUncheckedUpdateManyWithoutCheckedByUserNestedInput
     passwordBreachesResolved?: PasswordBreachUncheckedUpdateManyWithoutResolvedByUserNestedInput

@@ -73,6 +73,7 @@ model User {
   accounts           Account[]
   mfaCredentials     MfaCredential[]
   recoveryCodes      RecoveryCode[]
+  passkeyCredentials PasskeyCredential[]
   passwordHistory    PasswordHistory[] @relation("PasswordHistoryChangedBy")
   passwordBreachesChecked  PasswordBreach[] @relation("PasswordBreachCheckedBy")
   passwordBreachesResolved  PasswordBreach[] @relation("PasswordBreachResolvedBy")
@@ -676,6 +677,26 @@ model RecoveryCode {
 
   @@index([userId])
   @@index([codeHash])
+}
+
+model PasskeyCredential {
+  id                String    @id @default(cuid())
+  userId            String
+  name              String    // Friendly name (e.g., "iPhone 15", "MacBook Pro")
+  credentialId      String    @unique // Base64URL encoded credential ID
+  publicKey         String    // Base64URL encoded public key
+  counter           BigInt    @default(0)
+  deviceType        String?   // e.g., "singleDevice", "multiDevice"
+  backedUp          Boolean   @default(false)
+  transports        String?   // JSON array of transport methods
+  createdAt         DateTime  @default(now())
+  lastUsedAt        DateTime?
+
+  // Relations
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([credentialId])
 }
 
 model SavedSearch {

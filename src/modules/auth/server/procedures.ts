@@ -1789,7 +1789,12 @@ export const authRouter = createTRPCRouter({
             }
 
             const { verifyWebAuthnRegistration } = await import("@/lib/webauthn")
-            const result = await verifyWebAuthnRegistration(input.response, expectedChallenge)
+            
+            // Get origin from headers
+            const headersList = await headers()
+            const origin = headersList.get("origin") || headersList.get("referer") || undefined
+            
+            const result = await verifyWebAuthnRegistration(input.response, expectedChallenge, origin)
 
             if (!result.verified || !result.credential) {
                 throw new TRPCError({
@@ -2931,6 +2936,429 @@ export const authRouter = createTRPCRouter({
                 action: "RECOVERY_EMAIL_REMOVED",
                 resource: "User",
                 resourceId: ctx.userId!,
+                userId: ctx.userId!,
+            })
+
+            return { success: true }
+        }),
+
+    // ========== PASSKEY (Passwordless) AUTHENTICATION ==========
+    
+    // Generate passkey registration options
+    generatePasskeyRegistrationOptions: baseProcedure
+        .use(async ({ ctx, next }) => {
+            if (!ctx.userId) {
+                throw new TRPCError({
+                    code: "UNAUTHORIZED",
+                    message: "You must be logged in to create a passkey",
+                });
+            }
+            return next({ ctx });
+        })
+        .mutation(async ({ ctx }) => {
+            const user = await prisma.user.findUnique({
+                where: { id: ctx.userId! },
+                include: { passkeyCredentials: true },
+            })
+
+            if (!user) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "User not found",
+                });
+            }
+
+            const { generateWebAuthnRegistrationOptions } = await import("@/lib/webauthn")
+            
+            const existingCredentials = user.passkeyCredentials.map((cred) => ({
+                credentialID: cred.credentialId,
+                publicKey: cred.publicKey,
+                counter: Number(cred.counter),
+                deviceType: cred.deviceType as "singleDevice" | "multiDevice" | undefined,
+                backedUp: cred.backedUp,
+                transports: cred.transports ? JSON.parse(cred.transports) : undefined,
+            }))
+
+            // Get origin from headers
+            const headersList = await headers()
+            const origin = headersList.get("origin") || headersList.get("referer") || undefined
+
+            const { options, challenge } = await generateWebAuthnRegistrationOptions(
+                user.id,
+                user.email,
+                user.name,
+                existingCredentials,
+                origin
+            )
+
+            // Store challenge in memory (you might want to use Redis in production)
+            if (!(global as any).passkeyRegistrationChallenges) {
+                (global as any).passkeyRegistrationChallenges = new Map()
+            }
+            (global as any).passkeyRegistrationChallenges.set(user.id, challenge)
+
+            return { options }
+        }),
+
+    // Verify passkey registration
+    verifyPasskeyRegistration: baseProcedure
+        .use(async ({ ctx, next }) => {
+            if (!ctx.userId) {
+                throw new TRPCError({
+                    code: "UNAUTHORIZED",
+                    message: "You must be logged in to create a passkey",
+                });
+            }
+            return next({ ctx });
+        })
+        .input(z.object({
+            response: z.any(),
+            name: z.string().min(1, "Please provide a name for this passkey"),
+        }))
+        .mutation(async ({ input, ctx }) => {
+            const challengeStore = (global as any).passkeyRegistrationChallenges || new Map()
+            const expectedChallenge = challengeStore.get(ctx.userId!)
+            challengeStore.delete(ctx.userId!)
+
+            if (!expectedChallenge) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: "Registration challenge not found or expired",
+                });
+            }
+
+            const { verifyWebAuthnRegistration } = await import("@/lib/webauthn")
+            
+            // Get origin from headers
+            const headersList = await headers()
+            const origin = headersList.get("origin") || headersList.get("referer") || undefined
+            
+            const result = await verifyWebAuthnRegistration(input.response, expectedChallenge, origin)
+
+            if (!result.verified || !result.credential) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: result.error || "Passkey registration verification failed",
+                });
+            }
+
+            // Save passkey credential to database
+            await prisma.passkeyCredential.create({
+                data: {
+                    userId: ctx.userId!,
+                    name: input.name,
+                    credentialId: result.credential.credentialID,
+                    publicKey: result.credential.publicKey,
+                    counter: BigInt(result.credential.counter),
+                    deviceType: result.credential.deviceType,
+                    backedUp: result.credential.backedUp,
+                    transports: result.credential.transports ? JSON.stringify(result.credential.transports) : null,
+                },
+            })
+
+            // Create audit log
+            const { createAuditLog } = await import("@/lib/audit-log")
+            await createAuditLog({
+                action: "PASSKEY_REGISTERED",
+                resource: "User",
+                resourceId: ctx.userId!,
+                details: { name: input.name },
+                userId: ctx.userId!,
+            })
+
+            return { success: true }
+        }),
+
+    // Generate passkey authentication options (for login)
+    generatePasskeyAuthenticationOptions: baseProcedure
+        .input(z.object({
+            email: z.string().email("Invalid email address"),
+        }))
+        .mutation(async ({ input, ctx }) => {
+            // Get companyId from subdomain if available
+            let companyId: string | undefined = undefined
+            if (ctx.subdomain) {
+                const company = await prisma.company.findUnique({
+                    where: { subdomain: ctx.subdomain },
+                    select: { id: true },
+                })
+                if (company) {
+                    companyId = company.id
+                }
+            }
+
+            const user = await prisma.user.findFirst({
+                where: {
+                    email: input.email,
+                    companyId: companyId || undefined,
+                },
+                include: { passkeyCredentials: true },
+            })
+
+            if (!user || user.passkeyCredentials.length === 0) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "No passkeys found for this account",
+                });
+            }
+
+            const { generateWebAuthnAuthenticationOptions } = await import("@/lib/webauthn")
+            
+            const credentials = user.passkeyCredentials.map((cred) => ({
+                credentialID: cred.credentialId,
+                publicKey: cred.publicKey,
+                counter: Number(cred.counter),
+                deviceType: cred.deviceType as "singleDevice" | "multiDevice" | undefined,
+                backedUp: cred.backedUp,
+                transports: cred.transports ? JSON.parse(cred.transports) : undefined,
+            }))
+
+            // Get origin from headers
+            const headersList = await headers()
+            const origin = headersList.get("origin") || headersList.get("referer") || undefined
+
+            // Use discoverable credentials (empty array) to let browser find any passkey
+            // This is more reliable than specifying credential IDs which may have encoding issues
+            const { options, challenge } = await generateWebAuthnAuthenticationOptions([], origin)
+
+            // Store challenge and userId for verification
+            if (!(global as any).passkeyAuthenticationChallenges) {
+                (global as any).passkeyAuthenticationChallenges = new Map()
+            }
+            (global as any).passkeyAuthenticationChallenges.set(input.email, {
+                challenge,
+                userId: user.id,
+            })
+
+            return { options }
+        }),
+
+    // Verify passkey authentication and log in
+    verifyPasskeyAuthentication: baseProcedure
+        .input(z.object({
+            email: z.string().email("Invalid email address"),
+            response: z.any(),
+        }))
+        .mutation(async ({ input, ctx }) => {
+            const challengeStore = (global as any).passkeyAuthenticationChallenges || new Map()
+            const storedData = challengeStore.get(input.email)
+            challengeStore.delete(input.email)
+
+            if (!storedData) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: "Authentication challenge not found or expired",
+                });
+            }
+
+            // Get companyId from subdomain if available
+            let companyId: string | undefined = undefined
+            if (ctx.subdomain) {
+                const company = await prisma.company.findUnique({
+                    where: { subdomain: ctx.subdomain },
+                    select: { id: true },
+                })
+                if (company) {
+                    companyId = company.id
+                }
+            }
+
+            const user = await prisma.user.findFirst({
+                where: {
+                    id: storedData.userId,
+                    email: input.email,
+                    companyId: companyId || undefined,
+                },
+                include: { passkeyCredentials: true },
+            })
+
+            if (!user) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "User not found",
+                });
+            }
+
+            // Check if user is active
+            if (!user.isActive) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "Your account has been deactivated. Please contact your administrator.",
+                });
+            }
+
+            // Find the credential being used
+            const credentialId = input.response.id
+            
+            // Try to find credential with exact match first
+            let credential = user.passkeyCredentials.find((c) => c.credentialId === credentialId)
+            
+            // If not found, there might be a Base64 encoding mismatch
+            // The stored ID might be double-encoded, so try decoding it first
+            if (!credential) {
+                credential = user.passkeyCredentials.find((c) => {
+                    try {
+                        // Decode the stored credential ID from Base64URL
+                        const decodedStored = Buffer.from(c.credentialId, "base64url").toString("utf-8")
+                        return decodedStored === credentialId
+                    } catch {
+                        return false
+                    }
+                })
+            }
+            
+            // Also try matching rawId if provided
+            if (!credential && input.response.rawId) {
+                credential = user.passkeyCredentials.find((c) => c.credentialId === input.response.rawId)
+            }
+
+            if (!credential) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: "Passkey not found",
+                });
+            }
+
+            const { verifyWebAuthnAuthentication } = await import("@/lib/webauthn")
+            const credentialData = {
+                credentialID: credential.credentialId,
+                publicKey: credential.publicKey,
+                counter: Number(credential.counter),
+                deviceType: credential.deviceType as "singleDevice" | "multiDevice" | undefined,
+                backedUp: credential.backedUp,
+                transports: credential.transports ? JSON.parse(credential.transports) : undefined,
+            }
+
+            // Get origin from headers
+            const headersList = await headers()
+            const origin = headersList.get("origin") || headersList.get("referer") || undefined
+
+            const verification = await verifyWebAuthnAuthentication(
+                input.response,
+                storedData.challenge,
+                credentialData,
+                origin
+            )
+
+            if (!verification.verified) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: verification.error || "Passkey verification failed",
+                });
+            }
+
+            // Update credential counter and last used
+            await prisma.passkeyCredential.update({
+                where: { id: credential.id },
+                data: {
+                    counter: BigInt(verification.newCounter || credential.counter),
+                    lastUsedAt: new Date(),
+                },
+            })
+
+            // Update user last login
+            await prisma.user.update({
+                where: { id: user.id },
+                data: { lastLoginAt: new Date() },
+            })
+
+            // Create audit log (reuse headersList from above)
+            const ipAddress = headersList.get("x-forwarded-for") || headersList.get("x-real-ip") || null
+            const userAgent = headersList.get("user-agent") || null
+
+            const { createAuditLog } = await import("@/lib/audit-log")
+            await createAuditLog({
+                action: "LOGIN_PASSKEY",
+                resource: "User",
+                resourceId: user.id,
+                userId: user.id,
+                ipAddress,
+                userAgent,
+                details: { passkeyName: credential.name },
+            })
+
+            // Create session
+            await createSession(user.id, user.email, {
+                ipAddress,
+                userAgent,
+            })
+
+            return {
+                success: true,
+                user: {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    role: user.role,
+                },
+            }
+        }),
+
+    // Get user's passkeys
+    getUserPasskeys: baseProcedure
+        .use(async ({ ctx, next }) => {
+            if (!ctx.userId) {
+                throw new TRPCError({
+                    code: "UNAUTHORIZED",
+                    message: "You must be logged in",
+                });
+            }
+            return next({ ctx });
+        })
+        .query(async ({ ctx }) => {
+            const passkeys = await prisma.passkeyCredential.findMany({
+                where: { userId: ctx.userId! },
+                select: {
+                    id: true,
+                    name: true,
+                    createdAt: true,
+                    lastUsedAt: true,
+                    deviceType: true,
+                    backedUp: true,
+                },
+                orderBy: { createdAt: "desc" },
+            })
+
+            return { passkeys }
+        }),
+
+    // Delete a passkey
+    deletePasskey: baseProcedure
+        .use(async ({ ctx, next }) => {
+            if (!ctx.userId) {
+                throw new TRPCError({
+                    code: "UNAUTHORIZED",
+                    message: "You must be logged in",
+                });
+            }
+            return next({ ctx });
+        })
+        .input(z.object({
+            passkeyId: z.string(),
+        }))
+        .mutation(async ({ input, ctx }) => {
+            const passkey = await prisma.passkeyCredential.findUnique({
+                where: { id: input.passkeyId },
+            })
+
+            if (!passkey || passkey.userId !== ctx.userId!) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Passkey not found",
+                });
+            }
+
+            await prisma.passkeyCredential.delete({
+                where: { id: input.passkeyId },
+            })
+
+            // Create audit log
+            const { createAuditLog } = await import("@/lib/audit-log")
+            await createAuditLog({
+                action: "PASSKEY_DELETED",
+                resource: "User",
+                resourceId: ctx.userId!,
+                details: { name: passkey.name },
                 userId: ctx.userId!,
             })
 

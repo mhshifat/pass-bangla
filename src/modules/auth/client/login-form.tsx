@@ -6,6 +6,8 @@ import { CardContent, CardFooter } from "@/components/ui/card"
 import { LoginFormFields } from "./login-form-fields"
 import { loginAction } from "@/app/(auth)/login/actions"
 import { useTranslation } from "react-i18next"
+import { PasskeyLoginButton } from "./passkey-login-button"
+import { Separator } from "@/components/ui/separator"
 
 export function LoginForm() {
   const { t } = useTranslation()
@@ -93,6 +95,20 @@ export function LoginForm() {
         <Button type="submit" className="w-full" disabled={isPending} form="login-form">
           {isPending ? t("auth.signingIn") : t("auth.login")}
         </Button>
+        
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <Separator />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">
+              {t("auth.orContinueWith")}
+            </span>
+          </div>
+        </div>
+
+        <PasskeyLoginButton />
+        
         <div className="text-sm text-center text-muted-foreground">
           {t("auth.dontHaveAccount")}{" "}
           <a 

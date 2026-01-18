@@ -453,6 +453,20 @@ exports.Prisma.RecoveryCodeScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.PasskeyCredentialScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  name: 'name',
+  credentialId: 'credentialId',
+  publicKey: 'publicKey',
+  counter: 'counter',
+  deviceType: 'deviceType',
+  backedUp: 'backedUp',
+  transports: 'transports',
+  createdAt: 'createdAt',
+  lastUsedAt: 'lastUsedAt'
+};
+
 exports.Prisma.SavedSearchScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -773,6 +787,7 @@ exports.Prisma.ModelName = {
   RolePermission: 'RolePermission',
   MfaCredential: 'MfaCredential',
   RecoveryCode: 'RecoveryCode',
+  PasskeyCredential: 'PasskeyCredential',
   SavedSearch: 'SavedSearch',
   SearchHistory: 'SearchHistory',
   PasswordTemplate: 'PasswordTemplate',
