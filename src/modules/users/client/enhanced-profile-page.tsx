@@ -16,6 +16,7 @@ import { DeviceManagement } from "./device-management"
 import { AccessibilitySettings } from "@/modules/accessibility/client/accessibility-settings"
 import { Monitor, Accessibility } from "lucide-react"
 import { AccountRecovery } from "./account-recovery"
+import { MfaManagement } from "./mfa-management"
 
 export function EnhancedProfilePage() {
   const { t } = useTranslation()
@@ -128,6 +129,7 @@ export function EnhancedProfilePage() {
         </TabsContent>
 
         <TabsContent value="accountRecovery" className="space-y-6">
+          <MfaManagement user={data.user} onUpdate={refetch} />
           <AccountRecovery user={data.user} onUpdate={refetch} />
         </TabsContent>
 

@@ -1175,14 +1175,17 @@ export const authRouter = createTRPCRouter({
             
             let secret: string
 
-            // Only return null if MFA is already fully enabled and configured
-            // If MFA is not enabled yet (setup in progress), regenerate QR even if secret exists
+            // Only return existing secret if MFA is already fully enabled and configured
+            // If MFA is not enabled yet (setup in progress), always regenerate and save a new secret
             if (user && user.mfaEnabled && user.mfaSecret) {
+                // User has MFA enabled - use existing secret
                 secret = decrypt(user.mfaSecret)
             } else {
+                // Generate new secret for setup
                 secret = authenticator.generateSecret()
-                // Save the secret to database if it doesn't exist (for setup flow)
-                if (user && !user.mfaSecret) {
+                // Always save/update the secret for users who haven't completed MFA setup
+                // This ensures the QR code matches what's in the database
+                if (user) {
                     await prisma.user.update({
                         where: { id: session.userId },
                         data: {
@@ -1309,6 +1312,66 @@ export const authRouter = createTRPCRouter({
                 userId: session.userId,
             });
             await createSession(user.id, user.email, { mfaVerified: true });
+            return { success: true };
+        }),
+    disableMfa: baseProcedure
+        .mutation(async () => {
+            const session = await getSession()
+            if (!session) {
+                throw new TRPCError({
+                    code: "UNAUTHORIZED",
+                    message: "Not authenticated",
+                });
+            }
+            
+            const user = await prisma.user.findUnique({ where: { id: session.userId } })
+            if (!user) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "User not found",
+                });
+            }
+
+            // Check if MFA is enforced by global settings - prevent disabling if enforced
+            const { shouldEnforceMfa } = await import("@/lib/mfa-enforcement")
+            const enforceMfa = await shouldEnforceMfa(user.id, user.role, false) // Check with mfaEnabled=false
+            
+            if (enforceMfa) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "MFA is required by your organization's security policy and cannot be disabled",
+                });
+            }
+
+            // Disable MFA
+            await prisma.user.update({
+                where: { id: session.userId },
+                data: { 
+                    mfaEnabled: false,
+                    mfaSecret: null,
+                    mfaMethod: null,
+                },
+            });
+
+            // Delete MFA credentials
+            await prisma.mfaCredential.deleteMany({
+                where: { userId: session.userId }
+            });
+
+            // Delete recovery codes
+            await prisma.recoveryCode.deleteMany({
+                where: { userId: session.userId }
+            });
+
+            // Create audit log
+            const { createAuditLog } = await import("@/lib/audit-log")
+            await createAuditLog({
+                action: "MFA_DISABLED",
+                resource: "User",
+                resourceId: session.userId,
+                userId: session.userId,
+            });
+
             return { success: true };
         }),
     verifyMfa: baseProcedure
