@@ -9,7 +9,9 @@
     "lint": "eslint",
     "db:seed": "tsx prisma/seed.ts",
     "migrate-passwords": "tsx scripts/migrate-passwords-to-client-encryption.ts",
-    "generate-pwa-icons": "node scripts/generate-pwa-icons.js"
+    "generate-pwa-icons": "node scripts/generate-pwa-icons.js",
+    "check-mfa": "tsx scripts/check-mfa-settings.ts",
+    "disable-mfa": "tsx scripts/disable-mfa-for-user.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

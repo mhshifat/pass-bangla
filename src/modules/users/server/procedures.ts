@@ -13,7 +13,7 @@ export const usersRouter = createTRPCRouter({
         email: z.string().email("Invalid email address"),
         password: z.string().min(8, "Password must be at least 8 characters"),
         role: z.string().min(1, "Role is required").default("USER"),
-        mfaEnabled: z.boolean().default(false),
+        mfaEnabled: z.boolean().default(false), // Default to false - only enforce if explicitly set or required by global settings
         isActive: z.boolean().default(true),
       })
     )

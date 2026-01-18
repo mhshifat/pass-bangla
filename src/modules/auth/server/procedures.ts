@@ -721,38 +721,29 @@ export const authRouter = createTRPCRouter({
             })
             const deviceRequiresMfa = requireMfaForUntrustedDevices?.value === true && !deviceIsTrusted
 
-            // If device requires MFA (untrusted device), enforce MFA regardless of user's MFA setting
-            if (deviceRequiresMfa) {
-                // Check if user has MFA enabled and configured
-                if (user.mfaEnabled) {
-                    const hasMfaMethod = 
-                        (user.mfaMethod === "TOTP" && user.mfaSecret !== null) ||
-                        (user.mfaMethod === "SMS" && user.phoneNumber !== null) ||
-                        (user.mfaMethod === "EMAIL" && user.email !== null) ||
-                        (user.mfaMethod === "WEBAUTHN" && (await prisma.mfaCredential.count({ where: { userId: user.id } })) > 0);
+            // Check if MFA should be enforced (device-specific or global settings)
+            const { shouldEnforceMfa, determineMfaRequirement } = await import("@/lib/mfa-enforcement")
+            
+            // Check if user has MFA method configured
+            const hasMfaMethod = 
+                (user.mfaMethod === "TOTP" && user.mfaSecret !== null) ||
+                (user.mfaMethod === "SMS" && user.phoneNumber !== null) ||
+                (user.mfaMethod === "EMAIL" && user.email !== null) ||
+                (user.mfaMethod === "WEBAUTHN" && (await prisma.mfaCredential.count({ where: { userId: user.id } })) > 0);
 
-                    if (hasMfaMethod) {
-                        // Device requires MFA and user has MFA configured, require verification
-                        await createSession(user.id, user.email, {
-                            mfaVerified: false,
-                            mfaRequired: true,
-                            ipAddress,
-                            userAgent,
-                        });
-                        return { success: true, mfaRequired: true, deviceRequiresMfa: true };
-                    } else {
-                        // Device requires MFA but user has MFA enabled but not configured, require setup
-                        await createSession(user.id, user.email, {
-                            mfaVerified: false,
-                            mfaSetupRequired: true,
-                            mfaRequired: false,
-                            ipAddress,
-                            userAgent,
-                        });
-                        return { success: true, mfaSetupRequired: true, deviceRequiresMfa: true };
-                    }
+            // If device requires MFA (untrusted device), enforce MFA regardless of other settings
+            if (deviceRequiresMfa) {
+                if (hasMfaMethod) {
+                    // Device requires MFA and user has MFA configured, require verification
+                    await createSession(user.id, user.email, {
+                        mfaVerified: false,
+                        mfaRequired: true,
+                        ipAddress,
+                        userAgent,
+                    });
+                    return { success: true, mfaRequired: true, deviceRequiresMfa: true };
                 } else {
-                    // Device requires MFA but user doesn't have MFA enabled, require setup
+                    // Device requires MFA but user doesn't have MFA configured, require setup
                     await createSession(user.id, user.email, {
                         mfaVerified: false,
                         mfaSetupRequired: true,
@@ -761,6 +752,35 @@ export const authRouter = createTRPCRouter({
                         userAgent,
                     });
                     return { success: true, mfaSetupRequired: true, deviceRequiresMfa: true };
+                }
+            }
+
+            // Check if MFA should be enforced based on user settings or global enforcement
+            const enforceMfa = await shouldEnforceMfa(user.id, user.role, user.mfaEnabled)
+            
+            if (enforceMfa) {
+                // MFA is enforced - determine if setup or verification is required
+                const mfaRequirement = await determineMfaRequirement(user.id, user.role, user.mfaEnabled, hasMfaMethod)
+                
+                if (mfaRequirement.mfaSetupRequired) {
+                    // User needs to set up MFA
+                    await createSession(user.id, user.email, {
+                        mfaVerified: false,
+                        mfaSetupRequired: true,
+                        mfaRequired: false,
+                        ipAddress,
+                        userAgent,
+                    });
+                    return { success: true, mfaSetupRequired: true };
+                } else if (mfaRequirement.mfaRequired) {
+                    // User needs to verify MFA
+                    await createSession(user.id, user.email, {
+                        mfaVerified: false,
+                        mfaRequired: true,
+                        ipAddress,
+                        userAgent,
+                    });
+                    return { success: true, mfaRequired: true };
                 }
             }
 
@@ -976,7 +996,14 @@ export const authRouter = createTRPCRouter({
             const requireMfaForUntrustedDevices = await prisma.settings.findUnique({
                 where: { key: "security.device.require_mfa_untrusted" },
             });
-            const finalMfaRequired = requireMfaForUntrustedDevices?.value === true && !deviceIsTrusted;
+            const deviceRequiresMfa = requireMfaForUntrustedDevices?.value === true && !deviceIsTrusted;
+            
+            // Check if MFA should be enforced based on settings
+            const { shouldEnforceMfa } = await import("@/lib/mfa-enforcement")
+            const enforceMfa = await shouldEnforceMfa(user.id, user.role, user.mfaEnabled)
+            
+            // MFA is required if device requires it OR if enforced by settings
+            const finalMfaRequired = deviceRequiresMfa || enforceMfa;
 
             const payload = { userId: user.id, email: user.email, isLoggedIn: true, mfaVerified: true, mfaSetupRequired: false, mfaRequired: finalMfaRequired };
             const sessionToken = await new SignJWT(payload)
@@ -1097,19 +1124,30 @@ export const authRouter = createTRPCRouter({
 
             // Determine if MFA verification is needed
             const hasMfaMethod = 
-                (rest.mfaEnabled && rest.mfaMethod === "TOTP" && mfaSecret !== null) ||
-                (rest.mfaEnabled && rest.mfaMethod === "SMS" && rest.phoneNumber !== null) ||
-                (rest.mfaEnabled && rest.mfaMethod === "EMAIL" && rest.email !== null) ||
-                (rest.mfaEnabled && rest.mfaMethod === "WEBAUTHN" && _count.mfaCredentials > 0);
+                (rest.mfaMethod === "TOTP" && mfaSecret !== null) ||
+                (rest.mfaMethod === "SMS" && rest.phoneNumber !== null) ||
+                (rest.mfaMethod === "EMAIL" && rest.email !== null) ||
+                (rest.mfaMethod === "WEBAUTHN" && _count.mfaCredentials > 0);
 
-            // Determine if MFA setup is required
-            // Priority: session flag > user settings (for device-specific MFA requirements)
-            const mfaSetupRequired = session.mfaSetupRequired === true || (rest.mfaEnabled && !hasMfaMethod);
+            // Check if MFA should be enforced based on settings
+            const { shouldEnforceMfa, determineMfaRequirement } = await import("@/lib/mfa-enforcement")
+            const enforceMfa = await shouldEnforceMfa(rest.id, rest.role, rest.mfaEnabled)
+            
+            // Determine MFA requirements
+            // Priority: session flag (for device-specific requirements) > enforcement logic
+            let mfaSetupRequired = session.mfaSetupRequired === true
+            let shouldVerifyMfa = false
+            
+            if (!mfaSetupRequired && enforceMfa) {
+                const mfaRequirement = await determineMfaRequirement(rest.id, rest.role, rest.mfaEnabled, hasMfaMethod)
+                mfaSetupRequired = mfaRequirement.mfaSetupRequired
+                shouldVerifyMfa = mfaRequirement.mfaRequired && !session.mfaVerified
+            }
 
             return {
                 user: rest,
                 session,
-                shouldVerifyMfa: rest.mfaEnabled && !session.mfaVerified && hasMfaMethod,
+                shouldVerifyMfa,
                 mfaSetupRequired,
                 mfaMethod: rest.mfaMethod,
             };
