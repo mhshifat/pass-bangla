@@ -110,14 +110,28 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
-      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+      { url: "/favicon.ico", sizes: "48x48", type: "image/x-icon" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-96x96.png", sizes: "96x96", type: "image/png" },
+      { url: "/android-icon-192x192.png", sizes: "192x192", type: "image/png" },
     ],
     apple: [
-      { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
+      { url: "/apple-icon-57x57.png", sizes: "57x57", type: "image/png" },
+      { url: "/apple-icon-60x60.png", sizes: "60x60", type: "image/png" },
+      { url: "/apple-icon-72x72.png", sizes: "72x72", type: "image/png" },
+      { url: "/apple-icon-76x76.png", sizes: "76x76", type: "image/png" },
+      { url: "/apple-icon-114x114.png", sizes: "114x114", type: "image/png" },
+      { url: "/apple-icon-120x120.png", sizes: "120x120", type: "image/png" },
+      { url: "/apple-icon-144x144.png", sizes: "144x144", type: "image/png" },
+      { url: "/apple-icon-152x152.png", sizes: "152x152", type: "image/png" },
+      { url: "/apple-icon-180x180.png", sizes: "180x180", type: "image/png" },
     ],
-    shortcut: "/icon-192.png",
+    shortcut: "/favicon.ico",
   },
+  other: [
+    { rel: "msapplication-TileImage", url: "/ms-icon-144x144.png" },
+  ],
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION,
     yandex: process.env.NEXT_PUBLIC_YANDEX_VERIFICATION,
@@ -138,6 +152,9 @@ export default async function RootLayout({
       <head>
         <meta name="msvalidate.01" content="6FDB602163A60B7F0ABA4A29B9153BC2" />
         <meta name="yandex-verification" content="f179c8429f117666" />
+        <meta name="msapplication-TileColor" content="#ffffff" />
+        <meta name="msapplication-TileImage" content="/ms-icon-144x144.png" />
+        <meta name="theme-color" content="#ffffff" />
         {/* Critical: Initialize i18n language synchronously before React hydrates */}
         <script
           dangerouslySetInnerHTML={{
