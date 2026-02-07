@@ -129,9 +129,6 @@ export const metadata: Metadata = {
     ],
     shortcut: "/favicon.ico",
   },
-  other: [
-    { rel: "msapplication-TileImage", url: "/ms-icon-144x144.png" },
-  ],
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION,
     yandex: process.env.NEXT_PUBLIC_YANDEX_VERIFICATION,
