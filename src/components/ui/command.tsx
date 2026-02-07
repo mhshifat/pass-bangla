@@ -73,9 +73,10 @@ function CommandInput({
       <CommandPrimitive.Input
         data-slot="command-input"
         className={cn(
-          "placeholder:text-muted-foreground flex h-full w-full bg-transparent py-0 text-base outline-none disabled:cursor-not-allowed disabled:opacity-50 focus:ring-0",
+          "placeholder:text-muted-foreground flex h-full w-full bg-transparent py-0 text-base disabled:cursor-not-allowed disabled:opacity-50 outline-none ring-0 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 [&]:outline-none [&]:focus-visible:outline-none",
           className
         )}
+        style={{ outline: "none" }}
         {...props}
       />
     </div>
