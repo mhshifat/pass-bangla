@@ -1,10 +1,12 @@
 import { Suspense } from "react"
+import { HydrationBoundary } from "@tanstack/react-query"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   PasswordsTableSkeleton,
   PasswordsEmptyState,
 } from "@/modules/passwords/client"
 import { caller } from "@/trpc/server"
+import { prefetchPasswordsData } from "@/modules/passwords/server/prefetch"
 import { PasswordsContent } from "./passwords-content"
 import { PasswordsListClient } from "./passwords-list-client"
 import { PasswordsPageHeader } from "./passwords-page-header"
@@ -30,28 +32,33 @@ export default async function PasswordsPage({ searchParams }: PasswordsPageProps
   const folderIds = params.folders ? params.folders.split(",").filter(Boolean) : undefined
   const searchFields = params.searchFields ? params.searchFields.split(",").filter(Boolean) as ("name" | "username" | "url" | "notes")[] : undefined
 
+  // Prefetch export filters and rotation reminders on the server
+  const dehydratedState = await prefetchPasswordsData()
+
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <PasswordsPageHeader />
-        <PasswordsContent />
+    <HydrationBoundary state={dehydratedState}>
+      <div className="p-6 space-y-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <PasswordsPageHeader />
+          <PasswordsContent />
+        </div>
+
+        <Suspense fallback={<PasswordsStatsSkeleton />}>
+          <PasswordsStats />
+        </Suspense>
+
+        <Suspense key={`${currentPage}-${search}-${filter}-${tagIds?.join(",")}-${folderIds?.join(",")}-${searchFields?.join(",")}`} fallback={<PasswordsTableSkeleton />}>
+          <PasswordsListContent 
+            page={currentPage} 
+            search={search} 
+            filter={filter} 
+            tagIds={tagIds}
+            folderIds={folderIds}
+            searchFields={searchFields}
+          />
+        </Suspense>
       </div>
-
-      <Suspense fallback={<PasswordsStatsSkeleton />}>
-        <PasswordsStats />
-      </Suspense>
-
-      <Suspense key={`${currentPage}-${search}-${filter}-${tagIds?.join(",")}-${folderIds?.join(",")}-${searchFields?.join(",")}`} fallback={<PasswordsTableSkeleton />}>
-        <PasswordsListContent 
-          page={currentPage} 
-          search={search} 
-          filter={filter} 
-          tagIds={tagIds}
-          folderIds={folderIds}
-          searchFields={searchFields}
-        />
-      </Suspense>
-    </div>
+    </HydrationBoundary>
   )
 }
 
