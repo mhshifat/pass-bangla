@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import { TourProvider, useTour } from "@/components/tour"
-import { GettingStartedChecklist } from "./getting-started-checklist"
 import { TourAlertDialog } from "@/components/tour"
 import { trpc } from "@/trpc/client"
 import { TOUR_STEP_IDS } from "@/lib/tour-constants"
@@ -16,9 +15,13 @@ function OnboardingContent({ children }: { children: React.ReactNode }) {
   const [showAlert, setShowAlert] = React.useState(false)
   const { setSteps } = useTour()
   const { t } = useTranslation()
-  const { data: onboardingStatus, isLoading, refetch } = trpc.users.getOnboardingStatus.useQuery()
+  const { data: onboardingStatus, isLoading, refetch } = trpc.users.getOnboardingStatus.useQuery(undefined, {
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  })
   const updateOnboardingMutation = trpc.users.updateOnboardingStatus.useMutation()
-
+  
   // Define comprehensive tour steps covering all features and sub-features
   React.useEffect(() => {
     const steps = [

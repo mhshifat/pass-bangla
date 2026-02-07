@@ -6,7 +6,11 @@ import { StatsCards } from "@/modules/dashboard/client"
 
 export function DashboardStats() {
   const { t } = useTranslation()
-  const { data: stats } = trpc.dashboard.stats.useQuery()
+  const { data: stats } = trpc.dashboard.stats.useQuery(undefined, {
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  })
 
   if (!stats) {
     return null

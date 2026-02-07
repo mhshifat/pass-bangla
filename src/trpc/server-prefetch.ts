@@ -85,3 +85,77 @@ export async function prefetchUserProfile() {
   
   return dehydrate(queryClient);
 }
+
+/**
+ * Prefetch dashboard data for admin dashboard page
+ * This prefetches all dashboard queries on the server to avoid client-side API calls
+ * 
+ * @example
+ * ```tsx
+ * export default async function DashboardPage() {
+ *   const dehydratedState = await prefetchDashboardData()
+ *   
+ *   return (
+ *     <HydrationBoundary state={dehydratedState}>
+ *       <DashboardContent />
+ *     </HydrationBoundary>
+ *   )
+ * }
+ * ```
+ */
+export async function prefetchDashboardData() {
+  const queryClient = makeQueryClient();
+  const trpc = await serverTrpc();
+  
+  try {
+    // Prefetch all dashboard data in parallel
+    const [stats, activities, alerts, metrics, onboardingStatus] = await Promise.allSettled([
+      trpc.dashboard.stats(),
+      trpc.dashboard.recentActivities(),
+      trpc.dashboard.securityAlerts(),
+      trpc.dashboard.healthMetrics(),
+      trpc.users.getOnboardingStatus(),
+    ]);
+
+    // Set each query data in the cache with the correct tRPC query key format
+    if (stats.status === 'fulfilled') {
+      queryClient.setQueryData(
+        [['dashboard', 'stats'], { input: undefined, type: 'query' }],
+        stats.value
+      );
+    }
+
+    if (activities.status === 'fulfilled') {
+      queryClient.setQueryData(
+        [['dashboard', 'recentActivities'], { input: undefined, type: 'query' }],
+        activities.value
+      );
+    }
+
+    if (alerts.status === 'fulfilled') {
+      queryClient.setQueryData(
+        [['dashboard', 'securityAlerts'], { input: undefined, type: 'query' }],
+        alerts.value
+      );
+    }
+
+    if (metrics.status === 'fulfilled') {
+      queryClient.setQueryData(
+        [['dashboard', 'healthMetrics'], { input: undefined, type: 'query' }],
+        metrics.value
+      );
+    }
+
+    if (onboardingStatus.status === 'fulfilled') {
+      queryClient.setQueryData(
+        [['users', 'getOnboardingStatus'], { input: undefined, type: 'query' }],
+        onboardingStatus.value
+      );
+    }
+  } catch (error) {
+    // If there's an error, the client will handle it
+    console.debug('Could not prefetch dashboard data:', error);
+  }
+  
+  return dehydrate(queryClient);
+}

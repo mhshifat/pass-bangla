@@ -34,7 +34,11 @@ export function FeatureTooltip({
   const [isOpen, setIsOpen] = React.useState(false)
   const [isDismissed, setIsDismissed] = React.useState(false)
 
-  const { data: onboardingStatus } = trpc.users.getOnboardingStatus.useQuery()
+  const { data: onboardingStatus } = trpc.users.getOnboardingStatus.useQuery(undefined, {
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  })
   const completeStepMutation = trpc.users.completeOnboardingStep.useMutation()
 
   // Check if this feature tooltip should be shown

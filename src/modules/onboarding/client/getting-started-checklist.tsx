@@ -78,7 +78,11 @@ export function GettingStartedChecklist() {
   const [isExpanded, setIsExpanded] = React.useState(false)
   const [isHidden, setIsHidden] = React.useState(false)
 
-  const { data: onboardingStatus, refetch } = trpc.users.getOnboardingStatus.useQuery()
+  const { data: onboardingStatus, refetch } = trpc.users.getOnboardingStatus.useQuery(undefined, {
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  })
   const completeStepMutation = trpc.users.completeOnboardingStep.useMutation()
   const updateOnboardingMutation = trpc.users.updateOnboardingStatus.useMutation()
 
