@@ -10,10 +10,13 @@ async function getRoleStats() {
 }
 
 async function RolesContent() {
-  const { roles } = await caller.roles.list({
-    page: 1,
-    pageSize: 100,
-  })
+  const [{ roles }, permissions] = await Promise.all([
+    caller.roles.list({
+      page: 1,
+      pageSize: 100,
+    }),
+    caller.roles.getAllPermissions(),
+  ])
 
   // Transform roles to match the expected interface
   const transformedRoles = roles.map((role) => ({
@@ -25,7 +28,7 @@ async function RolesContent() {
     createdAt: role.createdAt,
   }))
 
-  return <RolesActionsClient roles={transformedRoles} />
+  return <RolesActionsClient roles={transformedRoles} permissions={permissions} />
 }
 
 export default async function RolesPage() {

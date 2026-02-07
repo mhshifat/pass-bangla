@@ -8,14 +8,14 @@ import { isRedirectError } from "next/dist/client/components/redirect-error"
 
 export async function updateRolePermissionsAction(
   roleId: string,
-  permissionIds: string[]
+  permissionKeys: string[]
 ) {
   const correlationId = generateCorrelationId()
   try {
     const trpc = await serverTrpc()
     await trpc.roles.updatePermissions({
       roleId,
-      permissionIds,
+      permissionKeys,
     })
 
     revalidatePath("/admin/roles")

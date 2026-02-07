@@ -25,7 +25,6 @@ interface Role {
 }
 
 interface Permission {
-  id: string
   key: string
   name: string
   description: string
@@ -56,8 +55,8 @@ export function PermissionsDialog({ open, onOpenChange, role, permissions }: Per
 
   // Update selected permissions when role permissions are loaded
   React.useEffect(() => {
-    if (rolePermissionsData?.permissionIds) {
-      setSelectedPermissions(new Set(rolePermissionsData.permissionIds))
+    if (rolePermissionsData?.permissionKeys) {
+      setSelectedPermissions(new Set(rolePermissionsData.permissionKeys))
     }
   }, [rolePermissionsData])
 
@@ -65,8 +64,8 @@ export function PermissionsDialog({ open, onOpenChange, role, permissions }: Per
     async (prevState: unknown, formData: FormData) => {
       if (!role?.id) return { error: "No role selected" }
       
-      const permissionIds = Array.from(selectedPermissions)
-      return await updateRolePermissionsAction(role.id, permissionIds)
+      const permissionKeys = Array.from(selectedPermissions)
+      return await updateRolePermissionsAction(role.id, permissionKeys)
     },
     null
   )
@@ -81,15 +80,15 @@ export function PermissionsDialog({ open, onOpenChange, role, permissions }: Per
     }
   }, [saveState, router, onOpenChange])
 
-  const handlePermissionToggle = (permissionId: string) => {
+  const handlePermissionToggle = (permissionKey: string) => {
     if (role?.isSystem) return
     
     setSelectedPermissions((prev) => {
       const next = new Set(prev)
-      if (next.has(permissionId)) {
-        next.delete(permissionId)
+      if (next.has(permissionKey)) {
+        next.delete(permissionKey)
       } else {
-        next.add(permissionId)
+        next.add(permissionKey)
       }
       return next
     })
@@ -139,7 +138,7 @@ export function PermissionsDialog({ open, onOpenChange, role, permissions }: Per
                 <div className="space-y-3">
                   {category.items.map((permission) => (
                     <div
-                      key={permission.id}
+                      key={permission.key}
                       className="flex items-start justify-between p-3 rounded-lg border bg-card"
                     >
                       <div className="flex-1">
@@ -150,8 +149,8 @@ export function PermissionsDialog({ open, onOpenChange, role, permissions }: Per
                       </div>
                       <Switch
                         disabled={role?.isSystem}
-                        checked={selectedPermissions.has(permission.id)}
-                        onCheckedChange={() => handlePermissionToggle(permission.id)}
+                        checked={selectedPermissions.has(permission.key)}
+                        onCheckedChange={() => handlePermissionToggle(permission.key)}
                       />
                     </div>
                   ))}

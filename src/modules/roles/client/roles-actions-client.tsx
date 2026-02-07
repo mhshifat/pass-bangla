@@ -21,7 +21,6 @@ import { RolesTable } from "./roles-table"
 import { PermissionsDialog } from "./permissions-dialog"
 import { createRoleAction, updateRoleAction, deleteRoleAction } from "@/app/admin/roles/actions"
 import { syncPermissionsAction } from "@/app/admin/roles/sync-permissions-action"
-import { trpc } from "@/trpc/client"
 import { useTranslation } from "react-i18next"
 import { usePermissions } from "@/hooks/use-permissions"
 import { RefreshCw } from "lucide-react"
@@ -36,32 +35,25 @@ interface Role {
   createdAt: string
 }
 
-interface RolesActionsClientProps {
-  roles: Role[]
+interface Permission {
+  key: string
+  name: string
+  description: string
 }
 
-export function RolesActionsClient({ roles }: RolesActionsClientProps) {
+interface PermissionCategory {
+  category: string
+  items: Permission[]
+}
+
+interface RolesActionsClientProps {
+  roles: Role[]
+  permissions: PermissionCategory[]
+}
+
+export function RolesActionsClient({ roles, permissions }: RolesActionsClientProps) {
   const { t } = useTranslation()
   const { hasPermission } = usePermissions()
-  // Fetch permissions from database
-  const { data: permissionsData } = trpc.roles.getAllPermissions.useQuery()
-  
-  // Transform permissions data to match the expected format
-  const permissions = React.useMemo(() => {
-    if (!permissionsData) {
-      // Fallback to empty array while loading
-      return []
-    }
-    return permissionsData.map((category) => ({
-      category: category.category,
-      items: category.items.map((item) => ({
-        id: item.id,
-        key: item.key,
-        name: item.name,
-        description: item.description,
-      })),
-    }))
-  }, [permissionsData])
   const router = useRouter()
   const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false)
@@ -128,8 +120,6 @@ export function RolesActionsClient({ roles }: RolesActionsClientProps) {
     }
   }
 
-  const utils = trpc.useUtils()
-
   const handleSyncPermissions = async () => {
     setIsSyncing(true)
     try {
@@ -138,8 +128,7 @@ export function RolesActionsClient({ roles }: RolesActionsClientProps) {
         toast.error(result.error)
       } else {
         toast.success("Permissions and roles synced successfully")
-        // Invalidate and refetch permissions
-        await utils.roles.getAllPermissions.invalidate()
+        // Refresh the page to refetch permissions from server
         router.refresh()
       }
     } catch (error) { showErrorFromException(error, error instanceof Error ? error.message : "Failed to sync permissions") } finally {

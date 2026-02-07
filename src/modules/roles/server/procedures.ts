@@ -524,12 +524,16 @@ export const rolesRouter = createTRPCRouter({
       const rolePermissions = await prisma.rolePermission.findMany({
         where: { roleId: input.roleId },
         select: {
-          permissionId: true,
+          permission: {
+            select: {
+              key: true,
+            },
+          },
         },
       })
 
       return {
-        permissionIds: rolePermissions.map((rp: { permissionId: string }) => rp.permissionId),
+        permissionKeys: rolePermissions.map((rp: { permission: { key: string } }) => rp.permission.key),
       }
     }),
 
@@ -537,7 +541,7 @@ export const rolesRouter = createTRPCRouter({
     .input(
       z.object({
         roleId: z.string(),
-        permissionIds: z.array(z.string()),
+        permissionKeys: z.array(z.string()),
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -582,12 +586,17 @@ export const rolesRouter = createTRPCRouter({
         where: { roleId: input.roleId },
       })
 
-      // Create new permissions
-      if (input.permissionIds.length > 0) {
+      // Create new permissions by looking up IDs from keys
+      if (input.permissionKeys.length > 0) {
+        const permissions = await prisma.permission.findMany({
+          where: { key: { in: input.permissionKeys } },
+          select: { id: true },
+        })
+
         await prisma.rolePermission.createMany({
-          data: input.permissionIds.map((permissionId) => ({
+          data: permissions.map((permission) => ({
             roleId: input.roleId,
-            permissionId,
+            permissionId: permission.id,
           })),
         })
       }
@@ -644,19 +653,18 @@ export const rolesRouter = createTRPCRouter({
 
     // Group by category
     const grouped = permissions.reduce(
-      (acc: Record<string, Array<{ id: string; key: string; name: string; description: string }>>, permission: { id: string; key: string; name: string; description: string | null; category: string }) => {
+      (acc: Record<string, Array<{ key: string; name: string; description: string }>>, permission: { id: string; key: string; name: string; description: string | null; category: string }) => {
         if (!acc[permission.category]) {
           acc[permission.category] = []
         }
         acc[permission.category].push({
-          id: permission.id,
           key: permission.key,
           name: permission.name,
           description: permission.description || "",
         })
         return acc
       },
-      {} as Record<string, Array<{ id: string; key: string; name: string; description: string }>>
+      {} as Record<string, Array<{ key: string; name: string; description: string }>>
     )
 
     return Object.entries(grouped).map(([category, items]) => ({
