@@ -369,15 +369,16 @@ export function PasswordFormDialog({
                     <FormItem>
                       <FormLabel>{t("common.password")}</FormLabel>
                       <FormControl>
-                        <PasswordInput
-                          {...field}
-                          name="password"
-                          onGenerate={() => {
-                            const generated = generateStrongPassword(20)
-                            form.setValue("password", generated)
-                            field.onChange({ target: { value: generated } })
-                          }}
-                        />
+                          <PasswordInput
+                            {...field}
+                            name="password"
+                            showGenerateButton={true}
+                            onGenerate={() => {
+                              const generated = generateStrongPassword(20)
+                              form.setValue("password", generated)
+                              field.onChange({ target: { value: generated } })
+                            }}
+                          />
                       </FormControl>
                       <FormDescription>
                         {t("passwords.passwordDescription")}

@@ -201,12 +201,12 @@ export function ExportPasswordDialog({
                     {t("passwords.export.encryptionKey")}
                   </Label>
                   <PasswordInput
-                    id="encryptionKey"
-                    value={encryptionKey}
-                    onChange={(e) => setEncryptionKey(e.target.value)}
-                    placeholder={t("passwords.export.encryptionKeyPlaceholder")}
-                    showToggleButton={true}
-                    showGenerateButton={false}
+                      id="encryptionKey"
+                      value={encryptionKey}
+                      onChange={(e) => setEncryptionKey(e.target.value)}
+                      placeholder={t("passwords.export.encryptionKeyPlaceholder")}
+                      showToggleButton={true}
+                      showGenerateButton={true}
                   />
                 </div>
               )}
