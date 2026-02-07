@@ -6,10 +6,9 @@ import { useTranslation } from "react-i18next"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { AlertTriangle, X, Info, AlertCircle, CheckCircle2 } from "lucide-react"
+import { AlertTriangle, X, Info, AlertCircle } from "lucide-react"
 import { trpc } from "@/trpc/client"
 import { toast } from "sonner"
-import { showErrorFromException } from "@/lib/error-toast"
 
 interface Alert {
   id: string

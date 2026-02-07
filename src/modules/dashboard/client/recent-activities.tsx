@@ -58,7 +58,7 @@ const EmptyActivitiesIllustration = () => (
 )
 
 export function RecentActivities({ activities }: RecentActivitiesProps) {
-  const { t } = useTranslation()
+  const { t } = useTranslation();
   
   return (
     <Card className="lg:col-span-1">
