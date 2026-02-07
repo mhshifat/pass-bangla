@@ -46,7 +46,13 @@
     "refresh": "Refresh",
     "description": "Description",
     "createdAt": "Created At",
-    "add": "Add"
+    "add": "Add",
+    "errors": {
+      "insufficientPermissions": "Insufficient permissions. This action requires: {{permissions}}. Please contact your administrator to request access.",
+      "accessDenied": "Access Denied",
+      "contactAdministrator": "Please contact your administrator to request the required permissions.",
+      "permissionRequired": "Permission required to perform this action"
+    }
   },
   "auth": {
     "login": "Sign in",

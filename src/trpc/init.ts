@@ -220,7 +220,10 @@ export const requirePermission = (permissionKey: string | string[]) => {
     );
     
     if (!hasPermission) {
-      const message = `You do not have permission to perform this action. Required: ${requiredPermissions.join(" or ")}`;
+      // Import helper to format permission names
+      const { formatPermissionList } = await import("@/lib/permission-helpers");
+      const permissionList = formatPermissionList(requiredPermissions);
+      const message = `Insufficient permissions. This action requires: ${permissionList}. Please contact your administrator to request access.`;
       throw new TRPCError({
         code: "FORBIDDEN",
         message: formatErrorWithCorrelationId(message, ctx.correlationId),
