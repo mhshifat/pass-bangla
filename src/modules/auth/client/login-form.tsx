@@ -4,7 +4,8 @@ import { useActionState, useState, useLayoutEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { CardContent, CardFooter } from "@/components/ui/card"
 import { LoginFormFields } from "./login-form-fields"
-import { loginAction } from "@/app/(auth)/login/actions"
+import { CompanyVerifyFields } from "./company-verify-fields"
+import { loginAction, verifyCompanyAction } from "@/app/(auth)/login/actions"
 import { useTranslation } from "react-i18next"
 import { PasskeyLoginButton } from "./passkey-login-button"
 import { Separator } from "@/components/ui/separator"
@@ -15,7 +16,10 @@ interface LoginFormProps {
 
 export function LoginForm({ isMainDomain }: LoginFormProps) {
   const { t } = useTranslation()
-  const [state, formAction, isPending] = useActionState(loginAction, null);
+  
+  // Use different actions based on domain type
+  const [loginState, loginFormAction, isLoginPending] = useActionState(loginAction, null)
+  const [verifyState, verifyFormAction, isVerifyPending] = useActionState(verifyCompanyAction, null)
   
   // Get base domain for register link (only on client side)
   // Registration should always happen on main domain, not subdomain
@@ -67,17 +71,6 @@ export function LoginForm({ isMainDomain }: LoginFormProps) {
         ? `${protocol}//${baseHostname}:${port}/register`
         : `${protocol}//${baseHostname}/register`;
       
-      console.log("Computed register URL:", {
-        origin,
-        hostname,
-        port,
-        baseHostname,
-        fullUrl,
-        windowLocation: window.location.href,
-        windowHostname: window.location.hostname,
-        windowPort: window.location.port
-      });
-      
       // We need to set state here to update the href attribute
       // This is necessary because window.location is only available on the client
       // The linter warning about setState in effects is acceptable here as we need
@@ -90,19 +83,49 @@ export function LoginForm({ isMainDomain }: LoginFormProps) {
     }
   }, []);
 
+  // Main domain: Show company verification form
+  if (isMainDomain) {
+    return (
+      <>
+        <CardContent>
+          <CompanyVerifyFields
+            formAction={verifyFormAction}
+            isPending={isVerifyPending}
+            state={verifyState}
+          />
+        </CardContent>
+        <CardFooter className="flex flex-col space-y-4">
+          <Button type="submit" className="w-full" disabled={isVerifyPending} form="company-verify-form">
+            {isVerifyPending ? t("auth.verifying") : t("auth.continue")}
+          </Button>
+          
+          <div className="text-sm text-center text-muted-foreground">
+            {t("auth.dontHaveAccount")}{" "}
+            <a 
+              href={registerUrl}
+              className="text-primary hover:underline font-medium"
+            >
+              {t("auth.register")}
+            </a>
+          </div>
+        </CardFooter>
+      </>
+    )
+  }
+
+  // Subdomain: Show email/password login form
   return (
     <>
       <CardContent>
         <LoginFormFields
-          formAction={formAction}
-          isPending={isPending}
-          state={state}
-          isMainDomain={isMainDomain}
+          formAction={loginFormAction}
+          isPending={isLoginPending}
+          state={loginState}
         />
       </CardContent>
       <CardFooter className="flex flex-col space-y-4">
-        <Button type="submit" className="w-full" disabled={isPending} form="login-form">
-          {isPending ? t("auth.signingIn") : t("auth.login")}
+        <Button type="submit" className="w-full" disabled={isLoginPending} form="login-form">
+          {isLoginPending ? t("auth.signingIn") : t("auth.login")}
         </Button>
         
         <div className="relative">

@@ -61,6 +61,8 @@
     "register": "Sign up",
     "signingIn": "Signing in...",
     "signingUp": "Signing up...",
+    "verifying": "Verifying...",
+    "continue": "Continue",
     "email": "Email address",
     "password": "Password",
     "forgotPasswordLink": "Forgot password?",
@@ -114,6 +116,7 @@
     "passwordDescription": "Must be at least 8 characters. Click the key icon to generate a strong password.",
     "companyName": "Company Name",
     "companyNamePlaceholder": "mycompany",
+    "companyNameDescription": "Enter your company name or subdomain to continue to login",
     "securityQuestions": {
       "recoveryTitle": "Recover Account via Security Questions",
       "recoveryDescription": "Enter your email address to retrieve your security questions.",

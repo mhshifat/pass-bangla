@@ -250,6 +250,49 @@ async function createSystemRoleWithPermissions(roleName: string, isFirstUser: bo
 }
 
 export const authRouter = createTRPCRouter({
+    /**
+     * Verify if a company exists by name or subdomain
+     * Used on main domain login to redirect to subdomain
+     */
+    verifyCompany: baseProcedure
+        .input(
+            z.object({
+                company: z.string().min(1, "Company name is required"),
+            })
+        )
+        .mutation(async ({ input }) => {
+            const normalizedCompany = input.company.trim().toLowerCase()
+            
+            // Find company by subdomain OR name
+            const company = await prisma.company.findFirst({
+                where: {
+                    OR: [
+                        { subdomain: normalizedCompany },
+                        { name: { equals: input.company.trim(), mode: "insensitive" } },
+                    ]
+                },
+                select: {
+                    id: true,
+                    name: true,
+                    subdomain: true,
+                },
+            })
+
+            if (!company) {
+                return {
+                    exists: false,
+                    subdomain: null,
+                    name: null,
+                }
+            }
+
+            return {
+                exists: true,
+                subdomain: company.subdomain,
+                name: company.name,
+            }
+        }),
+
     register: baseProcedure
         .input(
             z.object({

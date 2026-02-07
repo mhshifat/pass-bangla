@@ -5,6 +5,7 @@ import { serverTrpc } from "@/trpc/server-caller"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
 import { TRPCError } from "@trpc/server"
 import { generateCorrelationId, logError, formatErrorWithCorrelationId, sanitizeClientErrorMessage } from "@/lib/correlation-id-util"
+import { headers } from "next/headers"
 
 type FieldErrors = {
   [key: string]: string
@@ -24,6 +25,92 @@ type LoginActionResult = {
   captchaToken?: string
   captchaQuestion?: string
 } | null
+
+type CompanyVerifyResult = {
+  error?: string
+  correlationId?: string
+  fieldErrors?: FieldErrors
+} | null
+
+/**
+ * Action for main domain - verify company exists and redirect to subdomain login
+ */
+export async function verifyCompanyAction(
+  prevState: CompanyVerifyResult,
+  formData: FormData
+): Promise<CompanyVerifyResult> {
+  const correlationId = generateCorrelationId()
+  const company = formData.get("company") as string | null
+
+  if (!company || company.trim() === "") {
+    return {
+      error: "Please enter your company name",
+      correlationId,
+      fieldErrors: { company: "Company name is required" },
+    }
+  }
+
+  try {
+    const trpc = await serverTrpc()
+    const result = await trpc.auth.verifyCompany({ company: company.trim() })
+
+    if (!result.exists || !result.subdomain) {
+      return {
+        error: "Company not found. Please check your company name and try again.",
+        correlationId,
+        fieldErrors: { company: "Company not found" },
+      }
+    }
+
+    // Get current host to construct subdomain URL
+    const headersList = await headers()
+    const host = headersList.get("host") || "localhost:3000"
+    const protocol = process.env.NODE_ENV === "production" ? "https" : "http"
+
+    // Extract base domain
+    const hostWithoutPort = host.split(":")[0]
+    const port = host.includes(":") ? `:${host.split(":")[1]}` : ""
+
+    let baseDomain: string
+    if (hostWithoutPort.includes("localhost")) {
+      baseDomain = "localhost"
+    } else {
+      const parts = hostWithoutPort.split(".")
+      baseDomain = parts.length > 2 ? parts.slice(-2).join(".") : hostWithoutPort
+    }
+
+    // Redirect to subdomain login
+    const subdomainLoginUrl = `${protocol}://${result.subdomain}.${baseDomain}${port}/login`
+    redirect(subdomainLoginUrl)
+  } catch (error: unknown) {
+    if (isRedirectError(error)) {
+      throw error
+    }
+
+    logError(correlationId, error, {
+      action: "verifyCompany",
+      company: company || "none",
+    })
+
+    if (error instanceof TRPCError) {
+      const fallbackMessage = "Company not found"
+      const safeErrorMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
+      return {
+        error: safeErrorMessage,
+        correlationId,
+      }
+    }
+
+    return {
+      error: "Unable to verify company. Please try again.",
+      correlationId,
+    }
+  }
+}
+
+/**
+ * Action for subdomain - login with email/password
+ */
 
 export async function loginAction(
   prevState: LoginActionResult,
