@@ -5,6 +5,14 @@ import { headers } from "next/headers"
 import { serverTrpc } from "@/trpc/server-caller"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
 
+type ServerActionResult = {
+  error?: string;
+  correlationId?: string;
+  fieldErrors?: Record<string, string>;
+  success?: boolean;
+} | { success: true };
+
+
 export async function logoutAction() {
   try {
     const trpc = await serverTrpc()

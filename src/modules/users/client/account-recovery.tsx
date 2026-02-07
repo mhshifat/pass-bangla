@@ -19,6 +19,7 @@ import {
 import { trpc } from "@/trpc/client"
 import { toast } from "sonner"
 import { Loader2, Mail, Shield, CheckCircle2, X, Plus, Trash2, AlertTriangle } from "lucide-react"
+import { showErrorFromException } from "@/lib/error-toast"
 import {
   Dialog,
   DialogContent,
@@ -71,7 +72,7 @@ export function AccountRecovery({ user, onUpdate }: AccountRecoveryProps) {
       onUpdate?.()
     },
     onError: (error) => {
-      toast.error(error.message || t("profile.recoveryEmail.setError"))
+      showErrorFromException(error, t("profile.recoveryEmail.setError"))
     },
   })
 
@@ -82,7 +83,7 @@ export function AccountRecovery({ user, onUpdate }: AccountRecoveryProps) {
       onUpdate?.()
     },
     onError: (error) => {
-      toast.error(error.message || t("profile.recoveryEmail.removeError"))
+      showErrorFromException(error, t("profile.recoveryEmail.removeError"))
     },
   })
 
@@ -95,7 +96,7 @@ export function AccountRecovery({ user, onUpdate }: AccountRecoveryProps) {
       onUpdate?.()
     },
     onError: (error) => {
-      toast.error(error.message || t("profile.securityQuestions.setError"))
+      showErrorFromException(error, t("profile.securityQuestions.setError"))
     },
   })
 

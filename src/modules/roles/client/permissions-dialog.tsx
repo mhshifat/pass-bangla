@@ -62,7 +62,7 @@ export function PermissionsDialog({ open, onOpenChange, role, permissions }: Per
   }, [rolePermissionsData])
 
   const [saveState, saveFormAction, savePending] = useActionState(
-    async (prevState: any, formData: FormData) => {
+    async (prevState: unknown, formData: FormData) => {
       if (!role?.id) return { error: "No role selected" }
       
       const permissionIds = Array.from(selectedPermissions)

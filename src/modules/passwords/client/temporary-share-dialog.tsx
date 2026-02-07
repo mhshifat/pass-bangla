@@ -28,6 +28,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Copy, Check, Link2, Calendar, Users, AlertCircle } from "lucide-react"
 import { trpc } from "@/trpc/client"
+import { showErrorFromException } from "@/lib/error-toast"
 import { toast } from "sonner"
 import { useTranslation } from "react-i18next"
 import { Badge } from "@/components/ui/badge"
@@ -76,7 +77,7 @@ export function TemporaryShareDialog({
       toast.success(t("passwords.temporaryShare.created"))
     },
     onError: (error) => {
-      toast.error(error.message || t("passwords.temporaryShare.createFailed"))
+      showErrorFromException(error, t("passwords.temporaryShare.createFailed"))
     },
   })
 

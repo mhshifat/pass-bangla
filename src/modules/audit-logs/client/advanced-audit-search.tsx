@@ -42,6 +42,7 @@ import { cn } from "@/lib/utils"
 import { trpc } from "@/trpc/client"
 import { toast } from "sonner"
 import { useState } from "react"
+import { showErrorFromException } from "@/lib/error-toast"
 
 interface AdvancedAuditSearchProps {
   onSearch: (filters: {

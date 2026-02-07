@@ -24,6 +24,7 @@ import Link from "next/link"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { CheckCircle2, Info } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { showErrorFromException } from "@/lib/error-toast"
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -49,7 +50,7 @@ export function ForgotPasswordPage() {
       toast.success(t("auth.forgotPassword.emailSent"))
     },
     onError: (error) => {
-      toast.error(error.message || t("auth.forgotPassword.error"))
+      showErrorFromException(error, t("auth.forgotPassword.error"))
     },
   })
 

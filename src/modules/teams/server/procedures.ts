@@ -13,25 +13,8 @@ export const teamsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      // Get user's company
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId
 
       // Check if team already exists in the same company
       const existingTeam = await prisma.team.findFirst({
@@ -104,25 +87,8 @@ export const teamsRouter = createTRPCRouter({
     .query(async ({ input = {}, ctx }) => {
       const { page = 1, pageSize = 10, search } = input
 
-      // Get user's company
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId
 
       // Build where clause - filter teams by company
       const where: Prisma.TeamWhereInput = {}
@@ -208,25 +174,8 @@ export const teamsRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       const { id, ...data } = input
 
-      // Get user's company
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId
 
       // Check if team exists and belongs to the same company
       const teamWhere: Prisma.TeamWhereInput = { id }
@@ -304,25 +253,8 @@ export const teamsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      // Get user's company
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId
 
       // Check if team exists and belongs to the same company
       const teamWhere: Prisma.TeamWhereInput = { id: input.id }
@@ -371,25 +303,8 @@ export const teamsRouter = createTRPCRouter({
       })
     )
     .query(async ({ input, ctx }) => {
-      // Get user's company
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId
 
       // Filter by companyId
       const teamWhere: Prisma.TeamWhereInput = { id: input.id }
@@ -449,25 +364,8 @@ export const teamsRouter = createTRPCRouter({
 
   stats: protectedProcedure("team.view")
     .query(async ({ ctx }) => {
-      // Get user's company
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId
 
       // Build where clauses with company filter
       const teamWhere: Prisma.TeamWhereInput = {}
@@ -538,25 +436,8 @@ export const teamsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      // Get user's company
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId
 
       // Check if team exists and belongs to the same company
       const teamWhere: Prisma.TeamWhereInput = { id: input.teamId }
@@ -655,25 +536,8 @@ export const teamsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      // Get user's company
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId
 
       // Check if member exists and belongs to the same company
       const memberWhere: Prisma.TeamMemberWhereInput = {
@@ -735,25 +599,8 @@ export const teamsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      // Get user's company
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId
 
       // Check if member exists and belongs to the same company
       const memberWhere: Prisma.TeamMemberWhereInput = {
@@ -821,25 +668,8 @@ export const teamsRouter = createTRPCRouter({
       })
     )
     .query(async ({ input, ctx }) => {
-      // Get user's company
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId
 
       // Verify team belongs to same company
       const teamWhere: Prisma.TeamWhereInput = { id: input.teamId }
@@ -913,25 +743,8 @@ export const teamsRouter = createTRPCRouter({
       })
     )
     .query(async ({ input, ctx }) => {
-      // Get user's company
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId
 
       // Check if team exists and belongs to the same company
       const teamWhere: Prisma.TeamWhereInput = { id: input.teamId }
@@ -1082,25 +895,8 @@ export const teamsRouter = createTRPCRouter({
         })
       }
 
-      // Get user's company
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId
 
       // Check if team exists and belongs to the same company
       const teamWhere: Prisma.TeamWhereInput = { id: input.teamId }

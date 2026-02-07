@@ -22,6 +22,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { toast } from "sonner"
+import { showErrorFromException } from "@/lib/error-toast"
 import {
   Table,
   TableBody,
@@ -52,7 +53,7 @@ export function DeviceManagement() {
       utils.users.listSessions.invalidate()
     },
     onError: (error) => {
-      toast.error(error.message || t("devices.trustError"))
+      showErrorFromException(error, t("devices.trustError"))
     },
   })
 
@@ -66,7 +67,7 @@ export function DeviceManagement() {
       utils.users.listSessions.invalidate()
     },
     onError: (error) => {
-      toast.error(error.message || t("devices.untrustError"))
+      showErrorFromException(error, t("devices.untrustError"))
     },
   })
 
@@ -87,7 +88,7 @@ export function DeviceManagement() {
       utils.users.listSessions.invalidate()
     },
     onError: (error) => {
-      toast.error(error.message || t("devices.revokeError"))
+      showErrorFromException(error, t("devices.revokeError"))
     },
   })
 

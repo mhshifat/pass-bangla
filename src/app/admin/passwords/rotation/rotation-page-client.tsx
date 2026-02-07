@@ -37,6 +37,7 @@ import { deleteRotationPolicyAction, autoRotatePasswordAction } from "@/app/admi
 import { useTransition } from "react"
 import { PasswordRotationPolicy } from "@/app/generated"
 import { usePermissions } from "@/hooks/use-permissions"
+import { showErrorFromException } from "@/lib/error-toast"
 
 export function RotationPageClient() {
   const { t } = useTranslation()
@@ -94,9 +95,7 @@ export function RotationPageClient() {
         } else {
           toast.error(result.error || t("passwords.rotation.policyDeleteError"))
         }
-      } catch (error) {
-        toast.error(t("passwords.rotation.policyDeleteError"))
-      }
+      } catch (error) { showErrorFromException(error, t("passwords.rotation.policyDeleteError")) }
     })
   }
 

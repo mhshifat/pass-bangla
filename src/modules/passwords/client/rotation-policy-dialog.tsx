@@ -23,7 +23,16 @@ import { toast } from "sonner"
 interface RotationPolicyDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  policy?: any
+  policy?: {
+    id: string
+    name?: string | null
+    description?: string | null
+    rotationDays?: number | null
+    reminderDays?: number | null
+    autoRotate?: boolean | null
+    requireApproval?: boolean | null
+    isActive?: boolean | null
+  }
   onSuccess?: () => void
 }
 
@@ -48,7 +57,7 @@ export function RotationPolicyDialog({
   })
 
   const [createState, createAction, isCreating] = useActionState(
-    async (_prevState: any, formData: FormData) => {
+    async (_prevState: unknown, formData: FormData) => {
       const data = {
         name: formData.get("name") as string,
         description: formData.get("description") as string || undefined,
@@ -66,7 +75,7 @@ export function RotationPolicyDialog({
   )
 
   const [updateState, updateAction, isUpdating] = useActionState(
-    async (_prevState: any, formData: FormData) => {
+    async (_prevState: unknown, formData: FormData) => {
       if (!policy) return { success: false, error: "No policy to update" }
 
       const data = {
@@ -87,25 +96,32 @@ export function RotationPolicyDialog({
 
   useEffect(() => {
     if (policy) {
-      setFormData({
-        name: policy.name || "",
-        description: policy.description || "",
-        rotationDays: policy.rotationDays || 90,
-        reminderDays: policy.reminderDays || 7,
-        autoRotate: policy.autoRotate || false,
-        requireApproval: policy.requireApproval || false,
-        isActive: policy.isActive !== undefined ? policy.isActive : true,
-      })
+      // Use a callback to defer state update to next effect cycle
+      const timer = setTimeout(() => {
+        setFormData({
+          name: policy.name || "",
+          description: policy.description || "",
+          rotationDays: policy.rotationDays || 90,
+          reminderDays: policy.reminderDays || 7,
+          autoRotate: policy.autoRotate || false,
+          requireApproval: policy.requireApproval || false,
+          isActive: policy.isActive !== undefined ? policy.isActive : true,
+        })
+      }, 0)
+      return () => clearTimeout(timer)
     } else {
-      setFormData({
-        name: "",
-        description: "",
-        rotationDays: 90,
-        reminderDays: 7,
-        autoRotate: false,
-        requireApproval: false,
-        isActive: true,
-      })
+      const timer = setTimeout(() => {
+        setFormData({
+          name: "",
+          description: "",
+          rotationDays: 90,
+          reminderDays: 7,
+          autoRotate: false,
+          requireApproval: false,
+          isActive: true,
+        })
+      }, 0)
+      return () => clearTimeout(timer)
     }
   }, [policy, open])
 

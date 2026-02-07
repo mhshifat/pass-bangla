@@ -27,6 +27,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { FolderPlus } from "lucide-react"
 import { trpc } from "@/trpc/client"
 import { toast } from "sonner"
+import { showErrorFromException } from "@/lib/error-toast"
 
 type CreateFolderFormValues = {
   name: string
@@ -67,7 +68,7 @@ export function CreateFolderDialog({
       }
     },
     onError: (error) => {
-      toast.error(error.message || "Failed to create folder")
+      showErrorFromException(error, "Failed to create folder")
     },
   })
 

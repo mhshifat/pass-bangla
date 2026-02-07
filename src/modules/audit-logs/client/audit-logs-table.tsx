@@ -86,7 +86,7 @@ export function AuditLogsTable({
   const [localSelectedAction, setLocalSelectedAction] = React.useState(selectedAction || t("audit.allActions"))
   const [groupBy, setGroupBy] = React.useState<GroupByOption>("none")
 
-  const statusOptions = React.useMemo(() => [
+  const statusOptions = React.useMemo<Array<{ label: string; value: AuditLogsTableProps["selectedStatus"] }>>(() => [
     { label: t("audit.allStatuses"), value: undefined },
     { label: t("audit.success"), value: "SUCCESS" },
     { label: t("audit.failed"), value: "FAILED" },
@@ -234,7 +234,7 @@ export function AuditLogsTable({
             <Select value={localSelectedStatus} onValueChange={(value) => {
               setLocalSelectedStatus(value)
               const selectedOption = statusOptions.find(opt => opt.label === value)
-              onStatusChange?.(selectedOption?.value as any)
+              onStatusChange?.(selectedOption?.value)
             }}>
               <SelectTrigger className="w-[150px]">
                 <SelectValue placeholder={t("audit.filterByStatus")} />

@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma"
+import { Prisma } from "@/app/generated"
 
 /**
  * Sync all permissions and update system roles
@@ -269,7 +270,7 @@ export async function seedSystemReportTemplates() {
           description: templateData.description,
           reportType: templateData.reportType,
           category: templateData.category,
-          config: templateData.config as any,
+          config: templateData.config as Prisma.JsonValue,
           isSystem: templateData.isSystem,
           isPublic: templateData.isPublic,
           userId: systemUser.id,

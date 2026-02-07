@@ -7,25 +7,8 @@ import { Prisma } from "@/app/generated"
 export const foldersRouter = createTRPCRouter({
   list: protectedProcedure("password.view")
     .query(async ({ ctx }) => {
-      // Get user's company
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId
 
       // Get folders belonging to the company
       // Now folders have a direct companyId field, so we can filter directly
@@ -63,25 +46,8 @@ export const foldersRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      // Get user's company
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId
 
       // Check if folder with same name already exists in the same company (at same level if parentId provided)
       const where: Prisma.FolderWhereInput = {

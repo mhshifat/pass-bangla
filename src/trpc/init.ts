@@ -4,13 +4,17 @@ import superjson from 'superjson';
 import { headers } from 'next/headers';
 import { getSession } from "@/lib/session";
 import { getUserPermissions, getUserRoleName } from "@/lib/permissions";
+import { generateCorrelationId, logError, formatErrorWithCorrelationId } from "@/lib/correlation-id-util";
 
 export type Context = {
   userId: string;
   userRole: string | null;
   permissions: string[];
   subdomain: string | null;
+  companyId: string | null;
+  userTeams: string[];
   sessionToken?: string; // Add session token to context for client-side decryption
+  correlationId: string; // Add correlation ID to context
 };
 
 export const createTRPCContext = cache(async (): Promise<Context> => {
@@ -83,14 +87,34 @@ export const createTRPCContext = cache(async (): Promise<Context> => {
       userRole: null,
       permissions: [],
       subdomain,
+      companyId: null,
+      userTeams: [],
     };
   }
   
-  // Get user role and permissions
+  // Get user role and permissions with concurrency control
   // If user doesn't exist in database, these will return null/empty
+  const { limit } = await import("@/lib/p-limit");
+  
+  // Fetch user info once, with company and teams
+  const userWithTeams = await limit(() =>
+    prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        companyId: true,
+        teamMembers: {
+          select: { teamId: true },
+        },
+      },
+    })
+  );
+
+  const companyId = userWithTeams?.companyId || null;
+  const userTeams = userWithTeams?.teamMembers?.map((tm) => tm.teamId) || [];
+
   const [userRole, permissions] = await Promise.all([
-    getUserRoleName(userId).catch(() => null),
-    getUserPermissions(userId).catch(() => []),
+    limit(() => getUserRoleName(userId).catch(() => null)),
+    limit(() => getUserPermissions(userId).catch(() => [])),
   ]);
   
   // Get session token for client-side decryption
@@ -102,12 +126,18 @@ export const createTRPCContext = cache(async (): Promise<Context> => {
     sessionToken = cookieStore.get("session")?.value || undefined;
   }
   
+  // Generate correlation ID for request tracking
+  const correlationId = generateCorrelationId();
+  
   return { 
     userId,
     userRole,
     permissions,
     subdomain,
+    companyId,
+    userTeams,
     sessionToken,
+    correlationId,
   };
 });
 // Avoid exporting the entire t-object
@@ -123,7 +153,46 @@ const t = initTRPC.context<Context>().create({
 // Base router and procedure helpers
 export const createTRPCRouter = t.router;
 export const createCallerFactory = t.createCallerFactory;
-export const baseProcedure = t.procedure;
+
+/**
+ * Middleware to add correlation ID to all errors
+ */
+const errorHandlingMiddleware = t.middleware(async ({ ctx, next }) => {
+  try {
+    return await next({ ctx });
+  } catch (error) {
+    // Log error with correlation ID
+    logError(ctx.correlationId, error, {
+      userId: ctx.userId,
+      path: ctx,
+    });
+
+    // If it's a TRPCError, enhance it with correlation ID
+    if (error instanceof TRPCError) {
+      throw new TRPCError({
+        ...error,
+        message: formatErrorWithCorrelationId(error.message, ctx.correlationId),
+        cause: {
+          ...((error.cause as Record<string, unknown>) || {}),
+          correlationId: ctx.correlationId,
+        },
+      });
+    }
+
+    // For other errors, wrap them in a TRPCError with correlation ID
+    const message = error instanceof Error ? error.message : "An unexpected error occurred";
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: formatErrorWithCorrelationId(message, ctx.correlationId),
+      cause: {
+        correlationId: ctx.correlationId,
+        originalError: error,
+      },
+    });
+  }
+});
+
+export const baseProcedure = t.procedure.use(errorHandlingMiddleware);
 
 /**
  * Middleware to check if user has required permission(s)
@@ -139,9 +208,13 @@ export const requirePermission = (permissionKey: string | string[]) => {
     );
     
     if (!hasPermission) {
+      const message = `You do not have permission to perform this action. Required: ${requiredPermissions.join(" or ")}`;
       throw new TRPCError({
         code: "FORBIDDEN",
-        message: `You do not have permission to perform this action. Required: ${requiredPermissions.join(" or ")}`,
+        message: formatErrorWithCorrelationId(message, ctx.correlationId),
+        cause: {
+          correlationId: ctx.correlationId,
+        },
       });
     }
     

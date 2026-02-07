@@ -40,6 +40,7 @@ import { trpc } from "@/trpc/client"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
+import { showErrorFromException } from "@/lib/error-toast"
 
 const templateSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -69,7 +70,12 @@ interface TemplateManagementDialogProps {
     icon?: string | null
     category?: string | null
     isPublic: boolean
-    defaultFields: any
+    defaultFields?: {
+      name?: string
+      username?: string
+      url?: string
+      notes?: string
+    } | null
   } | null
   onSuccess?: () => void
 }
@@ -161,7 +167,7 @@ export function TemplateManagementDialog({
       form.reset()
     },
     onError: (error) => {
-      toast.error(error.message || t("passwords.templates.createError"))
+      showErrorFromException(error, t("passwords.templates.createError"))
     },
   })
 
@@ -173,7 +179,7 @@ export function TemplateManagementDialog({
       onOpenChange(false)
     },
     onError: (error) => {
-      toast.error(error.message || t("passwords.templates.updateError"))
+      showErrorFromException(error, t("passwords.templates.updateError"))
     },
   })
 

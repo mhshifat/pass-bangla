@@ -33,15 +33,15 @@ export default function OfflinePage() {
             </div>
           </div>
           <div className="space-y-2">
-            <CardTitle className="text-2xl">You're Offline</CardTitle>
+            <CardTitle className="text-2xl">You&apos;re Offline</CardTitle>
             <CardDescription className="text-base">
-              It looks like you've lost your internet connection.
+              It looks like you&apos;ve lost your internet connection.
             </CardDescription>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="text-center text-sm text-muted-foreground">
-            <p>Don't worry! Some features may still be available offline.</p>
+            <p>Don&apos;t worry! Some features may still be available offline.</p>
             <p className="mt-2">Check your connection and try again.</p>
           </div>
         </CardContent>

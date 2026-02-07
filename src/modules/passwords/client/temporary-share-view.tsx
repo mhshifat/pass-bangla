@@ -12,6 +12,7 @@ import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { decryptWithShareToken } from "@/lib/client-crypto"
+import { showErrorFromException } from "@/lib/error-toast"
 
 interface TemporaryPasswordShareViewProps {
   token: string
@@ -159,9 +160,7 @@ export function TemporaryPasswordShareView({ token }: TemporaryPasswordShareView
       toast.success(t("clipboard.copied"))
       setCopied(type)
       setTimeout(() => setCopied(null), 2000)
-    } catch (error) {
-      toast.error(t("clipboard.copyFailed"))
-    }
+    } catch (error) { showErrorFromException(error, t("clipboard.copyFailed")) }
   }
 
   if (isLoading) {

@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation"
+import { redirect } from "next/navigation"
 import { caller } from "@/trpc/server"
 import { PasswordComparePageClient } from "./password-compare-page-client"
 
@@ -12,22 +12,24 @@ export default async function PasswordComparePage({ params, searchParams }: Pass
   const { historyId1, historyId2 } = await searchParams
 
   // Verify password exists and user has permission
+  let password: Awaited<ReturnType<typeof caller.passwords.getById>> | null = null
+  
   try {
-    const password = await caller.passwords.getById({ id })
-    
-    if (!password || !password.isOwner) {
-      redirect("/admin/passwords")
-    }
-
-    return (
-      <PasswordComparePageClient 
-        passwordId={id} 
-        passwordName={password.name}
-        historyId1={historyId1}
-        historyId2={historyId2}
-      />
-    )
-  } catch (error) {
+    password = await caller.passwords.getById({ id })
+  } catch {
     redirect("/admin/passwords")
   }
+  
+  if (!password || !password.isOwner) {
+    redirect("/admin/passwords")
+  }
+
+  return (
+    <PasswordComparePageClient
+      passwordId={id}
+      passwordName={password.name}
+      historyId1={historyId1}
+      historyId2={historyId2}
+    />
+  )
 }

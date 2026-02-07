@@ -13,6 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { PasswordInput, generateStrongPassword } from "@/components/ui/password-input"
 import { Loader2, Eye, EyeOff } from "lucide-react"
+import { showErrorFromException } from "@/lib/error-toast"
 
 const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, "Current password is required"),
@@ -41,7 +42,7 @@ export function ChangePasswordForm() {
       utils.auth.getCurrentUser.invalidate()
     },
     onError: (error) => {
-      toast.error(error.message || t("profile.passwordChangeFailed"))
+      showErrorFromException(error, t("profile.passwordChangeFailed"))
     },
   })
 

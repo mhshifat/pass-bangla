@@ -38,6 +38,7 @@ import {
 import { usePermissions } from "@/hooks/use-permissions"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
+import { showErrorFromException } from "@/lib/error-toast"
 
 const CATEGORIES = [
   { value: "Cloud", label: "Cloud", icon: Building2 },
@@ -49,13 +50,26 @@ const CATEGORIES = [
   { value: "Other", label: "Other", icon: FileText },
 ]
 
+interface PasswordTemplate {
+  id: string
+  name: string
+  service?: string | null
+  description?: string | null
+  category?: string | null
+  icon?: string | null
+  isSystem?: boolean
+  isPublic?: boolean
+  ownerId?: string | null
+  [key: string]: unknown
+}
+
 export function TemplatesPageClient() {
   const { t } = useTranslation()
   const { hasPermission } = usePermissions()
   const isMobile = useIsMobile()
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState<string>("all")
-  const [editingTemplate, setEditingTemplate] = useState<any>(null)
+  const [editingTemplate, setEditingTemplate] = useState<PasswordTemplate | null>(null)
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [templateToDelete, setTemplateToDelete] = useState<{ id: string; name: string } | null>(null)
@@ -71,16 +85,17 @@ export function TemplatesPageClient() {
 
   // Filter templates by search query
   const filteredTemplates = React.useMemo(() => {
-    if (!searchQuery) return templates
+    const templateList = data?.templates || []
+    if (!searchQuery) return templateList
 
     const query = searchQuery.toLowerCase()
-    return templates.filter(
+    return templateList.filter(
       (template) =>
         template.name.toLowerCase().includes(query) ||
         template.service?.toLowerCase().includes(query) ||
         template.description?.toLowerCase().includes(query)
     )
-  }, [templates, searchQuery])
+  }, [data?.templates, searchQuery])
 
   // Group templates by category
   const groupedTemplates = React.useMemo(() => {
@@ -103,7 +118,7 @@ export function TemplatesPageClient() {
       setTemplateToDelete(null)
     },
     onError: (error) => {
-      toast.error(error.message || t("passwords.templates.deleteError"))
+      showErrorFromException(error, t("passwords.templates.deleteError"))
     },
   })
 

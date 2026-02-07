@@ -28,9 +28,25 @@ import {
 } from "@/components/ui/alert-dialog"
 import { cn } from "@/lib/utils"
 import { AdvancedSearchDialog } from "./advanced-search-dialog"
+import { showErrorFromException } from "@/lib/error-toast"
+
+type SavedSearchParams = {
+  search?: string
+  tagIds?: string[]
+  folderIds?: string[]
+  filter?: string
+}
+
+interface SavedSearch {
+  id: string
+  name: string
+  description?: string | null
+  searchParams: SavedSearchParams
+  isShared?: boolean
+}
 
 interface SavedSearchesProps {
-  onExecute?: (searchParams: any) => void
+  onExecute?: (searchParams: SavedSearchParams) => void
   className?: string
 }
 
@@ -39,7 +55,7 @@ export function SavedSearches({ onExecute, className }: SavedSearchesProps) {
   const router = useRouter()
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [searchToDelete, setSearchToDelete] = useState<string | null>(null)
-  const [editingSearch, setEditingSearch] = useState<any>(null)
+  const [editingSearch, setEditingSearch] = useState<SavedSearch | null>(null)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 
   const { data, isLoading, refetch } = trpc.passwords.listSavedSearches.useQuery()
@@ -72,7 +88,7 @@ export function SavedSearches({ onExecute, className }: SavedSearchesProps) {
       }
     },
     onError: (error) => {
-      toast.error(error.message || t("passwords.search.executeError"))
+      showErrorFromException(error, t("passwords.search.executeError"))
     },
   })
 
@@ -84,7 +100,7 @@ export function SavedSearches({ onExecute, className }: SavedSearchesProps) {
       setSearchToDelete(null)
     },
     onError: (error) => {
-      toast.error(error.message || t("passwords.search.deleteError"))
+      showErrorFromException(error, t("passwords.search.deleteError"))
     },
   })
 
@@ -96,7 +112,7 @@ export function SavedSearches({ onExecute, className }: SavedSearchesProps) {
       await refetch()
     },
     onError: (error) => {
-      toast.error(error.message || t("passwords.search.updateError"))
+      showErrorFromException(error, t("passwords.search.updateError"))
     },
   })
 

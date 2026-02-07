@@ -35,6 +35,7 @@ import { Plus, MoreHorizontal, UserMinus, UserCog } from "lucide-react"
 import { toast } from "sonner"
 import { trpc } from "@/trpc/client"
 import { AddMemberDialog } from "./add-member-dialog"
+import { showErrorFromException } from "@/lib/error-toast"
 
 interface Team {
   id: string
@@ -78,7 +79,7 @@ export function TeamMembersDialog({ open, onOpenChange, team }: TeamMembersDialo
       router.refresh()
     },
     onError: (error) => {
-      toast.error(error.message || "Failed to remove member")
+      showErrorFromException(error, "Failed to remove member")
     },
   })
 
@@ -91,7 +92,7 @@ export function TeamMembersDialog({ open, onOpenChange, team }: TeamMembersDialo
       router.refresh()
     },
     onError: (error) => {
-      toast.error(error.message || "Failed to update member role")
+      showErrorFromException(error, "Failed to update member role")
     },
   })
 

@@ -4,16 +4,28 @@ import * as React from "react"
 import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
-import { Star, ArrowLeft } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { trpc } from "@/trpc/client"
-import { toast } from "sonner"
 import { Skeleton } from "@/components/ui/skeleton"
 import { PasswordsTable } from "@/modules/passwords/client/passwords-table"
 import { PasswordDetailsDialog } from "@/modules/passwords/client"
 import { usePermissions } from "@/hooks/use-permissions"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Star } from "lucide-react"
+
+interface PasswordItem {
+  id: string
+  name: string
+  username?: string | null
+  url?: string | null
+  folder?: string | null
+  strength?: string
+  shared?: boolean
+  lastModified?: string
+  [key: string]: unknown
+}
 
 export function FavoritesPageClient() {
   const { t } = useTranslation()
@@ -29,7 +41,7 @@ export function FavoritesPageClient() {
       pageSize: 20,
       search: searchQuery || undefined,
     },
-    { 
+    {
       enabled: hasPermission("password.view"),
       // Refetch when search params change (from PasswordsTable search)
       refetchOnMount: true,
@@ -49,23 +61,23 @@ export function FavoritesPageClient() {
     router.push(`?${params.toString()}`)
   }
 
-  const [selectedPassword, setSelectedPassword] = useState<any>(null)
+  const [selectedPassword, setSelectedPassword] = useState<PasswordItem | null>(null)
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
 
-  const handleViewDetails = (password: any) => {
+  const handleViewDetails = (password: PasswordItem) => {
     setSelectedPassword(password)
     setIsViewDialogOpen(true)
   }
 
-  const handleEdit = (password: any) => {
+  const handleEdit = (_password: PasswordItem) => {
     // This will be handled by the PasswordsTable component
   }
 
-  const handleDelete = (password: any) => {
+  const handleDelete = (_password: PasswordItem) => {
     // This will be handled by the PasswordsTable component
   }
 
-  const handleShare = (password: any) => {
+  const handleShare = (_password: PasswordItem) => {
     // This will be handled by the PasswordsTable component
   }
 

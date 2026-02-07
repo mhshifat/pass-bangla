@@ -18,6 +18,7 @@ import { SecuritySettingsSkeleton } from "./security-settings-skeleton"
 import { usePermissions } from "@/hooks/use-permissions"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Info } from "lucide-react"
+import { showErrorFromException } from "@/lib/error-toast"
 
 const securitySettingsSchema = z.object({
   // Password Policies
@@ -52,7 +53,7 @@ export function SecuritySettings() {
       utils.settings.getSecuritySettings.invalidate()
     },
     onError: (error) => {
-      toast.error(error.message || t("settings.security.securitySettingsFailed"))
+      showErrorFromException(error, t("settings.security.securitySettingsFailed"))
     },
   })
 

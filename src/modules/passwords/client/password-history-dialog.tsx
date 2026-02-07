@@ -27,6 +27,7 @@ import { trpc } from "@/trpc/client"
 import { toast } from "sonner"
 import { formatDistanceToNow } from "date-fns"
 import { PasswordHistoryCompareDialog } from "./password-history-compare-dialog"
+import { showErrorFromException } from "@/lib/error-toast"
 
 interface PasswordHistoryDialogProps {
   open: boolean
@@ -62,7 +63,7 @@ export function PasswordHistoryDialog({
       setSelectedHistoryId(null)
     },
     onError: (error) => {
-      toast.error(error.message || t("passwords.history.restoreError"))
+      showErrorFromException(error, t("passwords.history.restoreError"))
     },
   })
 

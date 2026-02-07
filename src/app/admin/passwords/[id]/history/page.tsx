@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation"
+import { redirect } from "next/navigation"
 import { caller } from "@/trpc/server"
 import { PasswordHistoryPageClient } from "./password-history-page-client"
 
@@ -10,15 +10,17 @@ export default async function PasswordHistoryPage({ params }: PasswordHistoryPag
   const { id } = await params
 
   // Verify password exists and user has permission
+  let password: Awaited<ReturnType<typeof caller.passwords.getById>> | null = null
+  
   try {
-    const password = await caller.passwords.getById({ id })
-    
-    if (!password || !password.isOwner) {
-      redirect("/admin/passwords")
-    }
-
-    return <PasswordHistoryPageClient passwordId={id} passwordName={password.name} />
-  } catch (error) {
+    password = await caller.passwords.getById({ id })
+  } catch {
     redirect("/admin/passwords")
   }
+  
+  if (!password || !password.isOwner) {
+    redirect("/admin/passwords")
+  }
+
+  return <PasswordHistoryPageClient passwordId={id} passwordName={password.name} />
 }

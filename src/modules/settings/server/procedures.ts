@@ -718,27 +718,8 @@ export const settingsRouter = createTRPCRouter({
   // IP Whitelisting
   getIpWhitelists: protectedProcedure("settings.view")
     .query(async ({ ctx }) => {
-      // Get current user's companyId
-      let companyId: string | undefined = undefined
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      }
-
-      // Get user's companyId if available
-      const user = ctx.userId
-        ? await prisma.user.findUnique({
-            where: { id: ctx.userId },
-            select: { companyId: true },
-          })
-        : null
-
-      const finalCompanyId = companyId || user?.companyId
+      // Use companyId from context (already fetched, no extra query needed)
+      const finalCompanyId = ctx.companyId ?? undefined
 
       // Get user-specific and company-wide whitelists
       const whitelists = await prisma.ipWhitelist.findMany({
@@ -781,26 +762,8 @@ export const settingsRouter = createTRPCRouter({
         })
       }
 
-      // Get current user's companyId
-      let companyId: string | undefined = undefined
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      }
-
-      const user = ctx.userId
-        ? await prisma.user.findUnique({
-            where: { id: ctx.userId },
-            select: { companyId: true },
-          })
-        : null
-
-      const finalCompanyId = companyId || user?.companyId
+      // Use companyId from context (already fetched, no extra query needed)
+      const finalCompanyId = ctx.companyId ?? undefined
 
       // Check if IP already exists
       const existing = await prisma.ipWhitelist.findFirst({
@@ -930,26 +893,8 @@ export const settingsRouter = createTRPCRouter({
   // Geographic Restrictions
   getGeographicRestrictions: protectedProcedure("settings.view")
     .query(async ({ ctx }) => {
-      // Get current user's companyId
-      let companyId: string | undefined = undefined
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      }
-
-      const user = ctx.userId
-        ? await prisma.user.findUnique({
-            where: { id: ctx.userId },
-            select: { companyId: true },
-          })
-        : null
-
-      const finalCompanyId = companyId || user?.companyId
+      // Use companyId from context (already fetched, no extra query needed)
+      const finalCompanyId = ctx.companyId ?? undefined
 
       const restrictions = await prisma.geographicRestriction.findMany({
         where: {
@@ -982,26 +927,8 @@ export const settingsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      // Get current user's companyId
-      let companyId: string | undefined = undefined
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      }
-
-      const user = ctx.userId
-        ? await prisma.user.findUnique({
-            where: { id: ctx.userId },
-            select: { companyId: true },
-          })
-        : null
-
-      const finalCompanyId = companyId || user?.companyId
+      // Use companyId from context (already fetched, no extra query needed)
+      const finalCompanyId = ctx.companyId ?? undefined
 
       // Check if restriction already exists
       const existing = await prisma.geographicRestriction.findFirst({
@@ -1217,25 +1144,8 @@ export const settingsRouter = createTRPCRouter({
       })
     )
     .query(async ({ input, ctx }) => {
-      // Get company ID from context
-      let companyId: string | undefined = undefined
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId ?? undefined
 
       const where: {
         companyId?: string
@@ -1307,25 +1217,8 @@ export const settingsRouter = createTRPCRouter({
         })
       }
 
-      // Verify company access - get companyId from subdomain or user
-      let companyId: string | undefined = undefined
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId ?? undefined
 
       // Only check company match if both threat event and user have companyId
       // If threat event has no companyId, it's a global threat and can be resolved by anyone with permission
@@ -1446,26 +1339,8 @@ export const settingsRouter = createTRPCRouter({
   // Password Policy
   getPasswordPolicy: protectedProcedure("settings.view")
     .query(async ({ ctx }) => {
-      // Get current user's companyId
-      let companyId: string | undefined = undefined
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      }
-
-      const user = ctx.userId
-        ? await prisma.user.findUnique({
-            where: { id: ctx.userId },
-            select: { companyId: true },
-          })
-        : null
-
-      const finalCompanyId = companyId || user?.companyId
+      // Use companyId from context (already fetched, no extra query needed)
+      const finalCompanyId = ctx.companyId ?? undefined
 
       if (!finalCompanyId) {
         throw new TRPCError({
@@ -1524,26 +1399,8 @@ export const settingsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      // Get current user's companyId
-      let companyId: string | undefined = undefined
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      }
-
-      const user = ctx.userId
-        ? await prisma.user.findUnique({
-            where: { id: ctx.userId },
-            select: { companyId: true },
-          })
-        : null
-
-      const finalCompanyId = companyId || user?.companyId
+      // Use companyId from context (already fetched, no extra query needed)
+      const finalCompanyId = ctx.companyId ?? undefined
 
       if (!finalCompanyId) {
         throw new TRPCError({
@@ -1597,26 +1454,8 @@ export const settingsRouter = createTRPCRouter({
   // GDPR Compliance - Data Retention Policy
   getDataRetentionPolicy: protectedProcedure("settings.view")
     .query(async ({ ctx }) => {
-      // Get current user's companyId
-      let companyId: string | undefined = undefined
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      }
-
-      const user = ctx.userId
-        ? await prisma.user.findUnique({
-            where: { id: ctx.userId },
-            select: { companyId: true },
-          })
-        : null
-
-      const finalCompanyId = companyId || user?.companyId || null
+      // Use companyId from context (already fetched, no extra query needed)
+      const finalCompanyId = ctx.companyId ?? null
 
       return await getDataRetentionPolicy(finalCompanyId)
     }),
@@ -1633,26 +1472,8 @@ export const settingsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      // Get current user's companyId
-      let companyId: string | undefined = undefined
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      }
-
-      const user = ctx.userId
-        ? await prisma.user.findUnique({
-            where: { id: ctx.userId },
-            select: { companyId: true },
-          })
-        : null
-
-      const finalCompanyId = companyId || user?.companyId
+      // Use companyId from context (already fetched, no extra query needed)
+      const finalCompanyId = ctx.companyId ?? undefined
 
       if (!finalCompanyId) {
         throw new TRPCError({
@@ -1912,26 +1733,8 @@ export const settingsRouter = createTRPCRouter({
   // GDPR Compliance - Run Cleanup
   runDataCleanup: protectedProcedure("settings.edit")
     .mutation(async ({ ctx }) => {
-      // Get current user's companyId
-      let companyId: string | undefined = undefined
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      }
-
-      const user = ctx.userId
-        ? await prisma.user.findUnique({
-            where: { id: ctx.userId },
-            select: { companyId: true },
-          })
-        : null
-
-      const finalCompanyId = companyId || user?.companyId || null
+      // Use companyId from context (already fetched, no extra query needed)
+      const finalCompanyId = ctx.companyId ?? null
 
       const result = await cleanupExpiredData(finalCompanyId)
 
@@ -1950,26 +1753,8 @@ export const settingsRouter = createTRPCRouter({
   // GDPR Compliance - Compliance Report
   getComplianceReport: protectedProcedure("settings.view")
     .query(async ({ ctx }) => {
-      // Get current user's companyId
-      let companyId: string | undefined = undefined
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      }
-
-      const user = ctx.userId
-        ? await prisma.user.findUnique({
-            where: { id: ctx.userId },
-            select: { companyId: true },
-          })
-        : null
-
-      const finalCompanyId = companyId || user?.companyId || null
+      // Use companyId from context (already fetched, no extra query needed)
+      const finalCompanyId = ctx.companyId ?? null
 
       // Get retention policy
       const retentionPolicy = await getDataRetentionPolicy(finalCompanyId)

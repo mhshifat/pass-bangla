@@ -28,25 +28,8 @@ export const reportsRouter = createTRPCRouter({
     .query(async ({ input, ctx }) => {
       const { page, pageSize, search, reportType, status } = input
 
-      // Get user's company
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId
 
       const where: Prisma.ReportWhereInput = {
         companyId: companyId || undefined,
@@ -106,25 +89,8 @@ export const reportsRouter = createTRPCRouter({
   get: protectedProcedure("report.view")
     .input(z.object({ id: z.string() }))
     .query(async ({ input, ctx }) => {
-      // Get user's company
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId
 
       const report = await prisma.report.findFirst({
         where: {
@@ -357,25 +323,8 @@ export const reportsRouter = createTRPCRouter({
   delete: protectedProcedure("report.delete")
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input, ctx }) => {
-      // Get user's company
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId
 
       const report = await prisma.report.findFirst({
         where: {
@@ -413,25 +362,8 @@ export const reportsRouter = createTRPCRouter({
   download: protectedProcedure("report.view")
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input, ctx }) => {
-      // Get user's company
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId
 
       const report = await prisma.report.findFirst({
         where: {
@@ -549,25 +481,8 @@ export const reportsRouter = createTRPCRouter({
       // Ensure system templates exist
       await seedSystemReportTemplates()
 
-      // Get user's company
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId
 
       const where: Prisma.ReportTemplateWhereInput = {
         OR: [
@@ -609,25 +524,8 @@ export const reportsRouter = createTRPCRouter({
   getTemplate: protectedProcedure("report.view")
     .input(z.object({ id: z.string() }))
     .query(async ({ input, ctx }) => {
-      // Get user's company
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId
 
       const template = await prisma.reportTemplate.findFirst({
         where: {
@@ -720,25 +618,8 @@ export const reportsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      // Get user's company
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId
 
       const template = await prisma.reportTemplate.findFirst({
         where: {
@@ -778,25 +659,8 @@ export const reportsRouter = createTRPCRouter({
   deleteTemplate: protectedProcedure("report.delete")
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input, ctx }) => {
-      // Get user's company
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId
 
       const template = await prisma.reportTemplate.findFirst({
         where: {

@@ -37,6 +37,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { useState } from "react"
+import { showErrorFromException } from "@/lib/error-toast"
 
 const dataRetentionPolicySchema = z.object({
   auditLogRetentionDays: z.number().min(0).max(3650).nullable(),

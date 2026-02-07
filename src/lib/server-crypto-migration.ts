@@ -8,12 +8,19 @@
  */
 
 import crypto from "crypto"
+import type { PrismaClient as GeneratedPrismaClient } from "@/app/generated"
+import type { PrismaClient as StandardPrismaClient } from "@prisma/client"
+
+type PrismaClientLike = GeneratedPrismaClient | StandardPrismaClient
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null
 
 // Create a standalone Prisma client for migration scripts
 // This avoids the "server-only" import issue when running outside Next.js
-let prismaInstance: any = null
+let prismaInstance: PrismaClientLike | null = null
 
-async function getPrisma() {
+async function getPrisma(): Promise<PrismaClientLike> {
   if (!prismaInstance) {
     // Always create a new Prisma instance for migration scripts
     // This avoids server-only import issues
@@ -33,9 +40,11 @@ async function getPrisma() {
       prismaInstance = new PrismaClient({
         adapter,
       })
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Fallback to standard @prisma/client if generated client fails
-      if (error?.code === "MODULE_NOT_FOUND" || error?.message?.includes("Cannot find module")) {
+      const errorCode = isRecord(error) && typeof error.code === "string" ? error.code : undefined
+      const errorMessage = error instanceof Error ? error.message : ""
+      if (errorCode === "MODULE_NOT_FOUND" || errorMessage.includes("Cannot find module")) {
         const { PrismaClient } = await import("@prisma/client")
         const { PrismaPg } = await import("@prisma/adapter-pg")
         

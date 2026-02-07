@@ -33,6 +33,7 @@ import { UserPlus, Search } from "lucide-react"
 import { trpc } from "@/trpc/client"
 import { toast } from "sonner"
 import { useCurrentUser } from "@/hooks/use-current-user"
+import { showErrorFromException } from "@/lib/error-toast"
 
 type AddMemberFormValues = {
   userId: string
@@ -83,7 +84,7 @@ export function AddMemberDialog({ open, onOpenChange, teamId, onSuccess }: AddMe
       onSuccess()
     },
     onError: (error) => {
-      toast.error(error.message || "Failed to add member")
+      showErrorFromException(error, "Failed to add member")
     },
   })
 

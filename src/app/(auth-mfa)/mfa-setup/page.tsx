@@ -1,5 +1,5 @@
 import { Suspense } from "react"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { MfaSetupQr } from "@/modules/auth/client/mfa-setup/mfa-setup-qr"
 import { MfaSetupForm } from "@/modules/auth/client/mfa-setup/mfa-setup-form"
 import { serverTrpc } from "@/trpc/server-caller"

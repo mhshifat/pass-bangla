@@ -2,6 +2,7 @@
 
 import prisma from "@/lib/prisma"
 import { createAuditLog } from "@/lib/audit-log"
+import { Prisma } from "@/app/generated"
 
 export interface AuditLogArchiveConfig {
   archiveOlderThanDays: number
@@ -21,6 +22,19 @@ export interface AuditLogAnalytics {
   failedActions: Array<{ action: string; count: number }>
 }
 
+export interface FormattedAuditLog {
+  id: string
+  user: string
+  userEmail: string
+  action: string
+  resource: string | null
+  ipAddress: string
+  timestamp: string
+  status: "success" | "failed" | "warning" | "blocked"
+  avatar: string | null
+  details?: Record<string, unknown>
+}
+
 /**
  * Archive audit logs older than specified days
  */
@@ -36,7 +50,7 @@ export async function archiveAuditLogs(
   cutoffDate.setDate(cutoffDate.getDate() - olderThanDays)
 
   // Build where clause with company filtering
-  const where: any = {
+  const where: Prisma.AuditLogWhereInput = {
     createdAt: {
       lt: cutoffDate,
     },
@@ -125,7 +139,7 @@ export async function getAuditLogAnalytics(
   endDate: Date
 ): Promise<AuditLogAnalytics> {
   // Build where clause with company filtering
-  const where: any = {
+  const where: Prisma.AuditLogWhereInput = {
     createdAt: {
       gte: startDate,
       lte: endDate,
@@ -215,7 +229,7 @@ export async function getAuditLogAnalytics(
     .map((item) => item.userId)
     .filter((id): id is string => id !== null)
   
-  const userWhere: any = { id: { in: userIds } }
+  const userWhere: Prisma.UserWhereInput = { id: { in: userIds } }
   if (companyId) {
     userWhere.companyId = companyId
   }
@@ -394,7 +408,7 @@ export async function searchAuditLogsAdvanced(
   page: number = 1,
   pageSize: number = 20
 ): Promise<{
-  logs: any[]
+  logs: FormattedAuditLog[]
   total: number
   pagination: {
     page: number
@@ -404,7 +418,7 @@ export async function searchAuditLogsAdvanced(
   }
 }> {
   // Build where clause
-  const where: any = {}
+  const where: Prisma.AuditLogWhereInput = {}
 
   if (companyId) {
     where.user = {
@@ -478,7 +492,7 @@ export async function searchAuditLogsAdvanced(
   })
 
   // Format logs
-  const formattedLogs = logs.map((log) => {
+  const formattedLogs: FormattedAuditLog[] = logs.map((log) => {
     let status: "success" | "failed" | "warning" | "blocked" = "success"
     switch (log.status) {
       case "SUCCESS":

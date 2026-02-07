@@ -6,25 +6,8 @@ import { Prisma } from "@/app/generated"
 export const dashboardRouter = createTRPCRouter({
   stats: protectedProcedure("password.view")
     .query(async ({ ctx }) => {
-      // Get user's company
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId
 
       // If no company found, return zeros to prevent data leakage
       if (!companyId) {
@@ -52,12 +35,8 @@ export const dashboardRouter = createTRPCRouter({
         }
       }
 
-      // Get user teams
-      const userTeams = await prisma.teamMember.findMany({
-        where: { userId: ctx.userId },
-        select: { teamId: true },
-      })
-      const teamIds = userTeams.map((tm) => tm.teamId)
+      // Use userTeams from context (already fetched, no extra query needed)
+      const teamIds = ctx.userTeams
 
       // Build where clause for passwords accessible to user
       const passwordWhere = {
@@ -156,25 +135,8 @@ export const dashboardRouter = createTRPCRouter({
         return []
       }
 
-      // Get user's company
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId
 
       // Build where clause - filter by company and exclude current user
       // Always filter by company - if companyId is null, we should not show any data
@@ -241,25 +203,9 @@ export const dashboardRouter = createTRPCRouter({
 
   securityAlerts: protectedProcedure("password.view")
     .query(async ({ ctx }) => {
-      // Get user's company
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId and userTeams from context (already fetched, no extra queries needed)
+      const companyId = ctx.companyId
+      const teamIds = ctx.userTeams
 
       // If no company found, return empty array to prevent data leakage
       if (!companyId) {
@@ -280,12 +226,6 @@ export const dashboardRouter = createTRPCRouter({
       const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)
       const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000)
 
-      // Get user teams
-      const userTeams = await prisma.teamMember.findMany({
-        where: { userId: ctx.userId },
-        select: { teamId: true },
-      })
-      const teamIds = userTeams.map((tm) => tm.teamId)
 
       // Build password where clause for user's accessible passwords
       const passwordWhere = {
@@ -719,32 +659,10 @@ export const dashboardRouter = createTRPCRouter({
     .query(async ({ ctx }) => {
       const now = new Date()
       
-      // Get user's company
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId and userTeams from context (already fetched, no extra queries needed)
+      const companyId = ctx.companyId
+      const teamIds = ctx.userTeams
       
-      // Get user teams
-      const userTeams = await prisma.teamMember.findMany({
-        where: { userId: ctx.userId },
-        select: { teamId: true },
-      })
-      const teamIds = userTeams.map((tm) => tm.teamId)
 
       // Build where clause for passwords accessible to user
       const passwordWhere = {

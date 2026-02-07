@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache"
 import { serverTrpc } from "@/trpc/server-caller"
 import { TRPCError } from "@trpc/server"
+import { generateCorrelationId, logError } from "@/lib/correlation-id-util"
+import { isRedirectError } from "next/dist/client/components/redirect-error"
 
 export interface ImportPreviewResult {
   passwords: Array<{
@@ -31,10 +33,19 @@ export interface ImportCommitResult {
   errorMessages: string[]
 }
 
+type ServerActionResult = {
+  error?: string;
+  correlationId?: string;
+  fieldErrors?: Record<string, string>;
+  success?: boolean;
+} | { success: true };
+
+
 export async function previewImportAction(
   content: string,
   format?: "csv" | "json" | "1password" | "lastpass" | "bitwarden" | "keepass"
-): Promise<ImportPreviewResult> {
+): Promise<ImportPreviewResult & { correlationId?: string }> {
+  const correlationId = generateCorrelationId()
   try {
     const trpc = await serverTrpc()
     const result = await trpc.passwords.importPreview({
@@ -44,10 +55,12 @@ export async function previewImportAction(
 
     return result
   } catch (error: unknown) {
+    if (isRedirectError(error)) throw error
+    logError(correlationId, error, { action: "previewImportAction" })
     if (error instanceof TRPCError) {
-      throw new Error(error.message)
+      throw new Error(`${error.message} (ID: ${correlationId})`)
     }
-    throw new Error("Failed to preview import")
+    throw new Error(`Failed to preview import (ID: ${correlationId})`)
   }
 }
 
@@ -62,7 +75,8 @@ export async function commitImportAction(
     totpSecret?: string | null
   }>,
   skipInvalid: boolean = true
-): Promise<ImportCommitResult> {
+): Promise<ImportCommitResult & { correlationId?: string }> {
+  const correlationId = generateCorrelationId()
   try {
     const trpc = await serverTrpc()
     const result = await trpc.passwords.importCommit({
@@ -73,9 +87,11 @@ export async function commitImportAction(
     revalidatePath("/admin/passwords")
     return result
   } catch (error: unknown) {
+    if (isRedirectError(error)) throw error
+    logError(correlationId, error, { action: "commitImportAction" })
     if (error instanceof TRPCError) {
-      throw new Error(error.message)
+      throw new Error(`${error.message} (ID: ${correlationId})`)
     }
-    throw new Error("Failed to commit import")
+    throw new Error(`Failed to commit import (ID: ${correlationId})`)
   }
 }

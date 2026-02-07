@@ -4,15 +4,23 @@ import { redirect } from "next/navigation"
 import { serverTrpc } from "@/trpc/server-caller"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
 import { TRPCError } from "@trpc/server"
+import { generateCorrelationId, logError, formatErrorWithCorrelationId } from "@/lib/correlation-id-util"
 
 type FieldErrors = {
   [key: string]: string
 }
 
+type RegisterActionResult = {
+  error?: string;
+  correlationId?: string;
+  fieldErrors?: FieldErrors;
+} | null;
+
 export async function registerAction(
-  prevState: { error?: string; fieldErrors?: FieldErrors } | null,
+  prevState: RegisterActionResult,
   formData: FormData
-) {
+): Promise<RegisterActionResult> {
+  const correlationId = generateCorrelationId();
   const name = formData.get("name") as string
   const email = formData.get("email") as string
   const password = formData.get("password") as string
@@ -54,6 +62,13 @@ export async function registerAction(
       throw error
     }
     
+    // Log error with correlation ID
+    logError(correlationId, error, {
+      action: "register",
+      email,
+      companyName,
+    });
+    
     // Handle tRPC errors
     if (error instanceof TRPCError) {
       // Check if it's a validation error
@@ -70,19 +85,28 @@ export async function registerAction(
           }
           
           if (Object.keys(fieldErrors).length > 0) {
-            return { fieldErrors }
+            return { fieldErrors, correlationId }
           }
         } catch {
           // If parsing fails, return the message as a root error
-          return { error: error.message }
+          return { 
+            error: error.message, 
+            correlationId: (error as ErrorWithCause).cause?.correlationId || correlationId 
+          }
         }
       }
       
-      // For other tRPC errors, return the message
-      return { error: error.message }
+      // For other tRPC errors, return the message with correlation ID
+      return {
+        error: error.message,
+        correlationId: (error as ErrorWithCause).cause?.correlationId || correlationId,
+      }
     }
     
     const message = error instanceof Error ? error.message : "Registration failed"
-    return { error: message }
+    return { 
+      error: formatErrorWithCorrelationId(message, correlationId), 
+      correlationId 
+    }
   }
 }

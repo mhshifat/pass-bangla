@@ -1,9 +1,20 @@
 "use server"
 
 import { serverTrpc } from "@/trpc/server-caller"
-import { revalidatePath } from "next/cache";
+import { revalidatePath } from "next/cache"
+import { isRedirectError } from "next/dist/client/components/redirect-error"
+import { generateCorrelationId, logError } from "@/lib/correlation-id-util"
+
+type ServerActionResult = {
+  error?: string;
+  correlationId?: string;
+  fieldErrors?: Record<string, string>;
+  success?: boolean;
+} | { success: true };
+
 
 export async function setupMfaAction(_prevState: unknown, formData: FormData) {
+  const correlationId = generateCorrelationId()
   const code = formData.get("code") as string
   try {
     const trpc = await serverTrpc()
@@ -11,7 +22,9 @@ export async function setupMfaAction(_prevState: unknown, formData: FormData) {
     revalidatePath("/admin");
     return { success: true }
   } catch (err) {
+    if (isRedirectError(err)) throw err
+    logError(correlationId, err, { action: "setupMfa" })
     const message = err instanceof Error ? err.message : "MFA setup failed";
-    return { success: false, error: message }
+    return { success: false, error: message, correlationId }
   }
 }

@@ -18,6 +18,7 @@ import { FileText, Trash2 } from "lucide-react"
 import { format } from "date-fns"
 import { toast } from "sonner"
 import { usePermissions } from "@/hooks/use-permissions"
+import { showErrorFromException } from "@/lib/error-toast"
 
 export function ReportTemplatesList() {
   const { t } = useTranslation()
@@ -33,7 +34,7 @@ export function ReportTemplatesList() {
       refetch()
     },
     onError: (error) => {
-      toast.error(error.message || t("reports.templates.deleteError"))
+      showErrorFromException(error, t("reports.templates.deleteError"))
     },
   })
 

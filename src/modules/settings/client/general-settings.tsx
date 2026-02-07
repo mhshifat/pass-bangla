@@ -20,6 +20,7 @@ import { ThemeSelect } from "@/components/ui/theme-selector"
 import { useTheme } from "next-themes"
 import { LanguageSelector } from "@/components/ui/language-selector"
 import { useTranslation } from "react-i18next"
+import { showErrorFromException } from "@/lib/error-toast"
 
 const createGeneralSettingsSchema = (t: (key: string) => string) => z.object({
   appName: z.string().min(1, t("settings.appNameRequired")),
@@ -39,7 +40,7 @@ export function GeneralSettings() {
       utils.settings.getGeneralSettings.invalidate()
     },
     onError: (error) => {
-      toast.error(error.message || t("settings.generalSettingsFailed"))
+      showErrorFromException(error, t("settings.generalSettingsFailed"))
     },
   })
 

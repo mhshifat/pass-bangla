@@ -10,6 +10,7 @@ import { trpc } from "@/trpc/client"
 import { CheckCircle2, Sparkles, X, ChevronDown, ChevronUp, Eye } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
+import { showErrorFromException } from "@/lib/error-toast"
 
 interface ChecklistItem {
   id: string
@@ -117,9 +118,7 @@ export function GettingStartedChecklist() {
         toast.success(t("onboarding.checklist.itemCompleted"))
         refetch()
       }
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : t("onboarding.error"))
-    }
+    } catch (error) { showErrorFromException(error, error instanceof Error ? error.message : t("onboarding.error")) }
   }
 
   const handleAction = (item: ChecklistItem) => {

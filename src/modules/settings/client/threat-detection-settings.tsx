@@ -15,6 +15,7 @@ import { Loader2 } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import { Input } from "@/components/ui/input"
 import { usePermissions } from "@/hooks/use-permissions"
+import { showErrorFromException } from "@/lib/error-toast"
 
 const threatDetectionSettingsSchema = z.object({
   enabled: z.boolean(),
@@ -66,7 +67,7 @@ export function ThreatDetectionSettings() {
       utils.settings.getThreatDetectionSettings.invalidate()
     },
     onError: (error) => {
-      toast.error(error.message || t("settings.security.threatDetectionSettingsFailed"))
+      showErrorFromException(error, t("settings.security.threatDetectionSettingsFailed"))
     },
   })
 

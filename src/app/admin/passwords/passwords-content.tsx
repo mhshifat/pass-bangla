@@ -23,8 +23,12 @@ export function PasswordsContent() {
   useEffect(() => {
     if (state?.success) {
       toast.success(t("passwords.addPassword") + " " + t("common.success").toLowerCase())
-      setIsCreateDialogOpen(false)
-      router.refresh()
+      // Defer state update to prevent cascading renders
+      const timer = setTimeout(() => {
+        setIsCreateDialogOpen(false)
+        router.refresh()
+      }, 0)
+      return () => clearTimeout(timer)
     } else if (state?.error) {
       toast.error(state.error)
     }

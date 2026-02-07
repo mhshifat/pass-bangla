@@ -4,6 +4,7 @@ import * as React from "react"
 import { toast } from "sonner"
 import { useTranslation } from "react-i18next"
 import { trpc } from "@/trpc/client"
+import { showErrorFromException } from "@/lib/error-toast"
 
 interface UseClipboardOptions {
   /**
@@ -81,7 +82,7 @@ export function useClipboard(): UseClipboardReturn {
       } = options
 
       if (!text) {
-        toast.error(errorMessage || t("clipboard.emptyText"))
+        showErrorFromException(new Error(errorMessage || t("clipboard.emptyText")), t("clipboard.emptyText"))
         return
       }
 
@@ -124,7 +125,7 @@ export function useClipboard(): UseClipboardReturn {
         }
       } catch (error) {
         console.error("Failed to copy to clipboard:", error)
-        toast.error(errorMessage || t("clipboard.copyFailed"))
+        showErrorFromException(error, errorMessage || t("clipboard.copyFailed"))
       } finally {
         setIsCopying(false)
       }

@@ -21,6 +21,7 @@ import {
 import { trpc } from "@/trpc/client"
 import { toast } from "sonner"
 import { Globe, Moon, Sun } from "lucide-react"
+import { showErrorFromException } from "@/lib/error-toast"
 
 const preferencesSchema = z.object({
   language: z.string().optional(),
@@ -29,10 +30,15 @@ const preferencesSchema = z.object({
 
 type PreferencesFormValues = z.infer<typeof preferencesSchema>
 
+type UserPreferencesData = {
+  language?: string
+  theme?: "light" | "dark" | "system"
+}
+
 interface UserPreferencesProps {
   user: {
     id: string
-    preferences?: any
+    preferences?: UserPreferencesData
   }
   onUpdate?: () => void
 }
@@ -44,7 +50,7 @@ export function UserPreferences({ user, onUpdate }: UserPreferencesProps) {
   const defaultPreferences = {
     language: i18n.language,
     theme: currentTheme || "system",
-    ...(user.preferences as any),
+    ...(user.preferences ?? {}),
   }
 
   const form = useForm<PreferencesFormValues>({
@@ -54,8 +60,8 @@ export function UserPreferences({ user, onUpdate }: UserPreferencesProps) {
 
   // Sync theme when preferences are loaded
   React.useEffect(() => {
-    if (user.preferences && (user.preferences as any).theme) {
-      const savedTheme = (user.preferences as any).theme
+    if (user.preferences?.theme) {
+      const savedTheme = user.preferences.theme
       if (savedTheme && savedTheme !== currentTheme) {
         setTheme(savedTheme)
         form.setValue("theme", savedTheme as "light" | "dark" | "system")
@@ -69,7 +75,7 @@ export function UserPreferences({ user, onUpdate }: UserPreferencesProps) {
       onUpdate?.()
     },
     onError: (error) => {
-      toast.error(error.message || t("profile.preferencesUpdateError"))
+      showErrorFromException(error, t("profile.preferencesUpdateError"))
     },
   })
 

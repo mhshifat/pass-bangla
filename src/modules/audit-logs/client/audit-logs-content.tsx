@@ -17,6 +17,7 @@ import {
 import { trpc } from "@/trpc/client"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from "sonner"
+import { showErrorFromException } from "@/lib/error-toast"
 
 type AuditLog = {
   id: string

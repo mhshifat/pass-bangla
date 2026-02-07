@@ -27,6 +27,7 @@ import { trpc } from "@/trpc/client"
 import { toast } from "sonner"
 import { useAccessibility } from "@/components/providers/accessibility-provider"
 import { Accessibility, Type, Contrast, Move } from "lucide-react"
+import { showErrorFromException } from "@/lib/error-toast"
 
 const accessibilitySchema = z.object({
   highContrast: z.boolean(),
@@ -80,7 +81,7 @@ export function AccessibilitySettings({ user, onUpdate }: AccessibilitySettingsP
       onUpdate?.()
     },
     onError: (error) => {
-      toast.error(error.message || t("accessibility.settingsUpdateError"))
+      showErrorFromException(error, t("accessibility.settingsUpdateError"))
     },
   })
 

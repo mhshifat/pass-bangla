@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { CheckCircle2, XCircle, Loader2, Mail } from "lucide-react"
 import { toast } from "sonner"
 import Link from "next/link"
+import { showErrorFromException } from "@/lib/error-toast"
 
 export function VerifyEmailPage() {
   const { t } = useTranslation()
@@ -85,7 +86,7 @@ export function VerifyEmailPage() {
     onError: (error) => {
       console.error("Email verification error:", error)
       setVerificationStatus("error")
-      toast.error(error.message || t("auth.emailVerification.error"))
+      showErrorFromException(error, t("auth.emailVerification.error"))
     },
   })
 

@@ -28,25 +28,8 @@ export const auditLogsRouter = createTRPCRouter({
     .query(async ({ input, ctx }) => {
       const { page, pageSize, search, action, status, userId, startDate, endDate } = input
 
-      // Get user's company
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId
 
       // Build where clause - filter by company through user
       const where: Prisma.AuditLogWhereInput = {}
@@ -164,25 +147,8 @@ export const auditLogsRouter = createTRPCRouter({
       const startDate = new Date()
       startDate.setDate(startDate.getDate() - days)
 
-      // Get user's company
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId
 
       // Build base where clause with company filter
       const baseWhere: Prisma.AuditLogWhereInput = {
@@ -297,25 +263,8 @@ export const auditLogsRouter = createTRPCRouter({
 
   getActionTypes: protectedProcedure("audit.view")
     .query(async ({ ctx }) => {
-      // Get user's company
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId
 
       const where: Prisma.AuditLogWhereInput = {}
       if (companyId) {
@@ -337,25 +286,8 @@ export const auditLogsRouter = createTRPCRouter({
 
   getUsers: protectedProcedure("audit.view")
     .query(async ({ ctx }) => {
-      // Get user's company
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId
 
       const where: Prisma.UserWhereInput = {}
       if (companyId) {
@@ -378,25 +310,8 @@ export const auditLogsRouter = createTRPCRouter({
   // Test endpoint to verify audit logs are working
   test: protectedProcedure("audit.view")
     .query(async ({ ctx }) => {
-      // Get user's company
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId
 
       const where: Prisma.AuditLogWhereInput = {}
       if (companyId) {
@@ -442,25 +357,8 @@ export const auditLogsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      // Get user's companyId
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId
 
       const result = await archiveAuditLogs(
         companyId,
@@ -480,25 +378,8 @@ export const auditLogsRouter = createTRPCRouter({
       })
     )
     .query(async ({ input, ctx }) => {
-      // Get user's companyId
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId
 
       const where: Prisma.AuditLogArchiveWhereInput = {}
       if (companyId) {
@@ -568,25 +449,8 @@ export const auditLogsRouter = createTRPCRouter({
       })
     )
     .query(async ({ input, ctx }) => {
-      // Get user's companyId
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId
 
       return await getAuditLogAnalytics(
         companyId,
@@ -617,25 +481,8 @@ export const auditLogsRouter = createTRPCRouter({
       })
     )
     .query(async ({ input, ctx }) => {
-      // Get user's companyId
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId
 
       const filters: AdvancedAuditLogFilters = {
         actions: input.actions,
@@ -673,25 +520,8 @@ export const auditLogsRouter = createTRPCRouter({
         })
       }
 
-      // Get user's companyId
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId
 
       const savedSearch = await prisma.auditLogSearch.create({
         data: {
@@ -764,25 +594,8 @@ export const auditLogsRouter = createTRPCRouter({
       })
     )
     .query(async ({ input, ctx }) => {
-      // Get user's companyId
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId
 
       const where: Prisma.AuditLogWhereInput = {}
       if (companyId) {
@@ -868,25 +681,8 @@ export const auditLogsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      // Get user's companyId
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId
 
       // Build where clause
       const where: Prisma.AuditLogWhereInput = {}

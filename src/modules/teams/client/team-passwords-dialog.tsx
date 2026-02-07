@@ -41,6 +41,7 @@ import { Plus, MoreHorizontal, Trash2, FolderKey, Clock } from "lucide-react"
 import { toast } from "sonner"
 import { trpc } from "@/trpc/client"
 import { AddPasswordShareDialog } from "./add-password-share-dialog"
+import { showErrorFromException } from "@/lib/error-toast"
 
 interface Team {
   id: string
@@ -78,7 +79,7 @@ export function TeamPasswordsDialog({ open, onOpenChange, team }: TeamPasswordsD
       router.refresh()
     },
     onError: (error) => {
-      toast.error(error.message || "Failed to remove password share")
+      showErrorFromException(error, "Failed to remove password share")
     },
   })
 
@@ -232,7 +233,7 @@ export function TeamPasswordsDialog({ open, onOpenChange, team }: TeamPasswordsD
           <AlertDialogHeader>
             <AlertDialogTitle>Remove Password Share?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to remove "{shareToRemove?.name}" from this team? Team members
+              Are you sure you want to remove &quot;{shareToRemove?.name}&quot; from this team? Team members
               will no longer have access to this password.
             </AlertDialogDescription>
           </AlertDialogHeader>

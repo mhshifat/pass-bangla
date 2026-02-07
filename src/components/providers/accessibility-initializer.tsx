@@ -35,7 +35,7 @@ export function AccessibilityInitializer() {
   React.useEffect(() => {
     if (!mounted || isAuthPage || !userProfile?.user?.preferences) return
 
-    const preferences = userProfile.user.preferences as any
+    const preferences = userProfile.user.preferences as Record<string, unknown>
     if (preferences?.accessibility) {
       updatePreferences(preferences.accessibility)
     }

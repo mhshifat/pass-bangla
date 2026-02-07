@@ -26,6 +26,7 @@ import { trpc } from "@/trpc/client"
 import { toast } from "sonner"
 import { AlertCircle, Camera, CheckCircle2, Loader2, MailIcon } from "lucide-react"
 import { ChangePasswordForm } from "./change-password-form"
+import { showErrorFromException } from "@/lib/error-toast"
 
 const profileSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -77,7 +78,7 @@ export function ProfileInformation({ user, onUpdate }: ProfileInformationProps) 
       onUpdate?.()
     },
     onError: (error) => {
-      toast.error(error.message || t("profile.updateError"))
+      showErrorFromException(error, t("profile.updateError"))
     },
   })
 
@@ -88,7 +89,7 @@ export function ProfileInformation({ user, onUpdate }: ProfileInformationProps) 
       setIsUploading(false)
     },
     onError: (error) => {
-      toast.error(error.message || t("profile.avatarUpdateError"))
+      showErrorFromException(error, t("profile.avatarUpdateError"))
       setIsUploading(false)
     },
   })
@@ -99,7 +100,7 @@ export function ProfileInformation({ user, onUpdate }: ProfileInformationProps) 
       onUpdate?.()
     },
     onError: (error) => {
-      toast.error(error.message || t("auth.emailVerification.resendError"))
+      showErrorFromException(error, t("auth.emailVerification.resendError"))
     },
   })
 

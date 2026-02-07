@@ -24,18 +24,8 @@ export const passwordsRouter = createTRPCRouter({
     )
     .query(async ({ input = {}, ctx }) => {
       const { page = 1, pageSize = 10, search, filter, tagIds, folderIds, searchFields } = input
-
-      // Get teams where the user is a member
-      const userTeams = await prisma.teamMember.findMany({
-        where: {
-          userId: ctx.userId,
-        },
-        select: {
-          teamId: true,
-        },
-      })
-
-      const teamIds = userTeams.map((tm) => tm.teamId)
+      // Use cached userTeams from context (already fetched, no extra query needed)
+      const teamIds = ctx.userTeams
 
       // Helper function to get all descendant folder IDs for hierarchy search
       const getDescendantFolderIds = async (folderIds: string[]): Promise<string[]> => {
@@ -676,17 +666,8 @@ export const passwordsRouter = createTRPCRouter({
       })
     )
     .query(async ({ input, ctx }) => {
-      // Get teams where the user is a member
-      const userTeams = await prisma.teamMember.findMany({
-        where: {
-          userId: ctx.userId,
-        },
-        select: {
-          teamId: true,
-        },
-      })
-
-      const teamIds = userTeams.map((tm) => tm.teamId)
+      // Use cached userTeams from context (already fetched, no extra query needed)
+      const teamIds = ctx.userTeams
 
       // Find password that is either owned by user or shared with user's teams
       const password = await prisma.password.findFirst({
@@ -959,17 +940,8 @@ export const passwordsRouter = createTRPCRouter({
       })
     )
     .query(async ({ input, ctx }) => {
-      // Get teams where the user is a member
-      const userTeams = await prisma.teamMember.findMany({
-        where: {
-          userId: ctx.userId,
-        },
-        select: {
-          teamId: true,
-        },
-      })
-
-      const teamIds = userTeams.map((tm) => tm.teamId)
+      // Use cached userTeams from context (already fetched, no extra query needed)
+      const teamIds = ctx.userTeams
 
       // Find password that is either owned by user or shared with user's teams
       const password = await prisma.password.findFirst({
@@ -1105,17 +1077,8 @@ export const passwordsRouter = createTRPCRouter({
       })
     )
     .query(async ({ input, ctx }) => {
-      // Get teams where the user is a member
-      const userTeams = await prisma.teamMember.findMany({
-        where: {
-          userId: ctx.userId,
-        },
-        select: {
-          teamId: true,
-        },
-      })
-
-      const teamIds = userTeams.map((tm) => tm.teamId)
+      // Use cached userTeams from context (already fetched, no extra query needed)
+      const teamIds = ctx.userTeams
 
       // Find password that is either owned by user or shared with user's teams
       const password = await prisma.password.findFirst({
@@ -1264,16 +1227,8 @@ export const passwordsRouter = createTRPCRouter({
 
   stats: protectedProcedure("password.view")
     .query(async ({ ctx }) => {
-      // Get teams where the user is a member
-      const userTeams = await prisma.teamMember.findMany({
-        where: {
-          userId: ctx.userId,
-        },
-        select: {
-          teamId: true,
-        },
-      })
-      const teamIds = userTeams.map((tm) => tm.teamId)
+      // Use cached userTeams from context (already fetched, no extra query needed)
+      const teamIds = ctx.userTeams
 
       // Build where clause for passwords accessible to user
       const where = {
@@ -1544,16 +1499,8 @@ export const passwordsRouter = createTRPCRouter({
       })
     )
     .query(async ({ input, ctx }) => {
-      // Get teams where the user is a member
-      const userTeams = await prisma.teamMember.findMany({
-        where: {
-          userId: ctx.userId,
-        },
-        select: {
-          teamId: true,
-        },
-      })
-      const teamIds = userTeams.map((tm) => tm.teamId)
+      // Use cached userTeams from context (already fetched, no extra query needed)
+      const teamIds = ctx.userTeams
 
       // Build where clause for passwords accessible to user
       const passwordWhere: Prisma.PasswordWhereInput = {

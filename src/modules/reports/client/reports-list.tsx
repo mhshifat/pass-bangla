@@ -30,6 +30,7 @@ import { toast } from "sonner"
 import { usePermissions } from "@/hooks/use-permissions"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { Card } from "@/components/ui/card"
+import { showErrorFromException } from "@/lib/error-toast"
 
 export function ReportsList() {
   const { t } = useTranslation()
@@ -53,7 +54,7 @@ export function ReportsList() {
       setReportToDelete(null)
     },
     onError: (error) => {
-      toast.error(error.message || t("reports.deleteError"))
+      showErrorFromException(error, t("reports.deleteError"))
     },
   })
 
@@ -78,7 +79,7 @@ export function ReportsList() {
       toast.success(t("reports.downloadSuccess", { defaultValue: "Report downloaded successfully" }))
     },
     onError: (error) => {
-      toast.error(error.message || t("reports.downloadError", { defaultValue: "Failed to download report" }))
+      showErrorFromException(error, t("reports.downloadError", { defaultValue: "Failed to download report" }))
     },
   })
 

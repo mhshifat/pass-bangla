@@ -42,7 +42,7 @@ export function InstallPrompt() {
     }
 
     // Check if running on iOS
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as Window & {MSStream?: unknown}).MSStream
     if (isIOS) {
       // Show iOS install instructions (only if not dismissed)
       if (!isDismissed) {
@@ -92,7 +92,7 @@ export function InstallPrompt() {
     }
 
     deferredPrompt.prompt()
-    const { outcome } = await deferredPrompt.userChoice
+    const { outcome } = await (deferredPrompt.userChoice as Promise<{outcome: string}>)
 
     if (outcome === "accepted") {
       setShowPrompt(false)
@@ -112,7 +112,7 @@ export function InstallPrompt() {
     localStorage.setItem(STORAGE_KEY, "true")
   }
 
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as Window & {MSStream?: unknown}).MSStream
 
   // Don't show if installed, dismissed, or no prompt available
   if (isInstalled || isDismissed || (!deferredPrompt && !isIOS)) {
@@ -140,8 +140,8 @@ export function InstallPrompt() {
                 <p>Install PassBangla on your iOS device:</p>
                 <ol className="list-decimal list-inside space-y-2 text-sm">
                   <li>Tap the Share button <span className="font-semibold">(□↑)</span> at the bottom</li>
-                  <li>Scroll down and tap <span className="font-semibold">"Add to Home Screen"</span></li>
-                  <li>Tap <span className="font-semibold">"Add"</span> in the top right</li>
+                  <li>Scroll down and tap <span className="font-semibold">&quot;Add to Home Screen&quot;</span></li>
+                  <li>Tap <span className="font-semibold">&quot;Add&quot;</span> in the top right</li>
                 </ol>
               </div>
             ) : (

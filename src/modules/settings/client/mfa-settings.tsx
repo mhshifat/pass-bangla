@@ -20,6 +20,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Info } from "lucide-react"
 import { MfaSettingsSkeleton } from "./mfa-settings-skeleton"
 import Link from "next/link"
+import { showErrorFromException } from "@/lib/error-toast"
 
 const mfaSettingsSchema = z.object({
   enforceAllUsers: z.boolean(),
@@ -50,7 +51,7 @@ export function MfaSettings() {
       utils.settings.checkMfaCredentialsStatus.invalidate()
     },
     onError: (error) => {
-      toast.error(error.message || t("settings.mfaSettingsFailed"))
+      showErrorFromException(error, t("settings.mfaSettingsFailed"))
     },
   })
 

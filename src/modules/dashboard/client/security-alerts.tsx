@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { AlertTriangle, X, Info, AlertCircle, CheckCircle2 } from "lucide-react"
 import { trpc } from "@/trpc/client"
 import { toast } from "sonner"
+import { showErrorFromException } from "@/lib/error-toast"
 
 interface Alert {
   id: string

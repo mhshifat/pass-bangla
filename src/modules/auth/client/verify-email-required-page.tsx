@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Mail, Loader2, CheckCircle2 } from "lucide-react"
 import { toast } from "sonner"
+import { showErrorFromException } from "@/lib/error-toast"
 
 export function VerifyEmailRequiredPage() {
   const { t } = useTranslation()
@@ -29,7 +30,7 @@ export function VerifyEmailRequiredPage() {
       }, 2000)
     },
     onError: (error) => {
-      toast.error(error.message || t("auth.emailVerification.resendError") || "Failed to send verification email")
+      showErrorFromException(error, t("auth.emailVerification.resendError") || "Failed to send verification email")
     },
   })
 

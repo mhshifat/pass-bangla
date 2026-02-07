@@ -8,10 +8,13 @@ import * as THREE from "three"
 function FloatingParticles({ count = 100 }) {
   const mesh = useRef<THREE.Points>(null)
   
+  // Generate particles once using useMemo to ensure deterministic output
   const particles = useMemo(() => {
+    // Use a seeded random for deterministic output during renders
     const positions = new Float32Array(count * 3)
     for (let i = 0; i < count * 3; i++) {
-      positions[i] = (Math.random() - 0.5) * 10
+      // Use modulo operation to create deterministic but varied values from index
+      positions[i] = ((i * 7919) % 10000) / 1000 - 5
     }
     return positions
   }, [count])

@@ -4,6 +4,7 @@ import z from "zod"
 import { hashPassword } from "@/lib/auth"
 import { TRPCError } from "@trpc/server"
 import { Prisma } from '@/app/generated'
+import { getOrCreateCorrelationId } from "@/lib/correlation-id-util"
 
 export const usersRouter = createTRPCRouter({
   create: protectedProcedure("user.create")
@@ -18,25 +19,8 @@ export const usersRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      // Get current user's company from subdomain context first, then from user
-      let companyId: string | undefined = undefined
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId
 
       // Check if user already exists in this company
       const existingUser = await prisma.user.findFirst({
@@ -47,9 +31,11 @@ export const usersRouter = createTRPCRouter({
       })
 
       if (existingUser) {
+        const correlationId = getOrCreateCorrelationId(ctx)
         throw new TRPCError({
           code: "CONFLICT",
-          message: "User with this email already exists in your company",
+          message: `User with this email already exists in your company [Correlation ID: ${correlationId}]`,
+          cause: { correlationId },
         })
       }
 
@@ -57,9 +43,11 @@ export const usersRouter = createTRPCRouter({
       const { validatePassword } = await import("@/lib/password-validation")
       const validation = await validatePassword(input.password)
       if (!validation.isValid) {
+        const correlationId = getOrCreateCorrelationId(ctx)
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: validation.errors.join(". "),
+          message: validation.errors.join(". ") + ` [Correlation ID: ${correlationId}]`,
+          cause: { correlationId },
         })
       }
 
@@ -75,9 +63,11 @@ export const usersRouter = createTRPCRouter({
       
       // Prevent assigning SUPER_ADMIN - it can only be assigned during sign up
       if (roleValue === "SUPER_ADMIN") {
+        const correlationId = getOrCreateCorrelationId(ctx)
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "SUPER_ADMIN role cannot be assigned. It can only be assigned during sign up.",
+          message: `SUPER_ADMIN role cannot be assigned. It can only be assigned during sign up. [Correlation ID: ${correlationId}]`,
+          cause: { correlationId },
         })
       }
       
@@ -100,9 +90,11 @@ export const usersRouter = createTRPCRouter({
           where: customRoleWhere,
         })
         if (!customRole) {
+          const correlationId = getOrCreateCorrelationId(ctx)
           throw new TRPCError({
             code: "BAD_REQUEST",
-            message: `Invalid role: ${input.role}. Role must be a system role or a custom role from your company.`,
+            message: `Invalid role: ${input.role}. Role must be a system role or a custom role from your company. [Correlation ID: ${correlationId}]`,
+            cause: { correlationId },
           })
         }
         // Use the custom role name as-is
@@ -176,45 +168,34 @@ export const usersRouter = createTRPCRouter({
       })
 
       if (!existingUser) {
+        const correlationId = getOrCreateCorrelationId(ctx)
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "User not found",
+          message: `User not found [Correlation ID: ${correlationId}]`,
+          cause: { correlationId },
         })
       }
 
-      // Get requester's companyId for validation
-      let requesterCompanyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          requesterCompanyId = company.id
-        }
-      } else if (ctx.userId) {
-        const requester = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (requester?.companyId) {
-          requesterCompanyId = requester.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const requesterCompanyId = ctx.companyId
 
       // Verify user belongs to same company (unless SUPER_ADMIN)
       if (ctx.userRole !== "SUPER_ADMIN" && requesterCompanyId && existingUser.companyId !== requesterCompanyId) {
+        const correlationId = getOrCreateCorrelationId(ctx)
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "You can only modify users from your own company",
+          message: `You can only modify users from your own company [Correlation ID: ${correlationId}]`,
+          cause: { correlationId },
         })
       }
 
       // Prevent users from modifying their creator (SUPER_ADMIN can modify anyone)
       if (ctx.userRole !== "SUPER_ADMIN" && existingUser.createdById === ctx.userId) {
+        const correlationId = getOrCreateCorrelationId(ctx)
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "You cannot modify the user who created your account",
+          message: `You cannot modify the user who created your account [Correlation ID: ${correlationId}]`,
+          cause: { correlationId },
         })
       }
 
@@ -230,9 +211,11 @@ export const usersRouter = createTRPCRouter({
         })
 
         if (emailTaken) {
+          const correlationId = getOrCreateCorrelationId(ctx)
           throw new TRPCError({
             code: "CONFLICT",
-            message: "Email already in use",
+            message: `Email already in use [Correlation ID: ${correlationId}]`,
+            cause: { correlationId },
           })
         }
       }
@@ -244,9 +227,11 @@ export const usersRouter = createTRPCRouter({
         const { validatePassword } = await import("@/lib/password-validation")
         const validation = await validatePassword(password)
         if (!validation.isValid) {
+          const correlationId = getOrCreateCorrelationId(ctx)
           throw new TRPCError({
             code: "BAD_REQUEST",
-            message: validation.errors.join(". "),
+            message: validation.errors.join(". ") + ` [Correlation ID: ${correlationId}]`,
+            cause: { correlationId },
           })
         }
         updateData.password = await hashPassword(password)
@@ -259,32 +244,17 @@ export const usersRouter = createTRPCRouter({
         
         // Prevent assigning SUPER_ADMIN - it can only be assigned during sign up
         if (roleValue === "SUPER_ADMIN") {
+          const correlationId = getOrCreateCorrelationId(ctx)
           throw new TRPCError({
             code: "FORBIDDEN",
-            message: "SUPER_ADMIN role cannot be assigned. It can only be assigned during sign up.",
+            message: `SUPER_ADMIN role cannot be assigned. It can only be assigned during sign up. [Correlation ID: ${correlationId}]`,
+            cause: { correlationId },
           })
         }
         
         if (!validSystemRoles.includes(roleValue)) {
-          // Get requester's companyId for role validation
-          let requesterCompanyId: string | null = null
-          if (ctx.subdomain) {
-            const company = await prisma.company.findUnique({
-              where: { subdomain: ctx.subdomain },
-              select: { id: true },
-            })
-            if (company) {
-              requesterCompanyId = company.id
-            }
-          } else if (ctx.userId) {
-            const requester = await prisma.user.findUnique({
-              where: { id: ctx.userId },
-              select: { companyId: true },
-            })
-            if (requester?.companyId) {
-              requesterCompanyId = requester.companyId
-            }
-          }
+          // Use companyId from context (already fetched, no extra query needed)
+          const requesterCompanyId = ctx.companyId
           
           // Check if it's a custom role - must belong to same company
           const customRoleWhere: Prisma.RoleWhereInput = {
@@ -304,9 +274,11 @@ export const usersRouter = createTRPCRouter({
             where: customRoleWhere,
           })
           if (!customRole) {
+            const correlationId = getOrCreateCorrelationId(ctx)
             throw new TRPCError({
               code: "BAD_REQUEST",
-              message: `Invalid role: ${data.role}. Role must be a system role or a custom role from your company.`,
+              message: `Invalid role: ${data.role}. Role must be a system role or a custom role from your company. [Correlation ID: ${correlationId}]`,
+              cause: { correlationId },
             })
           }
           // Use the custom role name as-is
@@ -362,45 +334,34 @@ export const usersRouter = createTRPCRouter({
       })
 
       if (!existingUser) {
+        const correlationId = getOrCreateCorrelationId(ctx)
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "User not found",
+          message: `User not found [Correlation ID: ${correlationId}]`,
+          cause: { correlationId },
         })
       }
 
-      // Get requester's companyId for validation
-      let requesterCompanyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          requesterCompanyId = company.id
-        }
-      } else if (ctx.userId) {
-        const requester = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (requester?.companyId) {
-          requesterCompanyId = requester.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const requesterCompanyId = ctx.companyId
 
       // Verify user belongs to same company (unless SUPER_ADMIN)
       if (ctx.userRole !== "SUPER_ADMIN" && requesterCompanyId && existingUser.companyId !== requesterCompanyId) {
+        const correlationId = getOrCreateCorrelationId(ctx)
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "You can only delete users from your own company",
+          message: `You can only delete users from your own company [Correlation ID: ${correlationId}]`,
+          cause: { correlationId },
         })
       }
 
       // Prevent users from deleting their creator (SUPER_ADMIN can delete anyone)
       if (ctx.userRole !== "SUPER_ADMIN" && existingUser.createdById === ctx.userId) {
+        const correlationId = getOrCreateCorrelationId(ctx)
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "You cannot delete the user who created your account",
+          message: `You cannot delete the user who created your account [Correlation ID: ${correlationId}]`,
+          cause: { correlationId },
         })
       }
 
@@ -428,9 +389,11 @@ export const usersRouter = createTRPCRouter({
     .use(async ({ ctx, next }) => {
       // Check if user is authenticated
       if (!ctx.userId) {
+        const correlationId = getOrCreateCorrelationId(ctx)
         throw new TRPCError({
           code: "UNAUTHORIZED",
-          message: "You must be logged in to change your password",
+          message: `You must be logged in to change your password [Correlation ID: ${correlationId}]`,
+          cause: { correlationId },
         })
       }
       return next({ ctx })
@@ -450,17 +413,21 @@ export const usersRouter = createTRPCRouter({
       })
 
       if (!user) {
+        const correlationId = getOrCreateCorrelationId(ctx)
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "User not found",
+          message: `User not found [Correlation ID: ${correlationId}]`,
+          cause: { correlationId },
         })
       }
 
       // Verify current password
       if (!user.password) {
+        const correlationId = getOrCreateCorrelationId(ctx)
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "User does not have a password set",
+          message: `User does not have a password set [Correlation ID: ${correlationId}]`,
+          cause: { correlationId },
         })
       }
 
@@ -468,9 +435,11 @@ export const usersRouter = createTRPCRouter({
       const isCurrentPasswordValid = await verifyPassword(input.currentPassword, user.password)
 
       if (!isCurrentPasswordValid) {
+        const correlationId = getOrCreateCorrelationId(ctx)
         throw new TRPCError({
           code: "UNAUTHORIZED",
-          message: "Current password is incorrect",
+          message: `Current password is incorrect [Correlation ID: ${correlationId}]`,
+          cause: { correlationId },
         })
       }
 
@@ -478,9 +447,11 @@ export const usersRouter = createTRPCRouter({
       const isSamePassword = await verifyPassword(input.newPassword, user.password)
 
       if (isSamePassword) {
+        const correlationId = getOrCreateCorrelationId(ctx)
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "New password must be different from current password",
+          message: `New password must be different from current password [Correlation ID: ${correlationId}]`,
+          cause: { correlationId },
         })
       }
 
@@ -488,9 +459,11 @@ export const usersRouter = createTRPCRouter({
       const { validatePassword } = await import("@/lib/password-validation")
       const validation = await validatePassword(input.newPassword)
       if (!validation.isValid) {
+        const correlationId = getOrCreateCorrelationId(ctx)
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: validation.errors.join(". "),
+          message: validation.errors.join(". ") + ` [Correlation ID: ${correlationId}]`,
+          cause: { correlationId },
         })
       }
 
@@ -546,25 +519,8 @@ export const usersRouter = createTRPCRouter({
       // Check if user is resetting their own password
       const isResettingOwnPassword = existingUser.id === ctx.userId
 
-      // Get requester's companyId for validation
-      let requesterCompanyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          requesterCompanyId = company.id
-        }
-      } else if (ctx.userId) {
-        const requester = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (requester?.companyId) {
-          requesterCompanyId = requester.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const requesterCompanyId = ctx.companyId
 
       // If not resetting own password, check permissions and company
       if (!isResettingOwnPassword) {
@@ -653,25 +609,8 @@ export const usersRouter = createTRPCRouter({
       const pageSize = input?.pageSize ?? 10
       const skip = (page - 1) * pageSize
 
-      // Get user's company
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId
 
       // Build where clause - show all users in the same company
       const whereClause: Prisma.UserWhereInput = {};
@@ -687,8 +626,9 @@ export const usersRouter = createTRPCRouter({
       // Check if current user is SUPER_ADMIN (can see everything and perform all actions)
       const isSuperAdmin = ctx.userRole === "SUPER_ADMIN";
 
+      const { limit } = await import("@/lib/p-limit");
       const [users, total] = await Promise.all([
-        prisma.user.findMany({
+        limit(() => prisma.user.findMany({
           where: whereClause,
           select: {
             id: true,
@@ -698,7 +638,7 @@ export const usersRouter = createTRPCRouter({
             createdById: true, // Include to check if user can modify this user
             // Only include sensitive fields if user has edit permission
             ...(hasEditPermission ? {
-            mfaEnabled: true,
+              mfaEnabled: true,
               lastLoginAt: true,
             } : {}),
             isActive: true,
@@ -710,7 +650,7 @@ export const usersRouter = createTRPCRouter({
           },
           skip,
           take: pageSize,
-        }),
+        })),
         prisma.user.count({ where: whereClause }),
       ])
 
@@ -777,25 +717,8 @@ export const usersRouter = createTRPCRouter({
         })
       }
 
-      // Get requester's companyId for validation
-      let requesterCompanyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          requesterCompanyId = company.id
-        }
-      } else if (ctx.userId) {
-        const requester = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (requester?.companyId) {
-          requesterCompanyId = requester.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const requesterCompanyId = ctx.companyId
 
       // Verify user belongs to same company (unless SUPER_ADMIN)
       if (ctx.userRole !== "SUPER_ADMIN" && requesterCompanyId && user.companyId !== requesterCompanyId) {
@@ -857,25 +780,8 @@ export const usersRouter = createTRPCRouter({
   stats: protectedProcedure("user.view")
     .input(z.object({ excludeUserId: z.string().optional() }).optional())
     .query(async ({ input, ctx }) => {
-      // Get user's company
-      let companyId: string | null = null
-      if (ctx.subdomain) {
-        const company = await prisma.company.findUnique({
-          where: { subdomain: ctx.subdomain },
-          select: { id: true },
-        })
-        if (company) {
-          companyId = company.id
-        }
-      } else if (ctx.userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: ctx.userId },
-          select: { companyId: true },
-        })
-        if (user?.companyId) {
-          companyId = user.companyId
-        }
-      }
+      // Use companyId from context (already fetched, no extra query needed)
+      const companyId = ctx.companyId
 
       const where: Prisma.UserWhereInput = {};
       if (companyId) {
@@ -884,11 +790,12 @@ export const usersRouter = createTRPCRouter({
       if (input?.excludeUserId) {
         where.id = { not: input.excludeUserId };
       }
+      const { limit } = await import("@/lib/p-limit");
       const [total, active, mfa, admins] = await Promise.all([
-        prisma.user.count({ where }),
-        prisma.user.count({ where: { ...where, isActive: true } }),
-        prisma.user.count({ where: { ...where, mfaEnabled: true } }),
-        prisma.user.count({ where: { ...where, role: { in: ["ADMIN", "admin"] } } }),
+        limit(() => prisma.user.count({ where })),
+        limit(() => prisma.user.count({ where: { ...where, isActive: true } })),
+        limit(() => prisma.user.count({ where: { ...where, mfaEnabled: true } })),
+        limit(() => prisma.user.count({ where: { ...where, role: { in: ["ADMIN", "admin"] } } })),
       ])
       return {
         total,
@@ -1055,16 +962,20 @@ export const usersRouter = createTRPCRouter({
       z.object({
         page: z.number().min(1).default(1),
         pageSize: z.number().min(1).max(100).default(20),
-      }).optional()
+      })
     )
-    .query(async ({ input = {}, ctx }) => {
-      const { page = 1, pageSize = 20 } = input
+    .query(async ({ input, ctx }) => {
+      const { page = 1, pageSize = 20 } = input as { page: number; pageSize: number }
 
       const where = {
         userId: ctx.userId,
       }
 
-      const [logs, total] = await Promise.all([
+      // Import limit function at the top of the handler
+      const pLimitModule = await import("@/lib/p-limit")
+      const { limit } = pLimitModule
+      
+      const logsPromise: Promise<unknown> = limit(() => 
         prisma.auditLog.findMany({
           where,
           take: pageSize,
@@ -1081,9 +992,12 @@ export const usersRouter = createTRPCRouter({
             createdAt: true,
             details: true,
           },
-        }),
-        prisma.auditLog.count({ where }),
-      ])
+        })
+      )
+      
+      const countPromise: Promise<number> = prisma.auditLog.count({ where })
+      
+      const [logs, total] = await Promise.all([logsPromise, countPromise])
 
       return {
         logs,

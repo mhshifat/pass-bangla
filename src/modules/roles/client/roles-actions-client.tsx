@@ -25,6 +25,7 @@ import { trpc } from "@/trpc/client"
 import { useTranslation } from "react-i18next"
 import { usePermissions } from "@/hooks/use-permissions"
 import { RefreshCw } from "lucide-react"
+import { showErrorFromException } from "@/lib/error-toast"
 
 interface Role {
   id: string
@@ -141,9 +142,7 @@ export function RolesActionsClient({ roles }: RolesActionsClientProps) {
         await utils.roles.getAllPermissions.invalidate()
         router.refresh()
       }
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to sync permissions")
-    } finally {
+    } catch (error) { showErrorFromException(error, error instanceof Error ? error.message : "Failed to sync permissions") } finally {
       setIsSyncing(false)
     }
   }

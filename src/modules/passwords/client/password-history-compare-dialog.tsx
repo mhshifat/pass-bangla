@@ -83,13 +83,13 @@ export function PasswordHistoryCompareDialog({
   } : null)
 
   // Calculate differences
-  const differences: Array<{ field: string; value1: any; value2: any }> = []
+  const differences: Array<{ field: string; value1: string; value2: string }> = []
   if (version1 && version2) {
     if (version1.name !== version2.name) differences.push({ field: t("common.name"), value1: version1.name, value2: version2.name })
     if (version1.username !== version2.username) differences.push({ field: t("passwords.username"), value1: version1.username, value2: version2.username })
     if (version1.url !== version2.url) differences.push({ field: t("passwords.url"), value1: version1.url || "-", value2: version2.url || "-" })
     if (version1.notes !== version2.notes) differences.push({ field: t("passwords.notes"), value1: version1.notes || "-", value2: version2.notes || "-" })
-    if (version1.strength !== version2.strength) differences.push({ field: t("passwords.strength"), value1: version1.strength, value2: version2.strength })
+    if (version1.strength !== version2.strength) differences.push({ field: t("passwords.strength"), value1: String(version1.strength), value2: String(version2.strength) })
     if (version1.hasTotp !== version2.hasTotp) differences.push({ field: t("passwords.hasTotp"), value1: version1.hasTotp ? t("common.yes") : t("common.no"), value2: version2.hasTotp ? t("common.yes") : t("common.no") })
     if (version1.expiresAt?.getTime() !== version2.expiresAt?.getTime()) {
       differences.push({ 

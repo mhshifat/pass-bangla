@@ -9,9 +9,19 @@ import { trpc } from "@/trpc/client"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
+import { showErrorFromException } from "@/lib/error-toast"
+
+type SearchHistoryItem = {
+  id: string
+  query?: string | null
+  tagIds?: string[]
+  folderIds?: string[]
+  filter?: string | null
+  resultCount?: number | null
+}
 
 interface SearchHistoryProps {
-  onSelect?: (searchParams: any) => void
+  onSelect?: (searchParams: SearchHistoryItem) => void
   className?: string
   limit?: number
 }
@@ -31,11 +41,11 @@ export function SearchHistory({ onSelect, className, limit = 10 }: SearchHistory
       await refetch()
     },
     onError: (error) => {
-      toast.error(error.message || t("passwords.search.clearError"))
+      showErrorFromException(error, t("passwords.search.clearError"))
     },
   })
 
-  const handleSelect = (item: any) => {
+  const handleSelect = (item: SearchHistoryItem) => {
     const params = new URLSearchParams()
 
     if (item.query) {

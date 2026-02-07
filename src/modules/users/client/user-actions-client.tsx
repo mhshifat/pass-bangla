@@ -25,6 +25,7 @@ import { useRouter } from "next/navigation"
 import { usePermissions } from "@/hooks/use-permissions"
 import { trpc } from "@/trpc/client"
 import { useTranslation } from "react-i18next"
+import { showErrorFromException } from "@/lib/error-toast"
 
 interface User {
   id: string
@@ -57,7 +58,7 @@ export function UserActionsClient({ users, currentUserId, isSuperAdmin = false, 
       router.refresh()
     },
     onError: (error) => {
-      toast.error(error.message || t("users.mfaResetFailed"))
+      showErrorFromException(error, t("users.mfaResetFailed"))
     },
   })
   const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false)

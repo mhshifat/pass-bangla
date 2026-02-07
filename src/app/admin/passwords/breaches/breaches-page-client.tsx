@@ -4,6 +4,7 @@ import * as React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
+import { showErrorFromException } from "@/lib/error-toast"
 import { 
   Shield, 
   AlertTriangle, 
@@ -55,7 +56,7 @@ export function BreachesPageClient() {
       router.refresh()
     },
     onError: (error) => {
-      toast.error(error.message || t("passwords.breach.checkAllError"))
+      showErrorFromException(error, t("passwords.breach.checkAllError"))
     },
   })
 
@@ -76,7 +77,7 @@ export function BreachesPageClient() {
         refetch()
         router.refresh()
       } catch (error) {
-        toast.error(error instanceof Error ? error.message : t("passwords.breach.resolveError"))
+        showErrorFromException(error, t("passwords.breach.resolveError"))
       }
     })
   }

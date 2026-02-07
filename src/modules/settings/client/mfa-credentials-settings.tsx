@@ -16,6 +16,7 @@ import { Loader2 } from "lucide-react"
 import { usePermissions } from "@/hooks/use-permissions"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Info } from "lucide-react"
+import { showErrorFromException } from "@/lib/error-toast"
 
 const createMfaCredentialsSchema = (t: (key: string) => string) => z.object({
   smsAccountSid: z.string().optional(),
@@ -40,7 +41,7 @@ export function MfaCredentialsSettings() {
       utils.settings.getMfaCredentials.invalidate()
     },
     onError: (error) => {
-      toast.error(error.message || t("settings.mfaCredentialsSettings.saveFailed"))
+      showErrorFromException(error, t("settings.mfaCredentialsSettings.saveFailed"))
     },
   })
 

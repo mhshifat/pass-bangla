@@ -30,6 +30,7 @@ import {
 import { trpc } from "@/trpc/client"
 import { toast } from "sonner"
 import { formatDistanceToNow } from "date-fns"
+import { showErrorFromException } from "@/lib/error-toast"
 
 interface PasswordHistoryPageClientProps {
   passwordId: string
@@ -59,7 +60,7 @@ export function PasswordHistoryPageClient({
       setSelectedHistoryId(null)
     },
     onError: (error) => {
-      toast.error(error.message || t("passwords.history.restoreError"))
+      showErrorFromException(error, t("passwords.history.restoreError"))
     },
   })
 

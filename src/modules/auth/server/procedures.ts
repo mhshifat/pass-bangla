@@ -8,6 +8,11 @@ import { decrypt } from "@/lib/crypto";
 import { getRequestMetadata } from "@/lib/audit-log";
 import { headers, cookies } from "next/headers";
 
+const globalWithPasskeys = globalThis as typeof globalThis & {
+    passkeyRegistrationChallenges?: Map<string, string>
+    passkeyAuthenticationChallenges?: Map<string, { challenge: string; userId: string }>
+}
+
 /**
  * Ensure system roles and permissions exist in the database
  */
@@ -2943,7 +2948,7 @@ export const authRouter = createTRPCRouter({
         }),
 
     // ========== PASSKEY (Passwordless) AUTHENTICATION ==========
-    
+
     // Generate passkey registration options
     generatePasskeyRegistrationOptions: baseProcedure
         .use(async ({ ctx, next }) => {
@@ -2992,10 +2997,10 @@ export const authRouter = createTRPCRouter({
             )
 
             // Store challenge in memory (you might want to use Redis in production)
-            if (!(global as any).passkeyRegistrationChallenges) {
-                (global as any).passkeyRegistrationChallenges = new Map()
+            if (!globalWithPasskeys.passkeyRegistrationChallenges) {
+                globalWithPasskeys.passkeyRegistrationChallenges = new Map()
             }
-            (global as any).passkeyRegistrationChallenges.set(user.id, challenge)
+            globalWithPasskeys.passkeyRegistrationChallenges.set(user.id, challenge)
 
             return { options }
         }),
@@ -3012,11 +3017,11 @@ export const authRouter = createTRPCRouter({
             return next({ ctx });
         })
         .input(z.object({
-            response: z.any(),
+            response: z.unknown(),
             name: z.string().min(1, "Please provide a name for this passkey"),
         }))
         .mutation(async ({ input, ctx }) => {
-            const challengeStore = (global as any).passkeyRegistrationChallenges || new Map()
+            const challengeStore = globalWithPasskeys.passkeyRegistrationChallenges || new Map()
             const expectedChallenge = challengeStore.get(ctx.userId!)
             challengeStore.delete(ctx.userId!)
 
@@ -3122,10 +3127,10 @@ export const authRouter = createTRPCRouter({
             const { options, challenge } = await generateWebAuthnAuthenticationOptions([], origin)
 
             // Store challenge and userId for verification
-            if (!(global as any).passkeyAuthenticationChallenges) {
-                (global as any).passkeyAuthenticationChallenges = new Map()
+            if (!globalWithPasskeys.passkeyAuthenticationChallenges) {
+                globalWithPasskeys.passkeyAuthenticationChallenges = new Map()
             }
-            (global as any).passkeyAuthenticationChallenges.set(input.email, {
+            globalWithPasskeys.passkeyAuthenticationChallenges.set(input.email, {
                 challenge,
                 userId: user.id,
             })
@@ -3137,10 +3142,10 @@ export const authRouter = createTRPCRouter({
     verifyPasskeyAuthentication: baseProcedure
         .input(z.object({
             email: z.string().email("Invalid email address"),
-            response: z.any(),
+            response: z.unknown(),
         }))
         .mutation(async ({ input, ctx }) => {
-            const challengeStore = (global as any).passkeyAuthenticationChallenges || new Map()
+            const challengeStore = globalWithPasskeys.passkeyAuthenticationChallenges || new Map()
             const storedData = challengeStore.get(input.email)
             challengeStore.delete(input.email)
 

@@ -6,6 +6,8 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { ErrorWithCorrelationId } from "@/components/shared/ErrorWithCorrelationId"
+import { useCorrelationIdError } from "@/hooks/use-correlation-id-error"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Lock, Mail, AlertCircle, RefreshCw } from "lucide-react"
@@ -25,6 +27,7 @@ interface LoginFormFieldsProps {
   isPending: boolean
   state: { 
     error?: string
+    correlationId?: string
     fieldErrors?: { [key: string]: string }
     requiresCaptcha?: boolean
     captchaToken?: string
@@ -51,6 +54,9 @@ export function LoginFormFields({ formAction, isPending, state }: LoginFormField
       captchaAnswer: undefined,
     },
   })
+
+  const rootError = form.formState.errors.root?.message
+  const correlation = useCorrelationIdError(rootError)
 
   // Sync server errors to form
   useEffect(() => {
@@ -101,10 +107,10 @@ export function LoginFormFields({ formAction, isPending, state }: LoginFormField
     <Form {...form}>
       <form id="login-form" onSubmit={handleSubmit}>
         {form.formState.errors.root && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{form.formState.errors.root.message}</AlertDescription>
-          </Alert>
+          <ErrorWithCorrelationId 
+            message={correlation.message}
+            correlationId={state?.correlationId || correlation.correlationId}
+          />
         )}
 
         <div className="space-y-4">

@@ -330,10 +330,7 @@ export async function detectAnomalies(
     const currentDevice = parseUserAgent(userAgent)
     
     const previousDevices = recentLogins
-      .map((login) => {
-        const { parseUserAgent } = require("./device-parser")
-        return parseUserAgent(login.userAgent)
-      })
+      .map((login) => parseUserAgent(login.userAgent))
       .filter((d) => d.deviceName !== "Unknown Device")
 
     if (previousDevices.length > 0) {

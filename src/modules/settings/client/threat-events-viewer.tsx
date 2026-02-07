@@ -35,6 +35,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { toast } from "sonner"
+import { showErrorFromException } from "@/lib/error-toast"
 
 export function ThreatEventsViewer() {
   const { t } = useTranslation()
@@ -68,7 +69,7 @@ export function ThreatEventsViewer() {
       refetch()
     },
     onError: (error) => {
-      toast.error(error.message || t("threats.resolveError"))
+      showErrorFromException(error, t("threats.resolveError"))
     },
   })
 

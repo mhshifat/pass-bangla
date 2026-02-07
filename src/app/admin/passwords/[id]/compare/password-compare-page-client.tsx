@@ -121,7 +121,7 @@ export function PasswordComparePageClient({
   } : null)
 
   // Calculate differences
-  const differences: Array<{ field: string; value1: any; value2: any; icon: React.ReactNode }> = []
+  const differences: Array<{ field: string; value1: unknown; value2: unknown; icon: React.ReactNode }> = []
   if (version1 && version2) {
     if (version1.name !== version2.name) differences.push({ 
       field: t("common.name"), 

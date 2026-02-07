@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/form"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Separator } from "@/components/ui/separator"
+import { showErrorFromException } from "@/lib/error-toast"
 
 const reportSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -190,7 +191,7 @@ export function ReportBuilderDialog({
       form.reset()
     },
     onError: (error) => {
-      toast.error(error.message || t("reports.generateError"))
+      showErrorFromException(error, t("reports.generateError"))
     },
   })
 

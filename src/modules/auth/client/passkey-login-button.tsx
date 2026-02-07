@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { showErrorFromException } from "@/lib/error-toast"
 
 export function PasskeyLoginButton() {
     const { t } = useTranslation()
@@ -72,15 +73,18 @@ export function PasskeyLoginButton() {
                 router.push("/admin")
                 router.refresh()
             }
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Passkey authentication error:", error)
             
-            if (error.message?.includes("No passkeys found")) {
+            const errorMessage = error instanceof Error ? error.message : ""
+            const errorName = error instanceof Error ? error.name : ""
+
+            if (errorMessage.includes("No passkeys found")) {
                 toast.error(t("passkey.noPasskeysFound"))
-            } else if (error.name === "NotAllowedError") {
+            } else if (errorName === "NotAllowedError") {
                 toast.error(t("passkey.authenticationCancelled"))
             } else {
-                toast.error(error.message || t("passkey.authenticationFailed"))
+                showErrorFromException(error, t("passkey.authenticationFailed"))
             }
         } finally {
             setIsAuthenticating(false)

@@ -23,6 +23,7 @@ import { toast } from "sonner"
 import { Loader2, CheckCircle2, XCircle, Key } from "lucide-react"
 import Link from "next/link"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { showErrorFromException } from "@/lib/error-toast"
 
 const resetPasswordSchema = z.object({
   newPassword: z.string().min(8, "Password must be at least 8 characters"),
@@ -61,7 +62,7 @@ export function ResetPasswordPage() {
     },
     onError: (error) => {
       setResetStatus("error")
-      toast.error(error.message || t("auth.resetPassword.error"))
+      showErrorFromException(error, t("auth.resetPassword.error"))
     },
   })
 

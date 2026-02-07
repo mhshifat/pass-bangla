@@ -25,6 +25,7 @@ import { toast } from "sonner"
 import { BulkResolveDuplicatesDialog, PasswordDetailsDialog } from "@/modules/passwords/client"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useCurrentUser } from "@/hooks/use-current-user"
+import { showErrorFromException } from "@/lib/error-toast"
 
 export function DuplicatesPageClient() {
   const { t } = useTranslation()
@@ -43,7 +44,7 @@ export function DuplicatesPageClient() {
     folder: string | null
     strength: "strong" | "medium" | "weak"
     shared: boolean
-    sharedWith: any[]
+    sharedWith: Array<{ id: string; name: string }>
     lastModified: string
     expiresIn: number | null
     hasTotp: boolean
@@ -86,9 +87,7 @@ export function DuplicatesPageClient() {
     try {
       await navigator.clipboard.writeText(password)
       toast.success(t("passwords.duplicates.passwordCopied"))
-    } catch (error) {
-      toast.error(t("passwords.passwordCopyFailed"))
-    }
+    } catch (error) { showErrorFromException(error, t("passwords.passwordCopyFailed")) }
   }
 
   return (

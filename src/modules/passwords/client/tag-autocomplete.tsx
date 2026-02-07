@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils"
 import { createTagAction } from "@/app/admin/passwords/tag-actions"
 import { toast } from "sonner"
 import { useTransition } from "react"
+import { showErrorFromException } from "@/lib/error-toast"
 
 interface TagAutocompleteProps {
   selectedTagIds: string[]
@@ -160,9 +161,7 @@ export function TagAutocomplete({
         } else {
           toast.error(result.error || t("passwords.tags.tagError"))
         }
-      } catch (error) {
-        toast.error(t("passwords.tags.tagError"))
-      }
+      } catch (error) { showErrorFromException(error, t("passwords.tags.tagError")) }
     })
   }, [query, queryMatchesExisting, selectedTagIds, onTagsChange, utils, t])
 
@@ -242,7 +241,7 @@ export function TagAutocomplete({
                         <div className="flex items-center gap-2 flex-1">
                           <Plus className="w-4 h-4" />
                           <span className="flex-1">
-                            {t("passwords.tags.createTag")}: "{query.trim()}"
+                            {t("passwords.tags.createTag")}: &quot;{query.trim()}&quot;
                           </span>
                           {isCreating && (
                             <span className="text-xs text-muted-foreground">

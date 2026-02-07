@@ -50,6 +50,7 @@ import { Loader2, Plus, Trash2, Edit, Shield, Globe, AlertTriangle, CheckCircle2
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
+import { showErrorFromException } from "@/lib/error-toast"
 import {
   Form,
   FormControl,
@@ -84,7 +85,7 @@ export function IpWhitelistManagement() {
       refetch()
     },
     onError: (error) => {
-      toast.error(error.message || t("settings.security.ipWhitelist.addFailed"))
+      showErrorFromException(error, t("settings.security.ipWhitelist.addFailed"))
     },
   })
 
@@ -95,7 +96,7 @@ export function IpWhitelistManagement() {
       refetch()
     },
     onError: (error) => {
-      toast.error(error.message || t("settings.security.ipWhitelist.updateFailed"))
+      showErrorFromException(error, t("settings.security.ipWhitelist.updateFailed"))
     },
   })
 
@@ -106,7 +107,7 @@ export function IpWhitelistManagement() {
       refetch()
     },
     onError: (error) => {
-      toast.error(error.message || t("settings.security.ipWhitelist.deleteFailed"))
+      showErrorFromException(error, t("settings.security.ipWhitelist.deleteFailed"))
     },
   })
 
@@ -116,7 +117,7 @@ export function IpWhitelistManagement() {
       refetchSettings()
     },
     onError: (error) => {
-      toast.error(error.message || t("settings.security.ipSecuritySettings.saveFailed"))
+      showErrorFromException(error, t("settings.security.ipSecuritySettings.saveFailed"))
     },
   })
 
@@ -443,7 +444,7 @@ function GeographicRestrictionsManagement() {
       refetch()
     },
     onError: (error) => {
-      toast.error(error.message || t("settings.security.geographicRestrictions.addFailed"))
+      showErrorFromException(error, t("settings.security.geographicRestrictions.addFailed"))
     },
   })
 
@@ -454,7 +455,7 @@ function GeographicRestrictionsManagement() {
       refetch()
     },
     onError: (error) => {
-      toast.error(error.message || t("settings.security.geographicRestrictions.deleteFailed"))
+      showErrorFromException(error, t("settings.security.geographicRestrictions.deleteFailed"))
     },
   })
 

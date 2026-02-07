@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { X, Sparkles } from "lucide-react"
 import { trpc } from "@/trpc/client"
 import { toast } from "sonner"
+import { showErrorFromException } from "@/lib/error-toast"
 
 interface FeatureTooltipProps {
   featureId: string
@@ -62,9 +63,7 @@ export function FeatureTooltip({
     try {
       await completeStepMutation.mutateAsync({ step: `tooltip_${featureId}` })
       onDismiss?.()
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : t("onboarding.error"))
-    }
+    } catch (error) { showErrorFromException(error, error instanceof Error ? error.message : t("onboarding.error")) }
   }
 
   if (!shouldShow || isDismissed) {

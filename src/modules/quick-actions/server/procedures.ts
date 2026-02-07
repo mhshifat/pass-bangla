@@ -15,12 +15,8 @@ export const quickActionsRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      // Get user teams for password access
-      const userTeams = await prisma.teamMember.findMany({
-        where: { userId: ctx.userId },
-        select: { teamId: true },
-      })
-      const teamIds = userTeams.map((tm) => tm.teamId)
+      // Use cached userTeams from context (already fetched, no extra query needed)
+      const teamIds = ctx.userTeams
 
       // Build password where clause
       const passwordWhere: Prisma.PasswordWhereInput = {
@@ -113,12 +109,8 @@ export const quickActionsRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      // Get user teams for password access
-      const userTeams = await prisma.teamMember.findMany({
-        where: { userId: ctx.userId },
-        select: { teamId: true },
-      })
-      const teamIds = userTeams.map((tm) => tm.teamId)
+      // Use cached userTeams from context (already fetched, no extra query needed)
+      const teamIds = ctx.userTeams
 
       // Build password where clause
       const passwordWhere: Prisma.PasswordWhereInput = {

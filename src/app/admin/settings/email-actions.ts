@@ -2,6 +2,16 @@
 
 import { revalidatePath } from "next/cache"
 import { serverTrpc } from "@/trpc/server-caller"
+import { generateCorrelationId, logError } from "@/lib/correlation-id-util"
+import { isRedirectError } from "next/dist/client/components/redirect-error"
+
+type ServerActionResult = {
+  error?: string;
+  correlationId?: string;
+  fieldErrors?: Record<string, string>;
+  success?: boolean;
+} | { success: true };
+
 
 export async function updateEmailConfigAction(
   _prevState: unknown,
@@ -9,7 +19,9 @@ export async function updateEmailConfigAction(
 ): Promise<{
   success?: boolean
   error?: string
+  correlationId?: string
 }> {
+  const correlationId = generateCorrelationId()
   try {
     const smtp_host = formData.get("smtp_host") as string
     const smtp_port = formData.get("smtp_port") as string
@@ -20,7 +32,7 @@ export async function updateEmailConfigAction(
     const smtp_from_name = formData.get("smtp_from_name") as string
 
     if (!smtp_host || !smtp_port || !smtp_from_email) {
-      return { error: "Host, port, and from email are required" }
+      return { error: "Host, port, and from email are required", correlationId }
     }
 
     const caller = await serverTrpc()
@@ -35,11 +47,13 @@ export async function updateEmailConfigAction(
     })
 
     revalidatePath("/admin/settings")
-    return { success: true }
+    return { success: true, correlationId }
   } catch (error) {
-    console.error("Failed to update email config:", error)
+    if (isRedirectError(error)) throw error
+    logError(correlationId, error, { action: "updateEmailConfigAction" })
     return {
       error: error instanceof Error ? error.message : "Failed to update email configuration",
+      correlationId,
     }
   }
 }
@@ -49,20 +63,24 @@ export async function testEmailConfigAction(
 ): Promise<{
   success?: boolean
   error?: string
+  correlationId?: string
 }> {
+  const correlationId = generateCorrelationId()
   try {
     if (!testEmail) {
-      return { error: "Email address is required" }
+      return { error: "Email address is required", correlationId }
     }
 
     const caller = await serverTrpc()
     await caller.settings.testEmailConfig({ testEmail })
 
-    return { success: true }
+    return { success: true, correlationId }
   } catch (error) {
-    console.error("Failed to test email config:", error)
+    if (isRedirectError(error)) throw error
+    logError(correlationId, error, { action: "testEmailConfigAction", testEmail })
     return {
       error: error instanceof Error ? error.message : "Failed to send test email",
+      correlationId,
     }
   }
 }

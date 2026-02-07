@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { FileQuestion, Home, ArrowLeft } from "lucide-react"
+import { FileQuestion, Home } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"

@@ -3,15 +3,25 @@
 import { serverTrpc } from "@/trpc/server-caller"
 import { TRPCError } from "@trpc/server"
 import { revalidatePath } from "next/cache"
+import { isRedirectError } from "next/dist/client/components/redirect-error"
+import { generateCorrelationId, logError } from "@/lib/correlation-id-util"
 
 type FieldErrors = {
   [key: string]: string
 }
 
+type ActionResult = {
+  error?: string;
+  correlationId?: string;
+  fieldErrors?: FieldErrors;
+  success?: boolean;
+} | { success: true };
+
 export async function createPasswordAction(
-  prevState: { error?: string; fieldErrors?: FieldErrors; success?: boolean } | null,
+  prevState: ActionResult | null,
   formData: FormData
-) {
+): Promise<ActionResult> {
+  const correlationId = generateCorrelationId()
   const name = formData.get("name") as string
   const username = formData.get("username") as string
   const password = formData.get("password") as string
@@ -37,6 +47,9 @@ export async function createPasswordAction(
     revalidatePath("/admin/passwords")
     return { success: true }
   } catch (error: unknown) {
+    if (isRedirectError(error)) throw error
+    logError(correlationId, error, { action: "createPassword" })
+    
     if (error instanceof TRPCError) {
       if (error.code === "BAD_REQUEST") {
         try {
@@ -51,25 +64,26 @@ export async function createPasswordAction(
           }
 
           if (Object.keys(fieldErrors).length > 0) {
-            return { fieldErrors }
+            return { fieldErrors, correlationId }
           }
         } catch {
-          return { error: error.message }
+          return { error: error.message, correlationId }
         }
       }
 
-      return { error: error.message }
+      return { error: error.message, correlationId }
     }
 
     const message = error instanceof Error ? error.message : "Failed to create password"
-    return { error: message }
+    return { error: message, correlationId }
   }
 }
 
 export async function updatePasswordAction(
-  prevState: { error?: string; fieldErrors?: FieldErrors; success?: boolean } | null,
+  prevState: ActionResult | null,
   formData: FormData
-) {
+): Promise<ActionResult> {
+  const correlationId = generateCorrelationId()
   const passwordId = formData.get("passwordId") as string
   const name = formData.get("name") as string
   const username = formData.get("username") as string
@@ -97,6 +111,9 @@ export async function updatePasswordAction(
     revalidatePath("/admin/passwords")
     return { success: true }
   } catch (error: unknown) {
+    if (isRedirectError(error)) throw error
+    logError(correlationId, error, { action: "updatePassword" })
+    
     if (error instanceof TRPCError) {
       if (error.code === "BAD_REQUEST") {
         try {
@@ -111,22 +128,23 @@ export async function updatePasswordAction(
           }
 
           if (Object.keys(fieldErrors).length > 0) {
-            return { fieldErrors }
+            return { fieldErrors, correlationId }
           }
         } catch {
-          return { error: error.message }
+          return { error: error.message, correlationId }
         }
       }
 
-      return { error: error.message }
+      return { error: error.message, correlationId }
     }
 
     const message = error instanceof Error ? error.message : "Failed to update password"
-    return { error: message }
+    return { error: message, correlationId }
   }
 }
 
-export async function deletePasswordAction(passwordId: string) {
+export async function deletePasswordAction(passwordId: string): Promise<ActionResult> {
+  const correlationId = generateCorrelationId()
   try {
     const trpc = await serverTrpc()
     await trpc.passwords.delete({ id: passwordId })
@@ -134,12 +152,15 @@ export async function deletePasswordAction(passwordId: string) {
     revalidatePath("/admin/passwords")
     return { success: true }
   } catch (error: unknown) {
+    if (isRedirectError(error)) throw error
+    logError(correlationId, error, { action: "deletePassword" })
+    
     if (error instanceof TRPCError) {
-      return { error: error.message }
+      return { error: error.message, correlationId }
     }
 
     const message = error instanceof Error ? error.message : "Failed to delete password"
-    return { error: message }
+    return { error: message, correlationId }
   }
 }
 

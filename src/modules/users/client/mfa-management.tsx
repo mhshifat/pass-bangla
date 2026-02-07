@@ -20,6 +20,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Image from "next/image"
+import { showErrorFromException } from "@/lib/error-toast"
 
 interface MfaManagementProps {
   user: {
@@ -54,7 +55,7 @@ export function MfaManagement({ user, onUpdate }: MfaManagementProps) {
       onUpdate?.()
     },
     onError: (error) => {
-      toast.error(error.message || t("mfa.setupError"))
+      showErrorFromException(error, t("mfa.setupError"))
     },
   })
 
@@ -65,7 +66,7 @@ export function MfaManagement({ user, onUpdate }: MfaManagementProps) {
       onUpdate?.()
     },
     onError: (error) => {
-      toast.error(error.message || t("mfa.disableError"))
+      showErrorFromException(error, t("mfa.disableError"))
     },
   })
 
@@ -77,9 +78,7 @@ export function MfaManagement({ user, onUpdate }: MfaManagementProps) {
         setQrCode(result.data.qr)
         setIsSetupDialogOpen(true)
       }
-    } catch (error) {
-      toast.error(t("mfa.generateQrError"))
-    }
+    } catch (error) { showErrorFromException(error, t("mfa.generateQrError")) }
   }
 
   const handleVerifySetup = () => {

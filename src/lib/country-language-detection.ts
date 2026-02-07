@@ -34,7 +34,8 @@ export function detectCountryFromBrowser(): string | null {
   
   try {
     // Try to get country from browser locale
-    const locale = navigator.language || (navigator as any).userLanguage
+    const navigatorWithUserLanguage = navigator as Navigator & { userLanguage?: string }
+    const locale = navigator.language || navigatorWithUserLanguage.userLanguage
     if (locale) {
       // Extract country code from locale (e.g., 'en-BD' -> 'BD', 'bn-BD' -> 'BD')
       const parts = locale.split('-')

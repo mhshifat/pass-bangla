@@ -19,6 +19,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { formatDistanceToNow } from "date-fns"
+import { showErrorFromException } from "@/lib/error-toast"
 import {
     AlertDialog,
     AlertDialogAction,
@@ -85,13 +86,14 @@ export function PasskeyManagement() {
             setIsAddDialogOpen(false)
             setPasskeyName("")
             utils.auth.getUserPasskeys.invalidate()
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Passkey registration error:", error)
             
-            if (error.name === "NotAllowedError") {
+            const errorName = error instanceof Error ? error.name : ""
+            if (errorName === "NotAllowedError") {
                 toast.error(t("passkey.registrationCancelled"))
             } else {
-                toast.error(error.message || t("passkey.registrationFailed"))
+                showErrorFromException(error, t("passkey.registrationFailed"))
             }
         } finally {
             setIsRegistering(false)
@@ -106,9 +108,9 @@ export function PasskeyManagement() {
             toast.success(t("passkey.deletedSuccessfully"))
             setDeletePasskeyId(null)
             utils.auth.getUserPasskeys.invalidate()
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Delete passkey error:", error)
-            toast.error(error.message || t("passkey.deleteFailed"))
+            showErrorFromException(error, t("passkey.deleteFailed"))
         }
     }
 

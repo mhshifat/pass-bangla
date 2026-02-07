@@ -23,6 +23,7 @@ import Link from "next/link"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Info } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { showErrorFromException } from "@/lib/error-toast"
 
 const emailSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -79,7 +80,7 @@ export function RecoverViaQuestionsPage() {
       )
     },
     onError: (error) => {
-      toast.error(error.message || t("auth.securityQuestions.fetchError"))
+      showErrorFromException(error, t("auth.securityQuestions.fetchError"))
     },
   })
 
@@ -92,7 +93,7 @@ export function RecoverViaQuestionsPage() {
       }
     },
     onError: (error) => {
-      toast.error(error.message || t("auth.securityQuestions.verificationFailed"))
+      showErrorFromException(error, t("auth.securityQuestions.verificationFailed"))
     },
   })
 

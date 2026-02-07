@@ -21,6 +21,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { toast } from "sonner"
+import { showErrorFromException } from "@/lib/error-toast"
 
 export function ActiveSessions() {
   const { t } = useTranslation()
@@ -41,7 +42,7 @@ export function ActiveSessions() {
       setSessionToRevoke(null)
     },
     onError: (error) => {
-      toast.error(error.message || t("sessions.revokeError"))
+      showErrorFromException(error, t("sessions.revokeError"))
     },
   })
 
@@ -54,7 +55,7 @@ export function ActiveSessions() {
       setRevokeAllDialogOpen(false)
     },
     onError: (error) => {
-      toast.error(error.message || t("sessions.revokeAllError"))
+      showErrorFromException(error, t("sessions.revokeAllError"))
     },
   })
 
@@ -66,7 +67,7 @@ export function ActiveSessions() {
       utils.users.getTrustedDevices.invalidate()
     },
     onError: (error) => {
-      toast.error(error.message || t("sessions.trustedUpdateError"))
+      showErrorFromException(error, t("sessions.trustedUpdateError"))
     },
   })
 

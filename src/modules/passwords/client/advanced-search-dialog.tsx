@@ -37,6 +37,7 @@ import { toast } from "sonner"
 import { useRouter, useSearchParams } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { showErrorFromException } from "@/lib/error-toast"
 
 const advancedSearchSchema = z.object({
   query: z.string().optional(),
@@ -124,7 +125,7 @@ export function AdvancedSearchDialog({
       setIsSaving(false)
     },
     onError: (error) => {
-      toast.error(error.message || t("passwords.search.saveError"))
+      showErrorFromException(error, t("passwords.search.saveError"))
       setIsSaving(false)
     },
   })

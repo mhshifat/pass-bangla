@@ -17,6 +17,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
+import { showErrorFromException } from "@/lib/error-toast"
 
 export function RecoveryCodesManager() {
   const { t } = useTranslation()
@@ -32,7 +33,7 @@ export function RecoveryCodesManager() {
       toast.success(t("mfa.recoveryCodesGenerated"))
     },
     onError: (error) => {
-      toast.error(error.message || t("mfa.recoveryCodesGenerateFailed"))
+      showErrorFromException(error, t("mfa.recoveryCodesGenerateFailed"))
     },
   })
 

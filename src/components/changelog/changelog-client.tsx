@@ -7,7 +7,7 @@ import { Separator } from "@/components/ui/separator"
 import { useTranslation } from "@/hooks/use-translation"
 
 interface ChangelogClientProps {
-  translations: any
+  translations: Record<string, unknown>
   language: "en" | "bn"
 }
 
@@ -15,7 +15,7 @@ export function ChangelogClient({ translations, language }: ChangelogClientProps
   const { t } = useTranslation()
 
   // Get changelog entries from translations
-  const entries = t("changelog.entries", { returnObjects: true }) as any[]
+  const entries = t("changelog.entries", { returnObjects: true }) as Array<{date: string; title: string; type: string}>
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -60,7 +60,7 @@ export function ChangelogClient({ translations, language }: ChangelogClientProps
       {/* Changelog Entries */}
       <section className="py-12 px-4">
         <div className="max-w-4xl mx-auto space-y-8">
-          {entries && Array.isArray(entries) && entries.map((entry: any, index: number) => (
+          {entries && Array.isArray(entries) && entries.map((entry: Record<string, unknown>, index: number) => (
             <Card key={index} className="relative">
               <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />
               <CardHeader>
@@ -86,7 +86,7 @@ export function ChangelogClient({ translations, language }: ChangelogClientProps
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {entry.changes && Object.entries(entry.changes).map(([type, items]: [string, any]) => (
+                  {entry.changes && Object.entries(entry.changes as Record<string, Record<string, unknown>[]>).map(([type, items]: [string, Record<string, unknown>[]]) => (
                     <div key={type} className="space-y-2">
                       <div className="flex items-center gap-2 mb-2">
                         {getTypeIcon(type)}

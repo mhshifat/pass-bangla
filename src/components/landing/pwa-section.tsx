@@ -214,14 +214,14 @@ export function PWASection() {
       className="py-24 px-4 bg-muted/30 relative overflow-hidden"
     >
       {/* Background decoration */}
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-50/50 via-blue-50/30 to-pink-50/50 dark:from-background dark:via-background dark:to-muted/10" />
+      <div className="absolute inset-0 bg-linear-to-br from-purple-50/50 via-blue-50/30 to-pink-50/50 dark:from-background dark:via-background dark:to-muted/10" />
 
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Section Header */}
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
             {t("landing.pwa.title")}{" "}
-            <span className="bg-gradient-to-r from-primary via-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-primary via-purple-600 to-pink-600 bg-clip-text text-transparent">
               {t("landing.pwa.titleHighlight")}
             </span>
           </h2>
@@ -250,15 +250,15 @@ export function PWASection() {
               >
                 {/* Gradient background on hover - stronger for web app */}
                 <div className={cn(
-                  "absolute inset-0 rounded-2xl bg-gradient-to-br transition-opacity duration-300 -z-10",
+                  "absolute inset-0 rounded-2xl bg-linear-to-br transition-opacity duration-300 -z-10",
                   index === 2
-                    ? `bg-gradient-to-br ${platform.color} opacity-10 group-hover:opacity-15`
-                    : `bg-gradient-to-br ${platform.color} opacity-0 group-hover:opacity-5`
+                    ? `bg-linear-to-br ${platform.color} opacity-10 group-hover:opacity-15`
+                    : `bg-linear-to-br ${platform.color} opacity-0 group-hover:opacity-5`
                 )} />
 
                 {/* Icon */}
                 <div className={cn(
-                  "mb-6 p-4 rounded-xl bg-gradient-to-br w-fit text-white",
+                  "mb-6 p-4 rounded-xl bg-linear-to-br w-fit text-white",
                   index === 2 
                     ? `${platform.color} shadow-lg scale-110` 
                     : `${platform.color}`

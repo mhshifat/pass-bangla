@@ -9,12 +9,12 @@ import { BlogContent } from "./blog-content"
 
 interface BlogPostClientProps {
   slug: string
-  translations: any
+  translations: Record<string, unknown>
   language: "en" | "bn"
 }
 
 export function BlogPostClient({ slug, translations, language }: BlogPostClientProps) {
-  const postMap: Record<string, any> = {
+  const postMap: Record<string, Record<string, unknown>> = {
     "core-features": translations.posts.coreFeatures,
     "advanced-search": translations.posts.advancedSearch,
     "security": translations.posts.security,

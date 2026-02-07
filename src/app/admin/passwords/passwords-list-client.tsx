@@ -20,6 +20,7 @@ import { updatePasswordAction, deletePasswordAction } from "@/app/admin/password
 import { trpc } from "@/trpc/client"
 import { toast } from "sonner"
 import { usePermissions } from "@/hooks/use-permissions"
+import { showErrorFromException } from "@/lib/error-toast"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -208,9 +209,7 @@ export function PasswordsListClient({ passwords, pagination }: PasswordsListClie
       } else if (result.error) {
         toast.error(result.error)
       }
-    } catch (error) {
-      toast.error("Failed to delete password")
-    }
+    } catch (error) { showErrorFromException(error, "Failed to delete password") }
   }
 
   const handleShare = (password: Password) => {

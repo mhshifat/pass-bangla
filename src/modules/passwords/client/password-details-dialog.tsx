@@ -45,6 +45,7 @@ import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { useClipboard } from "@/hooks/use-clipboard"
 import { usePasswordDecryption } from "@/hooks/use-password-decryption"
+import { showErrorFromException } from "@/lib/error-toast"
 
 interface PasswordShare {
   shareId: string
@@ -125,7 +126,7 @@ export function PasswordDetailsDialog({
       setIsEditingTags(false)
     },
     onError: (error) => {
-      toast.error(error.message || t("passwords.tags.tagError"))
+      showErrorFromException(error, t("passwords.tags.tagError"))
     },
   })
 
@@ -152,7 +153,7 @@ export function PasswordDetailsDialog({
   // Determine if user is owner - check both passwordData and displayPassword
   // passwordData comes from getById query which includes isOwner
   // displayPassword might come from list query which also includes isOwner
-  const isOwner = passwordData?.isOwner ?? (password as any)?.isOwner ?? false
+  const isOwner = passwordData?.isOwner ?? password?.isOwner ?? false
 
   // Check for existing breach status
   const { data: breachData } = trpc.passwords.getBreachHistory.useQuery(
@@ -191,9 +192,7 @@ export function PasswordDetailsDialog({
       } else {
         toast.error(result.error || t("passwords.rotation.policyAssignError"))
       }
-    } catch (error) {
-      toast.error(t("passwords.rotation.policyAssignError"))
-    } finally {
+    } catch (error) { showErrorFromException(error, t("passwords.rotation.policyAssignError")) } finally {
       setIsUpdatingPolicy(false)
     }
   }
@@ -217,9 +216,7 @@ export function PasswordDetailsDialog({
       } else {
         toast.error(result.error || t("passwords.favorites.toggleError"))
       }
-    } catch (error) {
-      toast.error(t("passwords.favorites.toggleError"))
-    } finally {
+    } catch (error) { showErrorFromException(error, t("passwords.favorites.toggleError")) } finally {
       setIsTogglingFavorite(false)
     }
   }
@@ -251,7 +248,7 @@ export function PasswordDetailsDialog({
       router.refresh()
     },
     onError: (error) => {
-      toast.error(error.message || t("passwords.breach.checkError"))
+      showErrorFromException(error, t("passwords.breach.checkError"))
       setIsCheckingBreach(false)
     },
   })
@@ -321,9 +318,7 @@ export function PasswordDetailsDialog({
       } else if (result.error) {
         toast.error(result.error)
       }
-    } catch (error) {
-      toast.error("Failed to remove password share")
-    } finally {
+    } catch (error) { showErrorFromException(error, "Failed to remove password share") } finally {
       setIsRemoving(false)
     }
   }
@@ -828,7 +823,7 @@ export function PasswordDetailsDialog({
                 <Button
                   variant="outline"
                   onClick={() => router.push(`/admin/passwords/${password.id}/history`)}
-                  className="flex-shrink-0"
+                  className="shrink-0"
                 >
                   <History className="h-4 w-4 mr-2" />
                   View History
@@ -848,14 +843,14 @@ export function PasswordDetailsDialog({
               <Button
                 variant="outline"
                 onClick={() => router.push("/admin/passwords/breaches")}
-                className="border-red-200 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 flex-shrink-0"
+                className="border-red-200 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 shrink-0"
               >
                 <AlertTriangle className="h-4 w-4 mr-2" />
                 {t("passwords.breach.viewBreaches")}
               </Button>
             )}
           </div>
-          <div className="flex gap-2 flex-shrink-0">
+          <div className="flex gap-2 shrink-0">
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Close
             </Button>

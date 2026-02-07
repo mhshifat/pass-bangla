@@ -60,6 +60,7 @@ import {
 } from "@/components/ui/popover"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
+import { showErrorFromException } from "@/lib/error-toast"
 
 interface PasswordShare {
   shareId: string
@@ -128,10 +129,10 @@ function PasswordCell({ passwordId }: { passwordId: string }) {
           const { decryptPasswordClient } = await import("@/lib/client-crypto")
           try {
             passwordToCopy = await decryptPasswordClient(result.data.password, user.id)
-          } catch (decryptError: any) {
+          } catch (decryptError: unknown) {
             console.error("Password decryption failed:", decryptError)
             // Check if it's an old encryption format (might not have been migrated yet)
-            const errorMessage = decryptError?.message || ""
+            const errorMessage = decryptError instanceof Error ? decryptError.message : ""
             if (errorMessage.includes("Invalid encrypted password format") || 
                 errorMessage.includes("encryption key may have changed")) {
               toast.error(
@@ -152,9 +153,7 @@ function PasswordCell({ passwordId }: { passwordId: string }) {
           successMessage: t("clipboard.passwordCopied"),
         })
       }
-    } catch (error) {
-      toast.error(t("clipboard.copyFailed"))
-    }
+    } catch (error) { showErrorFromException(error, t("clipboard.copyFailed")) }
   }
 
   return (
@@ -209,9 +208,7 @@ function TotpCell({ passwordId }: { passwordId: string }) {
           successMessage: t("clipboard.totpCopied"),
         })
       }
-    } catch (error) {
-      toast.error(t("clipboard.copyFailed"))
-    }
+    } catch (error) { showErrorFromException(error, t("clipboard.copyFailed")) }
   }
 
   return (
@@ -340,10 +337,10 @@ export function PasswordsTable({
           const { decryptPasswordClient } = await import("@/lib/client-crypto")
           try {
             passwordToCopy = await decryptPasswordClient(result.password, user.id)
-          } catch (decryptError: any) {
+          } catch (decryptError: unknown) {
             console.error("Password decryption failed:", decryptError)
             // Check if it's an old encryption format (might not have been migrated yet)
-            const errorMessage = decryptError?.message || ""
+            const errorMessage = decryptError instanceof Error ? decryptError.message : ""
             if (errorMessage.includes("Invalid encrypted password format") || 
                 errorMessage.includes("encryption key may have changed")) {
               toast.error(
@@ -365,9 +362,7 @@ export function PasswordsTable({
           successMessage: t("clipboard.passwordCopied"),
         })
       }
-    } catch (error) {
-      toast.error(t("clipboard.copyFailed"))
-    } finally {
+    } catch (error) { showErrorFromException(error, t("clipboard.copyFailed")) } finally {
       setCopyingPasswordId(null)
     }
   }
@@ -396,9 +391,7 @@ export function PasswordsTable({
           successMessage: t("clipboard.totpCopied"),
         })
       }
-    } catch (error) {
-      toast.error(t("clipboard.copyFailed"))
-    } finally {
+    } catch (error) { showErrorFromException(error, t("clipboard.copyFailed")) } finally {
       setCopyingTotpId(null)
     }
   }
@@ -419,9 +412,7 @@ export function PasswordsTable({
       } else {
         toast.error(result.error || t("passwords.favorites.toggleError"))
       }
-    } catch (error) {
-      toast.error(t("passwords.favorites.toggleError"))
-    } finally {
+    } catch (error) { showErrorFromException(error, t("passwords.favorites.toggleError")) } finally {
       setTogglingFavoriteId(null)
     }
   }

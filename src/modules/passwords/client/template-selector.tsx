@@ -27,7 +27,12 @@ interface TemplateSelectorProps {
   onSelectTemplate?: (template: {
     id: string
     name: string
-    defaultFields: Record<string, any>
+    defaultFields: {
+      name?: string
+      username?: string
+      url?: string
+      notes?: string
+    }
   }) => void
   className?: string
 }
@@ -90,7 +95,7 @@ export function TemplateSelector({ onSelectTemplate, className }: TemplateSelect
     },
   })
 
-  const handleSelectTemplate = (template: any) => {
+  const handleSelectTemplate = (template: (typeof templates)[number]) => {
     useTemplateMutation.mutate({ id: template.id })
   }
 

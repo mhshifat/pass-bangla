@@ -25,6 +25,7 @@ import { Switch } from "@/components/ui/switch"
 import { usePermissions } from "@/hooks/use-permissions"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Info } from "lucide-react"
+import { showErrorFromException } from "@/lib/error-toast"
 
 const passwordPolicySchema = z.object({
   minLength: z.number().min(4).max(128),
@@ -53,7 +54,7 @@ export function PasswordPolicySettings() {
       utils.settings.getPasswordPolicy.invalidate()
     },
     onError: (error) => {
-      toast.error(error.message || t("settings.security.passwordPolicy.saveFailed"))
+      showErrorFromException(error, t("settings.security.passwordPolicy.saveFailed"))
     },
   })
 
