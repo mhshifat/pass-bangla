@@ -321,7 +321,8 @@ exports.Prisma.TagScalarFieldEnum = {
   name: 'name',
   color: 'color',
   icon: 'icon',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  companyId: 'companyId'
 };
 
 exports.Prisma.PasswordTagScalarFieldEnum = {

@@ -4811,6 +4811,7 @@ export namespace Prisma {
     reports: number
     reportTemplates: number
     scheduledReports: number
+    tags: number
   }
 
   export type CompanyCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -4829,6 +4830,7 @@ export namespace Prisma {
     reports?: boolean | CompanyCountOutputTypeCountReportsArgs
     reportTemplates?: boolean | CompanyCountOutputTypeCountReportTemplatesArgs
     scheduledReports?: boolean | CompanyCountOutputTypeCountScheduledReportsArgs
+    tags?: boolean | CompanyCountOutputTypeCountTagsArgs
   }
 
   // Custom InputTypes
@@ -4945,6 +4947,13 @@ export namespace Prisma {
    */
   export type CompanyCountOutputTypeCountScheduledReportsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ScheduledReportWhereInput
+  }
+
+  /**
+   * CompanyCountOutputType without action
+   */
+  export type CompanyCountOutputTypeCountTagsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: TagWhereInput
   }
 
 
@@ -5808,6 +5817,7 @@ export namespace Prisma {
     reports?: boolean | Company$reportsArgs<ExtArgs>
     reportTemplates?: boolean | Company$reportTemplatesArgs<ExtArgs>
     scheduledReports?: boolean | Company$scheduledReportsArgs<ExtArgs>
+    tags?: boolean | Company$tagsArgs<ExtArgs>
     _count?: boolean | CompanyCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["company"]>
 
@@ -5854,6 +5864,7 @@ export namespace Prisma {
     reports?: boolean | Company$reportsArgs<ExtArgs>
     reportTemplates?: boolean | Company$reportTemplatesArgs<ExtArgs>
     scheduledReports?: boolean | Company$scheduledReportsArgs<ExtArgs>
+    tags?: boolean | Company$tagsArgs<ExtArgs>
     _count?: boolean | CompanyCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type CompanyIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -5879,6 +5890,7 @@ export namespace Prisma {
       reports: Prisma.$ReportPayload<ExtArgs>[]
       reportTemplates: Prisma.$ReportTemplatePayload<ExtArgs>[]
       scheduledReports: Prisma.$ScheduledReportPayload<ExtArgs>[]
+      tags: Prisma.$TagPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -6297,6 +6309,7 @@ export namespace Prisma {
     reports<T extends Company$reportsArgs<ExtArgs> = {}>(args?: Subset<T, Company$reportsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReportPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     reportTemplates<T extends Company$reportTemplatesArgs<ExtArgs> = {}>(args?: Subset<T, Company$reportTemplatesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReportTemplatePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     scheduledReports<T extends Company$scheduledReportsArgs<ExtArgs> = {}>(args?: Subset<T, Company$scheduledReportsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ScheduledReportPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    tags<T extends Company$tagsArgs<ExtArgs> = {}>(args?: Subset<T, Company$tagsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TagPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -7114,6 +7127,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: ScheduledReportScalarFieldEnum | ScheduledReportScalarFieldEnum[]
+  }
+
+  /**
+   * Company.tags
+   */
+  export type Company$tagsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Tag
+     */
+    select?: TagSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Tag
+     */
+    omit?: TagOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TagInclude<ExtArgs> | null
+    where?: TagWhereInput
+    orderBy?: TagOrderByWithRelationInput | TagOrderByWithRelationInput[]
+    cursor?: TagWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: TagScalarFieldEnum | TagScalarFieldEnum[]
   }
 
   /**
@@ -23804,6 +23841,7 @@ export namespace Prisma {
     color: string | null
     icon: string | null
     createdAt: Date | null
+    companyId: string | null
   }
 
   export type TagMaxAggregateOutputType = {
@@ -23812,6 +23850,7 @@ export namespace Prisma {
     color: string | null
     icon: string | null
     createdAt: Date | null
+    companyId: string | null
   }
 
   export type TagCountAggregateOutputType = {
@@ -23820,6 +23859,7 @@ export namespace Prisma {
     color: number
     icon: number
     createdAt: number
+    companyId: number
     _all: number
   }
 
@@ -23830,6 +23870,7 @@ export namespace Prisma {
     color?: true
     icon?: true
     createdAt?: true
+    companyId?: true
   }
 
   export type TagMaxAggregateInputType = {
@@ -23838,6 +23879,7 @@ export namespace Prisma {
     color?: true
     icon?: true
     createdAt?: true
+    companyId?: true
   }
 
   export type TagCountAggregateInputType = {
@@ -23846,6 +23888,7 @@ export namespace Prisma {
     color?: true
     icon?: true
     createdAt?: true
+    companyId?: true
     _all?: true
   }
 
@@ -23927,6 +23970,7 @@ export namespace Prisma {
     color: string | null
     icon: string | null
     createdAt: Date
+    companyId: string
     _count: TagCountAggregateOutputType | null
     _min: TagMinAggregateOutputType | null
     _max: TagMaxAggregateOutputType | null
@@ -23952,6 +23996,8 @@ export namespace Prisma {
     color?: boolean
     icon?: boolean
     createdAt?: boolean
+    companyId?: boolean
+    company?: boolean | CompanyDefaultArgs<ExtArgs>
     passwords?: boolean | Tag$passwordsArgs<ExtArgs>
     _count?: boolean | TagCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["tag"]>
@@ -23962,6 +24008,8 @@ export namespace Prisma {
     color?: boolean
     icon?: boolean
     createdAt?: boolean
+    companyId?: boolean
+    company?: boolean | CompanyDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["tag"]>
 
   export type TagSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -23970,6 +24018,8 @@ export namespace Prisma {
     color?: boolean
     icon?: boolean
     createdAt?: boolean
+    companyId?: boolean
+    company?: boolean | CompanyDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["tag"]>
 
   export type TagSelectScalar = {
@@ -23978,19 +24028,26 @@ export namespace Prisma {
     color?: boolean
     icon?: boolean
     createdAt?: boolean
+    companyId?: boolean
   }
 
-  export type TagOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "color" | "icon" | "createdAt", ExtArgs["result"]["tag"]>
+  export type TagOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "color" | "icon" | "createdAt" | "companyId", ExtArgs["result"]["tag"]>
   export type TagInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    company?: boolean | CompanyDefaultArgs<ExtArgs>
     passwords?: boolean | Tag$passwordsArgs<ExtArgs>
     _count?: boolean | TagCountOutputTypeDefaultArgs<ExtArgs>
   }
-  export type TagIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
-  export type TagIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+  export type TagIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    company?: boolean | CompanyDefaultArgs<ExtArgs>
+  }
+  export type TagIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    company?: boolean | CompanyDefaultArgs<ExtArgs>
+  }
 
   export type $TagPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Tag"
     objects: {
+      company: Prisma.$CompanyPayload<ExtArgs>
       passwords: Prisma.$PasswordTagPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
@@ -23999,6 +24056,7 @@ export namespace Prisma {
       color: string | null
       icon: string | null
       createdAt: Date
+      companyId: string
     }, ExtArgs["result"]["tag"]>
     composites: {}
   }
@@ -24393,6 +24451,7 @@ export namespace Prisma {
    */
   export interface Prisma__TagClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
+    company<T extends CompanyDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CompanyDefaultArgs<ExtArgs>>): Prisma__CompanyClient<$Result.GetResult<Prisma.$CompanyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     passwords<T extends Tag$passwordsArgs<ExtArgs> = {}>(args?: Subset<T, Tag$passwordsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PasswordTagPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -24428,6 +24487,7 @@ export namespace Prisma {
     readonly color: FieldRef<"Tag", 'String'>
     readonly icon: FieldRef<"Tag", 'String'>
     readonly createdAt: FieldRef<"Tag", 'DateTime'>
+    readonly companyId: FieldRef<"Tag", 'String'>
   }
     
 
@@ -24677,6 +24737,10 @@ export namespace Prisma {
      */
     data: TagCreateManyInput | TagCreateManyInput[]
     skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TagIncludeCreateManyAndReturn<ExtArgs> | null
   }
 
   /**
@@ -24747,6 +24811,10 @@ export namespace Prisma {
      * Limit how many Tags to update.
      */
     limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TagIncludeUpdateManyAndReturn<ExtArgs> | null
   }
 
   /**
@@ -57434,7 +57502,8 @@ export namespace Prisma {
     name: 'name',
     color: 'color',
     icon: 'icon',
-    createdAt: 'createdAt'
+    createdAt: 'createdAt',
+    companyId: 'companyId'
   };
 
   export type TagScalarFieldEnum = (typeof TagScalarFieldEnum)[keyof typeof TagScalarFieldEnum]
@@ -58163,6 +58232,7 @@ export namespace Prisma {
     reports?: ReportListRelationFilter
     reportTemplates?: ReportTemplateListRelationFilter
     scheduledReports?: ScheduledReportListRelationFilter
+    tags?: TagListRelationFilter
   }
 
   export type CompanyOrderByWithRelationInput = {
@@ -58188,6 +58258,7 @@ export namespace Prisma {
     reports?: ReportOrderByRelationAggregateInput
     reportTemplates?: ReportTemplateOrderByRelationAggregateInput
     scheduledReports?: ScheduledReportOrderByRelationAggregateInput
+    tags?: TagOrderByRelationAggregateInput
   }
 
   export type CompanyWhereUniqueInput = Prisma.AtLeast<{
@@ -58216,6 +58287,7 @@ export namespace Prisma {
     reports?: ReportListRelationFilter
     reportTemplates?: ReportTemplateListRelationFilter
     scheduledReports?: ScheduledReportListRelationFilter
+    tags?: TagListRelationFilter
   }, "id" | "subdomain">
 
   export type CompanyOrderByWithAggregationInput = {
@@ -59577,6 +59649,8 @@ export namespace Prisma {
     color?: StringNullableFilter<"Tag"> | string | null
     icon?: StringNullableFilter<"Tag"> | string | null
     createdAt?: DateTimeFilter<"Tag"> | Date | string
+    companyId?: StringFilter<"Tag"> | string
+    company?: XOR<CompanyScalarRelationFilter, CompanyWhereInput>
     passwords?: PasswordTagListRelationFilter
   }
 
@@ -59586,20 +59660,25 @@ export namespace Prisma {
     color?: SortOrderInput | SortOrder
     icon?: SortOrderInput | SortOrder
     createdAt?: SortOrder
+    companyId?: SortOrder
+    company?: CompanyOrderByWithRelationInput
     passwords?: PasswordTagOrderByRelationAggregateInput
   }
 
   export type TagWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-    name?: string
+    name_companyId?: TagNameCompanyIdCompoundUniqueInput
     AND?: TagWhereInput | TagWhereInput[]
     OR?: TagWhereInput[]
     NOT?: TagWhereInput | TagWhereInput[]
+    name?: StringFilter<"Tag"> | string
     color?: StringNullableFilter<"Tag"> | string | null
     icon?: StringNullableFilter<"Tag"> | string | null
     createdAt?: DateTimeFilter<"Tag"> | Date | string
+    companyId?: StringFilter<"Tag"> | string
+    company?: XOR<CompanyScalarRelationFilter, CompanyWhereInput>
     passwords?: PasswordTagListRelationFilter
-  }, "id" | "name">
+  }, "id" | "name_companyId">
 
   export type TagOrderByWithAggregationInput = {
     id?: SortOrder
@@ -59607,6 +59686,7 @@ export namespace Prisma {
     color?: SortOrderInput | SortOrder
     icon?: SortOrderInput | SortOrder
     createdAt?: SortOrder
+    companyId?: SortOrder
     _count?: TagCountOrderByAggregateInput
     _max?: TagMaxOrderByAggregateInput
     _min?: TagMinOrderByAggregateInput
@@ -59621,6 +59701,7 @@ export namespace Prisma {
     color?: StringNullableWithAggregatesFilter<"Tag"> | string | null
     icon?: StringNullableWithAggregatesFilter<"Tag"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Tag"> | Date | string
+    companyId?: StringWithAggregatesFilter<"Tag"> | string
   }
 
   export type PasswordTagWhereInput = {
@@ -61923,6 +62004,7 @@ export namespace Prisma {
     reports?: ReportCreateNestedManyWithoutCompanyInput
     reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
+    tags?: TagCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateInput = {
@@ -61948,6 +62030,7 @@ export namespace Prisma {
     reports?: ReportUncheckedCreateNestedManyWithoutCompanyInput
     reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
+    tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUpdateInput = {
@@ -61973,6 +62056,7 @@ export namespace Prisma {
     reports?: ReportUpdateManyWithoutCompanyNestedInput
     reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
+    tags?: TagUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateInput = {
@@ -61998,6 +62082,7 @@ export namespace Prisma {
     reports?: ReportUncheckedUpdateManyWithoutCompanyNestedInput
     reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
+    tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyCreateManyInput = {
@@ -63512,6 +63597,7 @@ export namespace Prisma {
     color?: string | null
     icon?: string | null
     createdAt?: Date | string
+    company: CompanyCreateNestedOneWithoutTagsInput
     passwords?: PasswordTagCreateNestedManyWithoutTagInput
   }
 
@@ -63521,6 +63607,7 @@ export namespace Prisma {
     color?: string | null
     icon?: string | null
     createdAt?: Date | string
+    companyId: string
     passwords?: PasswordTagUncheckedCreateNestedManyWithoutTagInput
   }
 
@@ -63530,6 +63617,7 @@ export namespace Prisma {
     color?: NullableStringFieldUpdateOperationsInput | string | null
     icon?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    company?: CompanyUpdateOneRequiredWithoutTagsNestedInput
     passwords?: PasswordTagUpdateManyWithoutTagNestedInput
   }
 
@@ -63539,6 +63627,7 @@ export namespace Prisma {
     color?: NullableStringFieldUpdateOperationsInput | string | null
     icon?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    companyId?: StringFieldUpdateOperationsInput | string
     passwords?: PasswordTagUncheckedUpdateManyWithoutTagNestedInput
   }
 
@@ -63548,6 +63637,7 @@ export namespace Prisma {
     color?: string | null
     icon?: string | null
     createdAt?: Date | string
+    companyId: string
   }
 
   export type TagUpdateManyMutationInput = {
@@ -63564,6 +63654,7 @@ export namespace Prisma {
     color?: NullableStringFieldUpdateOperationsInput | string | null
     icon?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    companyId?: StringFieldUpdateOperationsInput | string
   }
 
   export type PasswordTagCreateInput = {
@@ -66142,6 +66233,12 @@ export namespace Prisma {
     none?: ScheduledReportWhereInput
   }
 
+  export type TagListRelationFilter = {
+    every?: TagWhereInput
+    some?: TagWhereInput
+    none?: TagWhereInput
+  }
+
   export type UserOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -66199,6 +66296,10 @@ export namespace Prisma {
   }
 
   export type ScheduledReportOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type TagOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -67363,12 +67464,23 @@ export namespace Prisma {
     _max?: NestedEnumTeamRoleFilter<$PrismaModel>
   }
 
+  export type CompanyScalarRelationFilter = {
+    is?: CompanyWhereInput
+    isNot?: CompanyWhereInput
+  }
+
+  export type TagNameCompanyIdCompoundUniqueInput = {
+    name: string
+    companyId: string
+  }
+
   export type TagCountOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
     color?: SortOrder
     icon?: SortOrder
     createdAt?: SortOrder
+    companyId?: SortOrder
   }
 
   export type TagMaxOrderByAggregateInput = {
@@ -67377,6 +67489,7 @@ export namespace Prisma {
     color?: SortOrder
     icon?: SortOrder
     createdAt?: SortOrder
+    companyId?: SortOrder
   }
 
   export type TagMinOrderByAggregateInput = {
@@ -67385,6 +67498,7 @@ export namespace Prisma {
     color?: SortOrder
     icon?: SortOrder
     createdAt?: SortOrder
+    companyId?: SortOrder
   }
 
   export type TagScalarRelationFilter = {
@@ -68326,11 +68440,6 @@ export namespace Prisma {
     createdById?: SortOrder
   }
 
-  export type CompanyScalarRelationFilter = {
-    is?: CompanyWhereInput
-    isNot?: CompanyWhereInput
-  }
-
   export type PasswordPolicyCountOrderByAggregateInput = {
     id?: SortOrder
     companyId?: SortOrder
@@ -68846,6 +68955,13 @@ export namespace Prisma {
     connect?: ScheduledReportWhereUniqueInput | ScheduledReportWhereUniqueInput[]
   }
 
+  export type TagCreateNestedManyWithoutCompanyInput = {
+    create?: XOR<TagCreateWithoutCompanyInput, TagUncheckedCreateWithoutCompanyInput> | TagCreateWithoutCompanyInput[] | TagUncheckedCreateWithoutCompanyInput[]
+    connectOrCreate?: TagCreateOrConnectWithoutCompanyInput | TagCreateOrConnectWithoutCompanyInput[]
+    createMany?: TagCreateManyCompanyInputEnvelope
+    connect?: TagWhereUniqueInput | TagWhereUniqueInput[]
+  }
+
   export type UserUncheckedCreateNestedManyWithoutCompanyInput = {
     create?: XOR<UserCreateWithoutCompanyInput, UserUncheckedCreateWithoutCompanyInput> | UserCreateWithoutCompanyInput[] | UserUncheckedCreateWithoutCompanyInput[]
     connectOrCreate?: UserCreateOrConnectWithoutCompanyInput | UserCreateOrConnectWithoutCompanyInput[]
@@ -68961,6 +69077,13 @@ export namespace Prisma {
     connectOrCreate?: ScheduledReportCreateOrConnectWithoutCompanyInput | ScheduledReportCreateOrConnectWithoutCompanyInput[]
     createMany?: ScheduledReportCreateManyCompanyInputEnvelope
     connect?: ScheduledReportWhereUniqueInput | ScheduledReportWhereUniqueInput[]
+  }
+
+  export type TagUncheckedCreateNestedManyWithoutCompanyInput = {
+    create?: XOR<TagCreateWithoutCompanyInput, TagUncheckedCreateWithoutCompanyInput> | TagCreateWithoutCompanyInput[] | TagUncheckedCreateWithoutCompanyInput[]
+    connectOrCreate?: TagCreateOrConnectWithoutCompanyInput | TagCreateOrConnectWithoutCompanyInput[]
+    createMany?: TagCreateManyCompanyInputEnvelope
+    connect?: TagWhereUniqueInput | TagWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -69201,6 +69324,20 @@ export namespace Prisma {
     deleteMany?: ScheduledReportScalarWhereInput | ScheduledReportScalarWhereInput[]
   }
 
+  export type TagUpdateManyWithoutCompanyNestedInput = {
+    create?: XOR<TagCreateWithoutCompanyInput, TagUncheckedCreateWithoutCompanyInput> | TagCreateWithoutCompanyInput[] | TagUncheckedCreateWithoutCompanyInput[]
+    connectOrCreate?: TagCreateOrConnectWithoutCompanyInput | TagCreateOrConnectWithoutCompanyInput[]
+    upsert?: TagUpsertWithWhereUniqueWithoutCompanyInput | TagUpsertWithWhereUniqueWithoutCompanyInput[]
+    createMany?: TagCreateManyCompanyInputEnvelope
+    set?: TagWhereUniqueInput | TagWhereUniqueInput[]
+    disconnect?: TagWhereUniqueInput | TagWhereUniqueInput[]
+    delete?: TagWhereUniqueInput | TagWhereUniqueInput[]
+    connect?: TagWhereUniqueInput | TagWhereUniqueInput[]
+    update?: TagUpdateWithWhereUniqueWithoutCompanyInput | TagUpdateWithWhereUniqueWithoutCompanyInput[]
+    updateMany?: TagUpdateManyWithWhereWithoutCompanyInput | TagUpdateManyWithWhereWithoutCompanyInput[]
+    deleteMany?: TagScalarWhereInput | TagScalarWhereInput[]
+  }
+
   export type UserUncheckedUpdateManyWithoutCompanyNestedInput = {
     create?: XOR<UserCreateWithoutCompanyInput, UserUncheckedCreateWithoutCompanyInput> | UserCreateWithoutCompanyInput[] | UserUncheckedCreateWithoutCompanyInput[]
     connectOrCreate?: UserCreateOrConnectWithoutCompanyInput | UserCreateOrConnectWithoutCompanyInput[]
@@ -69429,6 +69566,20 @@ export namespace Prisma {
     update?: ScheduledReportUpdateWithWhereUniqueWithoutCompanyInput | ScheduledReportUpdateWithWhereUniqueWithoutCompanyInput[]
     updateMany?: ScheduledReportUpdateManyWithWhereWithoutCompanyInput | ScheduledReportUpdateManyWithWhereWithoutCompanyInput[]
     deleteMany?: ScheduledReportScalarWhereInput | ScheduledReportScalarWhereInput[]
+  }
+
+  export type TagUncheckedUpdateManyWithoutCompanyNestedInput = {
+    create?: XOR<TagCreateWithoutCompanyInput, TagUncheckedCreateWithoutCompanyInput> | TagCreateWithoutCompanyInput[] | TagUncheckedCreateWithoutCompanyInput[]
+    connectOrCreate?: TagCreateOrConnectWithoutCompanyInput | TagCreateOrConnectWithoutCompanyInput[]
+    upsert?: TagUpsertWithWhereUniqueWithoutCompanyInput | TagUpsertWithWhereUniqueWithoutCompanyInput[]
+    createMany?: TagCreateManyCompanyInputEnvelope
+    set?: TagWhereUniqueInput | TagWhereUniqueInput[]
+    disconnect?: TagWhereUniqueInput | TagWhereUniqueInput[]
+    delete?: TagWhereUniqueInput | TagWhereUniqueInput[]
+    connect?: TagWhereUniqueInput | TagWhereUniqueInput[]
+    update?: TagUpdateWithWhereUniqueWithoutCompanyInput | TagUpdateWithWhereUniqueWithoutCompanyInput[]
+    updateMany?: TagUpdateManyWithWhereWithoutCompanyInput | TagUpdateManyWithWhereWithoutCompanyInput[]
+    deleteMany?: TagScalarWhereInput | TagScalarWhereInput[]
   }
 
   export type CompanyCreateNestedOneWithoutUsersInput = {
@@ -71877,6 +72028,12 @@ export namespace Prisma {
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutTeamMembershipsInput, UserUpdateWithoutTeamMembershipsInput>, UserUncheckedUpdateWithoutTeamMembershipsInput>
   }
 
+  export type CompanyCreateNestedOneWithoutTagsInput = {
+    create?: XOR<CompanyCreateWithoutTagsInput, CompanyUncheckedCreateWithoutTagsInput>
+    connectOrCreate?: CompanyCreateOrConnectWithoutTagsInput
+    connect?: CompanyWhereUniqueInput
+  }
+
   export type PasswordTagCreateNestedManyWithoutTagInput = {
     create?: XOR<PasswordTagCreateWithoutTagInput, PasswordTagUncheckedCreateWithoutTagInput> | PasswordTagCreateWithoutTagInput[] | PasswordTagUncheckedCreateWithoutTagInput[]
     connectOrCreate?: PasswordTagCreateOrConnectWithoutTagInput | PasswordTagCreateOrConnectWithoutTagInput[]
@@ -71889,6 +72046,14 @@ export namespace Prisma {
     connectOrCreate?: PasswordTagCreateOrConnectWithoutTagInput | PasswordTagCreateOrConnectWithoutTagInput[]
     createMany?: PasswordTagCreateManyTagInputEnvelope
     connect?: PasswordTagWhereUniqueInput | PasswordTagWhereUniqueInput[]
+  }
+
+  export type CompanyUpdateOneRequiredWithoutTagsNestedInput = {
+    create?: XOR<CompanyCreateWithoutTagsInput, CompanyUncheckedCreateWithoutTagsInput>
+    connectOrCreate?: CompanyCreateOrConnectWithoutTagsInput
+    upsert?: CompanyUpsertWithoutTagsInput
+    connect?: CompanyWhereUniqueInput
+    update?: XOR<XOR<CompanyUpdateToOneWithWhereWithoutTagsInput, CompanyUpdateWithoutTagsInput>, CompanyUncheckedUpdateWithoutTagsInput>
   }
 
   export type PasswordTagUpdateManyWithoutTagNestedInput = {
@@ -73957,6 +74122,34 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type TagCreateWithoutCompanyInput = {
+    id?: string
+    name: string
+    color?: string | null
+    icon?: string | null
+    createdAt?: Date | string
+    passwords?: PasswordTagCreateNestedManyWithoutTagInput
+  }
+
+  export type TagUncheckedCreateWithoutCompanyInput = {
+    id?: string
+    name: string
+    color?: string | null
+    icon?: string | null
+    createdAt?: Date | string
+    passwords?: PasswordTagUncheckedCreateNestedManyWithoutTagInput
+  }
+
+  export type TagCreateOrConnectWithoutCompanyInput = {
+    where: TagWhereUniqueInput
+    create: XOR<TagCreateWithoutCompanyInput, TagUncheckedCreateWithoutCompanyInput>
+  }
+
+  export type TagCreateManyCompanyInputEnvelope = {
+    data: TagCreateManyCompanyInput | TagCreateManyCompanyInput[]
+    skipDuplicates?: boolean
+  }
+
   export type UserUpsertWithWhereUniqueWithoutCompanyInput = {
     where: UserWhereUniqueInput
     update: XOR<UserUpdateWithoutCompanyInput, UserUncheckedUpdateWithoutCompanyInput>
@@ -74545,6 +74738,34 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"ScheduledReport"> | Date | string
   }
 
+  export type TagUpsertWithWhereUniqueWithoutCompanyInput = {
+    where: TagWhereUniqueInput
+    update: XOR<TagUpdateWithoutCompanyInput, TagUncheckedUpdateWithoutCompanyInput>
+    create: XOR<TagCreateWithoutCompanyInput, TagUncheckedCreateWithoutCompanyInput>
+  }
+
+  export type TagUpdateWithWhereUniqueWithoutCompanyInput = {
+    where: TagWhereUniqueInput
+    data: XOR<TagUpdateWithoutCompanyInput, TagUncheckedUpdateWithoutCompanyInput>
+  }
+
+  export type TagUpdateManyWithWhereWithoutCompanyInput = {
+    where: TagScalarWhereInput
+    data: XOR<TagUpdateManyMutationInput, TagUncheckedUpdateManyWithoutCompanyInput>
+  }
+
+  export type TagScalarWhereInput = {
+    AND?: TagScalarWhereInput | TagScalarWhereInput[]
+    OR?: TagScalarWhereInput[]
+    NOT?: TagScalarWhereInput | TagScalarWhereInput[]
+    id?: StringFilter<"Tag"> | string
+    name?: StringFilter<"Tag"> | string
+    color?: StringNullableFilter<"Tag"> | string | null
+    icon?: StringNullableFilter<"Tag"> | string | null
+    createdAt?: DateTimeFilter<"Tag"> | Date | string
+    companyId?: StringFilter<"Tag"> | string
+  }
+
   export type CompanyCreateWithoutUsersInput = {
     id?: string
     name: string
@@ -74567,6 +74788,7 @@ export namespace Prisma {
     reports?: ReportCreateNestedManyWithoutCompanyInput
     reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
+    tags?: TagCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutUsersInput = {
@@ -74591,6 +74813,7 @@ export namespace Prisma {
     reports?: ReportUncheckedCreateNestedManyWithoutCompanyInput
     reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
+    tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutUsersInput = {
@@ -76132,6 +76355,7 @@ export namespace Prisma {
     reports?: ReportUpdateManyWithoutCompanyNestedInput
     reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
+    tags?: TagUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutUsersInput = {
@@ -76156,6 +76380,7 @@ export namespace Prisma {
     reports?: ReportUncheckedUpdateManyWithoutCompanyNestedInput
     reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
+    tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type PasswordUpsertWithWhereUniqueWithoutOwnerInput = {
@@ -80337,6 +80562,7 @@ export namespace Prisma {
     reports?: ReportCreateNestedManyWithoutCompanyInput
     reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
+    tags?: TagCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutFoldersInput = {
@@ -80361,6 +80587,7 @@ export namespace Prisma {
     reports?: ReportUncheckedCreateNestedManyWithoutCompanyInput
     reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
+    tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutFoldersInput = {
@@ -80470,6 +80697,7 @@ export namespace Prisma {
     reports?: ReportUpdateManyWithoutCompanyNestedInput
     reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
+    tags?: TagUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutFoldersInput = {
@@ -80494,6 +80722,7 @@ export namespace Prisma {
     reports?: ReportUncheckedUpdateManyWithoutCompanyNestedInput
     reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
+    tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type PasswordCreateWithoutSharedWithInput = {
@@ -81302,6 +81531,7 @@ export namespace Prisma {
     reports?: ReportCreateNestedManyWithoutCompanyInput
     reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
+    tags?: TagCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutTeamsInput = {
@@ -81326,6 +81556,7 @@ export namespace Prisma {
     reports?: ReportUncheckedCreateNestedManyWithoutCompanyInput
     reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
+    tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutTeamsInput = {
@@ -81418,6 +81649,7 @@ export namespace Prisma {
     reports?: ReportUpdateManyWithoutCompanyNestedInput
     reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
+    tags?: TagUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutTeamsInput = {
@@ -81442,6 +81674,7 @@ export namespace Prisma {
     reports?: ReportUncheckedUpdateManyWithoutCompanyNestedInput
     reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
+    tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type TeamMemberUpsertWithWhereUniqueWithoutTeamInput = {
@@ -81784,6 +82017,61 @@ export namespace Prisma {
     createdGeographicRestrictions?: GeographicRestrictionUncheckedUpdateManyWithoutCreatorNestedInput
   }
 
+  export type CompanyCreateWithoutTagsInput = {
+    id?: string
+    name: string
+    subdomain: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    users?: UserCreateNestedManyWithoutCompanyInput
+    teams?: TeamCreateNestedManyWithoutCompanyInput
+    templates?: PasswordTemplateCreateNestedManyWithoutCompanyInput
+    ipWhitelists?: IpWhitelistCreateNestedManyWithoutCompanyInput
+    geographicRestrictions?: GeographicRestrictionCreateNestedManyWithoutCompanyInput
+    threatEvents?: ThreatEventCreateNestedManyWithoutCompanyInput
+    rateLimits?: RateLimitCreateNestedManyWithoutCompanyInput
+    passwordPolicy?: PasswordPolicyCreateNestedOneWithoutCompanyInput
+    folders?: FolderCreateNestedManyWithoutCompanyInput
+    dataRetentionPolicy?: DataRetentionPolicyCreateNestedOneWithoutCompanyInput
+    dataExports?: DataExportCreateNestedManyWithoutCompanyInput
+    dataDeletionRequests?: DataDeletionRequestCreateNestedManyWithoutCompanyInput
+    auditLogArchives?: AuditLogArchiveCreateNestedManyWithoutCompanyInput
+    auditLogSearches?: AuditLogSearchCreateNestedManyWithoutCompanyInput
+    reports?: ReportCreateNestedManyWithoutCompanyInput
+    reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
+    scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
+  }
+
+  export type CompanyUncheckedCreateWithoutTagsInput = {
+    id?: string
+    name: string
+    subdomain: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    users?: UserUncheckedCreateNestedManyWithoutCompanyInput
+    teams?: TeamUncheckedCreateNestedManyWithoutCompanyInput
+    templates?: PasswordTemplateUncheckedCreateNestedManyWithoutCompanyInput
+    ipWhitelists?: IpWhitelistUncheckedCreateNestedManyWithoutCompanyInput
+    geographicRestrictions?: GeographicRestrictionUncheckedCreateNestedManyWithoutCompanyInput
+    threatEvents?: ThreatEventUncheckedCreateNestedManyWithoutCompanyInput
+    rateLimits?: RateLimitUncheckedCreateNestedManyWithoutCompanyInput
+    passwordPolicy?: PasswordPolicyUncheckedCreateNestedOneWithoutCompanyInput
+    folders?: FolderUncheckedCreateNestedManyWithoutCompanyInput
+    dataRetentionPolicy?: DataRetentionPolicyUncheckedCreateNestedOneWithoutCompanyInput
+    dataExports?: DataExportUncheckedCreateNestedManyWithoutCompanyInput
+    dataDeletionRequests?: DataDeletionRequestUncheckedCreateNestedManyWithoutCompanyInput
+    auditLogArchives?: AuditLogArchiveUncheckedCreateNestedManyWithoutCompanyInput
+    auditLogSearches?: AuditLogSearchUncheckedCreateNestedManyWithoutCompanyInput
+    reports?: ReportUncheckedCreateNestedManyWithoutCompanyInput
+    reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
+    scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
+  }
+
+  export type CompanyCreateOrConnectWithoutTagsInput = {
+    where: CompanyWhereUniqueInput
+    create: XOR<CompanyCreateWithoutTagsInput, CompanyUncheckedCreateWithoutTagsInput>
+  }
+
   export type PasswordTagCreateWithoutTagInput = {
     id?: string
     createdAt?: Date | string
@@ -81804,6 +82092,67 @@ export namespace Prisma {
   export type PasswordTagCreateManyTagInputEnvelope = {
     data: PasswordTagCreateManyTagInput | PasswordTagCreateManyTagInput[]
     skipDuplicates?: boolean
+  }
+
+  export type CompanyUpsertWithoutTagsInput = {
+    update: XOR<CompanyUpdateWithoutTagsInput, CompanyUncheckedUpdateWithoutTagsInput>
+    create: XOR<CompanyCreateWithoutTagsInput, CompanyUncheckedCreateWithoutTagsInput>
+    where?: CompanyWhereInput
+  }
+
+  export type CompanyUpdateToOneWithWhereWithoutTagsInput = {
+    where?: CompanyWhereInput
+    data: XOR<CompanyUpdateWithoutTagsInput, CompanyUncheckedUpdateWithoutTagsInput>
+  }
+
+  export type CompanyUpdateWithoutTagsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    subdomain?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    users?: UserUpdateManyWithoutCompanyNestedInput
+    teams?: TeamUpdateManyWithoutCompanyNestedInput
+    templates?: PasswordTemplateUpdateManyWithoutCompanyNestedInput
+    ipWhitelists?: IpWhitelistUpdateManyWithoutCompanyNestedInput
+    geographicRestrictions?: GeographicRestrictionUpdateManyWithoutCompanyNestedInput
+    threatEvents?: ThreatEventUpdateManyWithoutCompanyNestedInput
+    rateLimits?: RateLimitUpdateManyWithoutCompanyNestedInput
+    passwordPolicy?: PasswordPolicyUpdateOneWithoutCompanyNestedInput
+    folders?: FolderUpdateManyWithoutCompanyNestedInput
+    dataRetentionPolicy?: DataRetentionPolicyUpdateOneWithoutCompanyNestedInput
+    dataExports?: DataExportUpdateManyWithoutCompanyNestedInput
+    dataDeletionRequests?: DataDeletionRequestUpdateManyWithoutCompanyNestedInput
+    auditLogArchives?: AuditLogArchiveUpdateManyWithoutCompanyNestedInput
+    auditLogSearches?: AuditLogSearchUpdateManyWithoutCompanyNestedInput
+    reports?: ReportUpdateManyWithoutCompanyNestedInput
+    reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
+    scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
+  }
+
+  export type CompanyUncheckedUpdateWithoutTagsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    subdomain?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    users?: UserUncheckedUpdateManyWithoutCompanyNestedInput
+    teams?: TeamUncheckedUpdateManyWithoutCompanyNestedInput
+    templates?: PasswordTemplateUncheckedUpdateManyWithoutCompanyNestedInput
+    ipWhitelists?: IpWhitelistUncheckedUpdateManyWithoutCompanyNestedInput
+    geographicRestrictions?: GeographicRestrictionUncheckedUpdateManyWithoutCompanyNestedInput
+    threatEvents?: ThreatEventUncheckedUpdateManyWithoutCompanyNestedInput
+    rateLimits?: RateLimitUncheckedUpdateManyWithoutCompanyNestedInput
+    passwordPolicy?: PasswordPolicyUncheckedUpdateOneWithoutCompanyNestedInput
+    folders?: FolderUncheckedUpdateManyWithoutCompanyNestedInput
+    dataRetentionPolicy?: DataRetentionPolicyUncheckedUpdateOneWithoutCompanyNestedInput
+    dataExports?: DataExportUncheckedUpdateManyWithoutCompanyNestedInput
+    dataDeletionRequests?: DataDeletionRequestUncheckedUpdateManyWithoutCompanyNestedInput
+    auditLogArchives?: AuditLogArchiveUncheckedUpdateManyWithoutCompanyNestedInput
+    auditLogSearches?: AuditLogSearchUncheckedUpdateManyWithoutCompanyNestedInput
+    reports?: ReportUncheckedUpdateManyWithoutCompanyNestedInput
+    reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
+    scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type PasswordTagUpsertWithWhereUniqueWithoutTagInput = {
@@ -81881,6 +82230,7 @@ export namespace Prisma {
     color?: string | null
     icon?: string | null
     createdAt?: Date | string
+    company: CompanyCreateNestedOneWithoutTagsInput
   }
 
   export type TagUncheckedCreateWithoutPasswordsInput = {
@@ -81889,6 +82239,7 @@ export namespace Prisma {
     color?: string | null
     icon?: string | null
     createdAt?: Date | string
+    companyId: string
   }
 
   export type TagCreateOrConnectWithoutPasswordsInput = {
@@ -81972,6 +82323,7 @@ export namespace Prisma {
     color?: NullableStringFieldUpdateOperationsInput | string | null
     icon?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    company?: CompanyUpdateOneRequiredWithoutTagsNestedInput
   }
 
   export type TagUncheckedUpdateWithoutPasswordsInput = {
@@ -81980,6 +82332,7 @@ export namespace Prisma {
     color?: NullableStringFieldUpdateOperationsInput | string | null
     icon?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    companyId?: StringFieldUpdateOperationsInput | string
   }
 
   export type UserCreateWithoutAuditLogsInput = {
@@ -82256,6 +82609,7 @@ export namespace Prisma {
     reports?: ReportCreateNestedManyWithoutCompanyInput
     reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
+    tags?: TagCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutAuditLogArchivesInput = {
@@ -82280,6 +82634,7 @@ export namespace Prisma {
     reports?: ReportUncheckedCreateNestedManyWithoutCompanyInput
     reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
+    tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutAuditLogArchivesInput = {
@@ -82443,6 +82798,7 @@ export namespace Prisma {
     reports?: ReportUpdateManyWithoutCompanyNestedInput
     reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
+    tags?: TagUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutAuditLogArchivesInput = {
@@ -82467,6 +82823,7 @@ export namespace Prisma {
     reports?: ReportUncheckedUpdateManyWithoutCompanyNestedInput
     reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
+    tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type UserUpsertWithoutAuditLogArchivesInput = {
@@ -82743,6 +83100,7 @@ export namespace Prisma {
     reports?: ReportCreateNestedManyWithoutCompanyInput
     reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
+    tags?: TagCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutAuditLogSearchesInput = {
@@ -82767,6 +83125,7 @@ export namespace Prisma {
     reports?: ReportUncheckedCreateNestedManyWithoutCompanyInput
     reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
+    tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutAuditLogSearchesInput = {
@@ -82936,6 +83295,7 @@ export namespace Prisma {
     reports?: ReportUpdateManyWithoutCompanyNestedInput
     reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
+    tags?: TagUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutAuditLogSearchesInput = {
@@ -82960,6 +83320,7 @@ export namespace Prisma {
     reports?: ReportUncheckedUpdateManyWithoutCompanyNestedInput
     reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
+    tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type UserCreateWithoutThreatEventsInput = {
@@ -83107,6 +83468,7 @@ export namespace Prisma {
     reports?: ReportCreateNestedManyWithoutCompanyInput
     reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
+    tags?: TagCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutThreatEventsInput = {
@@ -83131,6 +83493,7 @@ export namespace Prisma {
     reports?: ReportUncheckedCreateNestedManyWithoutCompanyInput
     reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
+    tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutThreatEventsInput = {
@@ -83300,6 +83663,7 @@ export namespace Prisma {
     reports?: ReportUpdateManyWithoutCompanyNestedInput
     reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
+    tags?: TagUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutThreatEventsInput = {
@@ -83324,6 +83688,7 @@ export namespace Prisma {
     reports?: ReportUncheckedUpdateManyWithoutCompanyNestedInput
     reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
+    tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyCreateWithoutRateLimitsInput = {
@@ -83348,6 +83713,7 @@ export namespace Prisma {
     reports?: ReportCreateNestedManyWithoutCompanyInput
     reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
+    tags?: TagCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutRateLimitsInput = {
@@ -83372,6 +83738,7 @@ export namespace Prisma {
     reports?: ReportUncheckedCreateNestedManyWithoutCompanyInput
     reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
+    tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutRateLimitsInput = {
@@ -83412,6 +83779,7 @@ export namespace Prisma {
     reports?: ReportUpdateManyWithoutCompanyNestedInput
     reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
+    tags?: TagUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutRateLimitsInput = {
@@ -83436,6 +83804,7 @@ export namespace Prisma {
     reports?: ReportUncheckedUpdateManyWithoutCompanyNestedInput
     reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
+    tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type UserCreateWithoutCreatedRolesInput = {
@@ -85293,6 +85662,7 @@ export namespace Prisma {
     reports?: ReportCreateNestedManyWithoutCompanyInput
     reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
+    tags?: TagCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutTemplatesInput = {
@@ -85317,6 +85687,7 @@ export namespace Prisma {
     reports?: ReportUncheckedCreateNestedManyWithoutCompanyInput
     reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
+    tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutTemplatesInput = {
@@ -85486,6 +85857,7 @@ export namespace Prisma {
     reports?: ReportUpdateManyWithoutCompanyNestedInput
     reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
+    tags?: TagUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutTemplatesInput = {
@@ -85510,6 +85882,7 @@ export namespace Prisma {
     reports?: ReportUncheckedUpdateManyWithoutCompanyNestedInput
     reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
+    tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type UserCreateWithoutEmailVerificationTokensInput = {
@@ -86413,6 +86786,7 @@ export namespace Prisma {
     reports?: ReportCreateNestedManyWithoutCompanyInput
     reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
+    tags?: TagCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutIpWhitelistsInput = {
@@ -86437,6 +86811,7 @@ export namespace Prisma {
     reports?: ReportUncheckedCreateNestedManyWithoutCompanyInput
     reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
+    tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutIpWhitelistsInput = {
@@ -86729,6 +87104,7 @@ export namespace Prisma {
     reports?: ReportUpdateManyWithoutCompanyNestedInput
     reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
+    tags?: TagUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutIpWhitelistsInput = {
@@ -86753,6 +87129,7 @@ export namespace Prisma {
     reports?: ReportUncheckedUpdateManyWithoutCompanyNestedInput
     reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
+    tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type UserUpsertWithoutCreatedIpWhitelistsInput = {
@@ -87029,6 +87406,7 @@ export namespace Prisma {
     reports?: ReportCreateNestedManyWithoutCompanyInput
     reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
+    tags?: TagCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutGeographicRestrictionsInput = {
@@ -87053,6 +87431,7 @@ export namespace Prisma {
     reports?: ReportUncheckedCreateNestedManyWithoutCompanyInput
     reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
+    tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutGeographicRestrictionsInput = {
@@ -87345,6 +87724,7 @@ export namespace Prisma {
     reports?: ReportUpdateManyWithoutCompanyNestedInput
     reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
+    tags?: TagUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutGeographicRestrictionsInput = {
@@ -87369,6 +87749,7 @@ export namespace Prisma {
     reports?: ReportUncheckedUpdateManyWithoutCompanyNestedInput
     reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
+    tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type UserUpsertWithoutCreatedGeographicRestrictionsInput = {
@@ -87522,6 +87903,7 @@ export namespace Prisma {
     reports?: ReportCreateNestedManyWithoutCompanyInput
     reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
+    tags?: TagCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutPasswordPolicyInput = {
@@ -87546,6 +87928,7 @@ export namespace Prisma {
     reports?: ReportUncheckedCreateNestedManyWithoutCompanyInput
     reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
+    tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutPasswordPolicyInput = {
@@ -87586,6 +87969,7 @@ export namespace Prisma {
     reports?: ReportUpdateManyWithoutCompanyNestedInput
     reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
+    tags?: TagUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutPasswordPolicyInput = {
@@ -87610,6 +87994,7 @@ export namespace Prisma {
     reports?: ReportUncheckedUpdateManyWithoutCompanyNestedInput
     reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
+    tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyCreateWithoutDataRetentionPolicyInput = {
@@ -87634,6 +88019,7 @@ export namespace Prisma {
     reports?: ReportCreateNestedManyWithoutCompanyInput
     reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
+    tags?: TagCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutDataRetentionPolicyInput = {
@@ -87658,6 +88044,7 @@ export namespace Prisma {
     reports?: ReportUncheckedCreateNestedManyWithoutCompanyInput
     reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
+    tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutDataRetentionPolicyInput = {
@@ -87698,6 +88085,7 @@ export namespace Prisma {
     reports?: ReportUpdateManyWithoutCompanyNestedInput
     reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
+    tags?: TagUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutDataRetentionPolicyInput = {
@@ -87722,6 +88110,7 @@ export namespace Prisma {
     reports?: ReportUncheckedUpdateManyWithoutCompanyNestedInput
     reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
+    tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type UserCreateWithoutDataExportsInput = {
@@ -87869,6 +88258,7 @@ export namespace Prisma {
     reports?: ReportCreateNestedManyWithoutCompanyInput
     reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
+    tags?: TagCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutDataExportsInput = {
@@ -87893,6 +88283,7 @@ export namespace Prisma {
     reports?: ReportUncheckedCreateNestedManyWithoutCompanyInput
     reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
+    tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutDataExportsInput = {
@@ -88062,6 +88453,7 @@ export namespace Prisma {
     reports?: ReportUpdateManyWithoutCompanyNestedInput
     reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
+    tags?: TagUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutDataExportsInput = {
@@ -88086,6 +88478,7 @@ export namespace Prisma {
     reports?: ReportUncheckedUpdateManyWithoutCompanyNestedInput
     reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
+    tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type UserCreateWithoutDataDeletionRequestsInput = {
@@ -88233,6 +88626,7 @@ export namespace Prisma {
     reports?: ReportCreateNestedManyWithoutCompanyInput
     reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
+    tags?: TagCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutDataDeletionRequestsInput = {
@@ -88257,6 +88651,7 @@ export namespace Prisma {
     reports?: ReportUncheckedCreateNestedManyWithoutCompanyInput
     reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
+    tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutDataDeletionRequestsInput = {
@@ -88549,6 +88944,7 @@ export namespace Prisma {
     reports?: ReportUpdateManyWithoutCompanyNestedInput
     reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
+    tags?: TagUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutDataDeletionRequestsInput = {
@@ -88573,6 +88969,7 @@ export namespace Prisma {
     reports?: ReportUncheckedUpdateManyWithoutCompanyNestedInput
     reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
+    tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type UserUpsertWithoutProcessedDeletionsInput = {
@@ -88849,6 +89246,7 @@ export namespace Prisma {
     auditLogSearches?: AuditLogSearchCreateNestedManyWithoutCompanyInput
     reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
+    tags?: TagCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutReportsInput = {
@@ -88873,6 +89271,7 @@ export namespace Prisma {
     auditLogSearches?: AuditLogSearchUncheckedCreateNestedManyWithoutCompanyInput
     reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
+    tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutReportsInput = {
@@ -89081,6 +89480,7 @@ export namespace Prisma {
     auditLogSearches?: AuditLogSearchUpdateManyWithoutCompanyNestedInput
     reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
+    tags?: TagUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutReportsInput = {
@@ -89105,6 +89505,7 @@ export namespace Prisma {
     auditLogSearches?: AuditLogSearchUncheckedUpdateManyWithoutCompanyNestedInput
     reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
+    tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type ReportTemplateUpsertWithoutReportsInput = {
@@ -89297,6 +89698,7 @@ export namespace Prisma {
     auditLogSearches?: AuditLogSearchCreateNestedManyWithoutCompanyInput
     reports?: ReportCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
+    tags?: TagCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutReportTemplatesInput = {
@@ -89321,6 +89723,7 @@ export namespace Prisma {
     auditLogSearches?: AuditLogSearchUncheckedCreateNestedManyWithoutCompanyInput
     reports?: ReportUncheckedCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
+    tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutReportTemplatesInput = {
@@ -89584,6 +89987,7 @@ export namespace Prisma {
     auditLogSearches?: AuditLogSearchUpdateManyWithoutCompanyNestedInput
     reports?: ReportUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
+    tags?: TagUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutReportTemplatesInput = {
@@ -89608,6 +90012,7 @@ export namespace Prisma {
     auditLogSearches?: AuditLogSearchUncheckedUpdateManyWithoutCompanyNestedInput
     reports?: ReportUncheckedUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
+    tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type ReportUpsertWithWhereUniqueWithoutTemplateInput = {
@@ -89787,6 +90192,7 @@ export namespace Prisma {
     auditLogSearches?: AuditLogSearchCreateNestedManyWithoutCompanyInput
     reports?: ReportCreateNestedManyWithoutCompanyInput
     reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
+    tags?: TagCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutScheduledReportsInput = {
@@ -89811,6 +90217,7 @@ export namespace Prisma {
     auditLogSearches?: AuditLogSearchUncheckedCreateNestedManyWithoutCompanyInput
     reports?: ReportUncheckedCreateNestedManyWithoutCompanyInput
     reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
+    tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutScheduledReportsInput = {
@@ -90019,6 +90426,7 @@ export namespace Prisma {
     auditLogSearches?: AuditLogSearchUpdateManyWithoutCompanyNestedInput
     reports?: ReportUpdateManyWithoutCompanyNestedInput
     reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
+    tags?: TagUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutScheduledReportsInput = {
@@ -90043,6 +90451,7 @@ export namespace Prisma {
     auditLogSearches?: AuditLogSearchUncheckedUpdateManyWithoutCompanyNestedInput
     reports?: ReportUncheckedUpdateManyWithoutCompanyNestedInput
     reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
+    tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type ReportTemplateUpsertWithoutScheduledReportsInput = {
@@ -90296,6 +90705,14 @@ export namespace Prisma {
     userId: string
     createdAt?: Date | string
     updatedAt?: Date | string
+  }
+
+  export type TagCreateManyCompanyInput = {
+    id?: string
+    name: string
+    color?: string | null
+    icon?: string | null
+    createdAt?: Date | string
   }
 
   export type UserUpdateWithoutCompanyInput = {
@@ -91004,6 +91421,32 @@ export namespace Prisma {
     userId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TagUpdateWithoutCompanyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    color?: NullableStringFieldUpdateOperationsInput | string | null
+    icon?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    passwords?: PasswordTagUpdateManyWithoutTagNestedInput
+  }
+
+  export type TagUncheckedUpdateWithoutCompanyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    color?: NullableStringFieldUpdateOperationsInput | string | null
+    icon?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    passwords?: PasswordTagUncheckedUpdateManyWithoutTagNestedInput
+  }
+
+  export type TagUncheckedUpdateManyWithoutCompanyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    color?: NullableStringFieldUpdateOperationsInput | string | null
+    icon?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type PasswordCreateManyOwnerInput = {

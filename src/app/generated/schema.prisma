@@ -37,6 +37,9 @@ model Company {
   reportTemplates        ReportTemplate[]
   scheduledReports       ScheduledReport[]
 
+  // Tag relation
+  tags Tag[]
+
   @@index([subdomain])
 }
 
@@ -389,13 +392,17 @@ model TeamMember {
 
 model Tag {
   id        String   @id @default(cuid())
-  name      String   @unique
+  name      String
   color     String?
   icon      String?
   createdAt DateTime @default(now())
+  companyId String
 
   // Relations
+  company   Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
   passwords PasswordTag[]
+
+  @@unique([name, companyId])
 }
 
 model PasswordTag {

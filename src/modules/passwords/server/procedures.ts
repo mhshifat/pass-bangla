@@ -1,11 +1,11 @@
+import { decryptPassword } from "@/lib/crypto"
 import prisma from "@/lib/prisma"
 import { createTRPCRouter, protectedProcedure, baseProcedure } from "@/trpc/init"
 import z from "zod"
-import { encryptPassword, decryptPassword } from "@/lib/crypto"
 import { TRPCError } from "@trpc/server"
 import {
   validatePasswordAgainstPolicy,
-  checkPasswordHistory,
+  // checkPasswordHistory,
 } from "@/lib/password-policy"
 import { Prisma } from "@/app/generated"
 
@@ -780,7 +780,7 @@ export const passwordsRouter = createTRPCRouter({
       
       // For team sharing: If user is not the owner, we need to decrypt on server
       // because the client can't decrypt with the owner's key
-      const isSharedWithUser = !isOwner && password.sharedWith.length > 0
+      // const isSharedWithUser = !isOwner && password.sharedWith.length > 0
       
       // Determine encryption method and handle decryption
       let finalPassword = password.password
@@ -1376,7 +1376,7 @@ export const passwordsRouter = createTRPCRouter({
         format: z.enum(["csv", "json", "1password", "lastpass", "bitwarden", "keepass"]).optional(),
       })
     )
-    .query(async ({ input, ctx }) => {
+    .query(async ({ input }) => {
       const { parsePasswordFile } = await import("@/lib/password-import/parsers")
       const result = parsePasswordFile(input.content, input.format)
 
@@ -1671,7 +1671,7 @@ export const passwordsRouter = createTRPCRouter({
     }),
 
   getExportFilters: protectedProcedure("password.view")
-    .query(async ({ ctx }) => {
+    .query(async () => {
       // Get folders accessible to user
       const folders = await prisma.folder.findMany({
         select: {
@@ -2478,7 +2478,8 @@ export const passwordsRouter = createTRPCRouter({
         threshold: z.number().min(0).max(1).default(0.8).optional(),
       })
     )
-    .query(async ({ input, ctx }) => {
+    .query(async ({ ctx }) => {
+      // Note: input.threshold is available but not yet used
       // Get all passwords owned by the current user
       // This ensures we only detect duplicates in passwords the user owns
       const passwords = await prisma.password.findMany({
@@ -2593,7 +2594,7 @@ export const passwordsRouter = createTRPCRouter({
             passwordMap.set(decrypted, [])
           }
           passwordMap.get(decrypted)!.push({ ...pwd, decryptedPassword: decrypted })
-        } catch (error) {
+        } catch {
           continue
         }
       }
@@ -2676,7 +2677,7 @@ export const passwordsRouter = createTRPCRouter({
               ...pwd,
               decryptedPassword: decryptPassword(pwd.password),
             }
-          } catch (error) {
+          } catch {
             return null
           }
         })
@@ -2885,7 +2886,7 @@ export const passwordsRouter = createTRPCRouter({
         // Fallback to old server-side encryption
         try {
           decryptedPassword = decryptPassword(password.password)
-        } catch (decryptError) {
+        } catch {
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: "Failed to decrypt password. The password may be corrupted or encrypted with an incompatible method.",
@@ -3581,9 +3582,20 @@ export const passwordsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      // Check if tag with same name already exists
+      if (!ctx.companyId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Missing company context for tag creation",
+        })
+      }
+      // Check if tag with same name already exists for this company
       const existingTag = await prisma.tag.findUnique({
-        where: { name: input.name },
+        where: {
+          name_companyId: {
+            name: input.name,
+            companyId: ctx.companyId,
+          },
+        },
       })
 
       if (existingTag) {
@@ -3598,6 +3610,7 @@ export const passwordsRouter = createTRPCRouter({
           name: input.name,
           color: input.color || null,
           icon: input.icon || null,
+          companyId: ctx.companyId,
         },
       })
 
@@ -3628,6 +3641,12 @@ export const passwordsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ input, ctx }) => {
+      if (!ctx.companyId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Missing company context for tag update",
+        })
+      }
       const { id, ...updateData } = input
 
       // Check if tag exists
@@ -3645,7 +3664,12 @@ export const passwordsRouter = createTRPCRouter({
       // If name is being updated, check for conflicts
       if (updateData.name && updateData.name !== existingTag.name) {
         const nameConflict = await prisma.tag.findUnique({
-          where: { name: updateData.name },
+          where: {
+            name_companyId: {
+              name: updateData.name,
+              companyId: ctx.companyId,
+            },
+          },
         })
 
         if (nameConflict) {
@@ -4490,7 +4514,7 @@ export const passwordsRouter = createTRPCRouter({
         } else {
           throw new Error("Password owner not found")
         }
-      } catch (error) {
+      } catch {
         // Try old encryption method (backward compatibility)
         try {
           decryptedPassword = decryptPassword(temporaryShare.password.password)
