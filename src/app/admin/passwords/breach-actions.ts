@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache"
 import { serverTrpc } from "@/trpc/server-caller"
 import { TRPCError } from "@trpc/server"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
-import { generateCorrelationId, logError } from "@/lib/correlation-id-util"
+import { generateCorrelationId, logError, sanitizeClientErrorMessage } from "@/lib/correlation-id-util"
 
 type ServerActionResult = {
   error?: string;
@@ -22,10 +22,12 @@ export async function checkPasswordBreachAction(passwordId: string) {
   } catch (error: unknown) {
     if (isRedirectError(error)) throw error
     logError(correlationId, error, { action: "checkPasswordBreach", passwordId })
+    const fallbackMessage = "Failed to check password breach"
     if (error instanceof TRPCError) {
-      throw new Error(error.message)
+      const safeMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
+      throw new Error(safeMessage)
     }
-    throw new Error("Failed to check password breach")
+    throw new Error(fallbackMessage)
   }
 }
 
@@ -40,10 +42,12 @@ export async function checkAllPasswordsBreachAction() {
   } catch (error: unknown) {
     if (isRedirectError(error)) throw error
     logError(correlationId, error, { action: "checkAllPasswordsBreach" })
+    const fallbackMessage = "Failed to check all passwords for breaches"
     if (error instanceof TRPCError) {
-      throw new Error(error.message)
+      const safeMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
+      throw new Error(safeMessage)
     }
-    throw new Error("Failed to check all passwords for breaches")
+    throw new Error(fallbackMessage)
   }
 }
 
@@ -57,9 +61,11 @@ export async function resolveBreachAction(breachId: string) {
   } catch (error: unknown) {
     if (isRedirectError(error)) throw error
     logError(correlationId, error, { action: "resolveBreach", breachId })
+    const fallbackMessage = "Failed to resolve breach"
     if (error instanceof TRPCError) {
-      throw new Error(error.message)
+      const safeMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
+      throw new Error(safeMessage)
     }
-    throw new Error("Failed to resolve breach")
+    throw new Error(fallbackMessage)
   }
 }

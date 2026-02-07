@@ -5,6 +5,7 @@
  * It uses the @simplewebauthn/server library for server-side operations.
  */
 
+import prisma from "@/lib/prisma"
 import {
     generateRegistrationOptions,
     verifyRegistrationResponse,
@@ -18,6 +19,7 @@ import {
     type AuthenticationResponseJSON,
     type AuthenticatorTransportFuture,
 } from "@simplewebauthn/server"
+export type { RegistrationResponseJSON, AuthenticationResponseJSON } from "@simplewebauthn/server"
 
 // Get RP (Relying Party) configuration from environment
 const RP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "PassBangla"
@@ -72,9 +74,38 @@ export interface WebAuthnCredential {
     credentialID: string
     publicKey: string
     counter: number
-    deviceType?: "singleDevice" | "multiDevice"
+    deviceType?: "singleDevice" | "multiDevice" | null
     backedUp: boolean
     transports?: string[]
+}
+
+type WebAuthnCredentialsCheck = {
+    configured: boolean
+    error?: string
+}
+
+export async function checkWebAuthnCredentials(): Promise<WebAuthnCredentialsCheck> {
+    const settings = await prisma.settings.findMany({
+        where: {
+            key: {
+                in: ["mfa.webauthn.rp_id", "mfa.webauthn.rp_name", "mfa.webauthn.origin"],
+            },
+        },
+    })
+
+    const config: Record<string, string> = {}
+    settings.forEach((setting) => {
+        config[setting.key] = setting.value as string
+    })
+
+    if (!config["mfa.webauthn.rp_id"] || !config["mfa.webauthn.rp_name"] || !config["mfa.webauthn.origin"]) {
+        return {
+            configured: false,
+            error: "WebAuthn credentials are not configured. Please configure them in Settings → MFA Credentials.",
+        }
+    }
+
+    return { configured: true }
 }
 
 /**
@@ -125,7 +156,7 @@ export async function generateWebAuthnRegistrationOptions(
  * Verify registration response from the client
  */
 export async function verifyWebAuthnRegistration(
-    response: RegistrationResponseJSON,
+    response: RegistrationResponseJSON | unknown,
     expectedChallenge: string,
     origin?: string
 ): Promise<{
@@ -134,10 +165,11 @@ export async function verifyWebAuthnRegistration(
     error?: string
 }> {
     try {
+        const responseData = response as RegistrationResponseJSON
         const rpID = getRPID(origin)
         const expectedOrigin = origin || getOrigin()
         const verification: VerifiedRegistrationResponse = await verifyRegistrationResponse({
-            response,
+            response: responseData,
             expectedChallenge,
             expectedOrigin: expectedOrigin,
             expectedRPID: rpID,
@@ -166,7 +198,7 @@ export async function verifyWebAuthnRegistration(
                 counter: credential.counter,
                 deviceType: regInfo.credentialDeviceType,
                 backedUp: regInfo.credentialBackedUp,
-                transports: response.response.transports,
+                transports: responseData.response.transports,
             },
         }
     } catch (error) {
@@ -216,7 +248,7 @@ export async function generateWebAuthnAuthenticationOptions(
  * Verify authentication response from the client
  */
 export async function verifyWebAuthnAuthentication(
-    response: AuthenticationResponseJSON,
+    response: AuthenticationResponseJSON | unknown,
     expectedChallenge: string,
     credential: WebAuthnCredential,
     origin?: string
@@ -226,10 +258,11 @@ export async function verifyWebAuthnAuthentication(
     error?: string
 }> {
     try {
+        const responseData = response as AuthenticationResponseJSON
         const rpID = getRPID(origin)
         const expectedOrigin = origin || getOrigin()
         const verification: VerifiedAuthenticationResponse = await verifyAuthenticationResponse({
-            response,
+            response: responseData,
             expectedChallenge,
             expectedOrigin: expectedOrigin,
             expectedRPID: rpID,

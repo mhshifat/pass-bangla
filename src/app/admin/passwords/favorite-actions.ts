@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { serverTrpc } from "@/trpc/server-caller"
 import { TRPCError } from "@trpc/server"
-import { generateCorrelationId, logError } from "@/lib/correlation-id-util"
+import { generateCorrelationId, logError, sanitizeClientErrorMessage } from "@/lib/correlation-id-util"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
 
 type ServerActionResult = {

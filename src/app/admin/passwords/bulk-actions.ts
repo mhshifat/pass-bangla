@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { serverTrpc } from "@/trpc/server-caller"
 import { TRPCError } from "@trpc/server"
-import { generateCorrelationId, logError } from "@/lib/correlation-id-util"
+import { generateCorrelationId, logError, sanitizeClientErrorMessage } from "@/lib/correlation-id-util"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
 
 export interface BulkDeleteOptions {
@@ -56,10 +56,12 @@ export async function bulkDeletePasswordsAction(
   } catch (error: unknown) {
     if (isRedirectError(error)) throw error
     logError(correlationId, error, { action: "bulkDeletePasswordsAction", options })
+    const fallbackMessage = "Failed to delete passwords"
     if (error instanceof TRPCError) {
-      throw new Error(`${error.message} (ID: ${correlationId})`)
+      const safeMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
+      throw new Error(`${safeMessage} (ID: ${correlationId})`)
     }
-    throw new Error(`Failed to delete passwords (ID: ${correlationId})`)
+    throw new Error(`${fallbackMessage} (ID: ${correlationId})`)
   }
 }
 
@@ -75,10 +77,12 @@ export async function bulkMovePasswordsAction(
   } catch (error: unknown) {
     if (isRedirectError(error)) throw error
     logError(correlationId, error, { action: "bulkMovePasswordsAction", options })
+    const fallbackMessage = "Failed to move passwords"
     if (error instanceof TRPCError) {
-      throw new Error(`${error.message} (ID: ${correlationId})`)
+      const safeMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
+      throw new Error(`${safeMessage} (ID: ${correlationId})`)
     }
-    throw new Error(`Failed to move passwords (ID: ${correlationId})`)
+    throw new Error(`${fallbackMessage} (ID: ${correlationId})`)
   }
 }
 
@@ -94,10 +98,12 @@ export async function bulkAssignTagsAction(
   } catch (error: unknown) {
     if (isRedirectError(error)) throw error
     logError(correlationId, error, { action: "bulkAssignTagsAction", options })
+    const fallbackMessage = "Failed to assign tags"
     if (error instanceof TRPCError) {
-      throw new Error(`${error.message} (ID: ${correlationId})`)
+      const safeMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
+      throw new Error(`${safeMessage} (ID: ${correlationId})`)
     }
-    throw new Error(`Failed to assign tags (ID: ${correlationId})`)
+    throw new Error(`${fallbackMessage} (ID: ${correlationId})`)
   }
 }
 
@@ -116,10 +122,12 @@ export async function bulkRemoveTagsAction(
   } catch (error: unknown) {
     if (isRedirectError(error)) throw error
     logError(correlationId, error, { action: "bulkRemoveTagsAction", options })
+    const fallbackMessage = "Failed to remove tags"
     if (error instanceof TRPCError) {
-      throw new Error(`${error.message} (ID: ${correlationId})`)
+      const safeMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
+      throw new Error(`${safeMessage} (ID: ${correlationId})`)
     }
-    throw new Error(`Failed to remove tags (ID: ${correlationId})`)
+    throw new Error(`${fallbackMessage} (ID: ${correlationId})`)
   }
 }
 
@@ -135,10 +143,12 @@ export async function bulkSharePasswordsAction(
   } catch (error: unknown) {
     if (isRedirectError(error)) throw error
     logError(correlationId, error, { action: "bulkSharePasswordsAction", options })
+    const fallbackMessage = "Failed to share passwords"
     if (error instanceof TRPCError) {
-      throw new Error(`${error.message} (ID: ${correlationId})`)
+      const safeMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
+      throw new Error(`${safeMessage} (ID: ${correlationId})`)
     }
-    throw new Error(`Failed to share passwords (ID: ${correlationId})`)
+    throw new Error(`${fallbackMessage} (ID: ${correlationId})`)
   }
 }
 
@@ -154,10 +164,12 @@ export async function bulkUnsharePasswordsAction(
   } catch (error: unknown) {
     if (isRedirectError(error)) throw error
     logError(correlationId, error, { action: "bulkUnsharePasswordsAction", options })
+    const fallbackMessage = "Failed to unshare passwords"
     if (error instanceof TRPCError) {
-      throw new Error(`${error.message} (ID: ${correlationId})`)
+      const safeMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
+      throw new Error(`${safeMessage} (ID: ${correlationId})`)
     }
-    throw new Error(`Failed to unshare passwords (ID: ${correlationId})`)
+    throw new Error(`${fallbackMessage} (ID: ${correlationId})`)
   }
 }
 
@@ -173,9 +185,11 @@ export async function bulkUpdateStrengthAction(
   } catch (error: unknown) {
     if (isRedirectError(error)) throw error
     logError(correlationId, error, { action: "bulkUpdateStrengthAction", options })
+    const fallbackMessage = "Failed to update password strength"
     if (error instanceof TRPCError) {
-      throw new Error(`${error.message} (ID: ${correlationId})`)
+      const safeMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
+      throw new Error(`${safeMessage} (ID: ${correlationId})`)
     }
-    throw new Error(`Failed to update password strength (ID: ${correlationId})`)
+    throw new Error(`${fallbackMessage} (ID: ${correlationId})`)
   }
 }

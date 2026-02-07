@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { serverTrpc } from "@/trpc/server-caller"
 import { TRPCError } from "@trpc/server"
-import { generateCorrelationId, logError } from "@/lib/correlation-id-util"
+import { generateCorrelationId, logError, sanitizeClientErrorMessage } from "@/lib/correlation-id-util"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
 
 type ServerActionResult = {
@@ -32,10 +32,12 @@ export async function createRotationPolicyAction(data: {
   } catch (error: unknown) {
     if (isRedirectError(error)) throw error
     logError(correlationId, error, { action: "createRotationPolicyAction", data })
+    const fallbackMessage = "Failed to create rotation policy"
     if (error instanceof TRPCError) {
-      return { success: false, error: error.message, correlationId }
+      const safeMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
+      return { success: false, error: safeMessage, correlationId }
     }
-    return { success: false, error: "Failed to create rotation policy", correlationId }
+    return { success: false, error: fallbackMessage, correlationId }
   }
 }
 
@@ -60,10 +62,12 @@ export async function updateRotationPolicyAction(
   } catch (error: unknown) {
     if (isRedirectError(error)) throw error
     logError(correlationId, error, { action: "updateRotationPolicyAction", id, data })
+    const fallbackMessage = "Failed to update rotation policy"
     if (error instanceof TRPCError) {
-      return { success: false, error: error.message, correlationId }
+      const safeMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
+      return { success: false, error: safeMessage, correlationId }
     }
-    return { success: false, error: "Failed to update rotation policy", correlationId }
+    return { success: false, error: fallbackMessage, correlationId }
   }
 }
 
@@ -77,10 +81,12 @@ export async function deleteRotationPolicyAction(id: string) {
   } catch (error: unknown) {
     if (isRedirectError(error)) throw error
     logError(correlationId, error, { action: "deleteRotationPolicyAction", id })
+    const fallbackMessage = "Failed to delete rotation policy"
     if (error instanceof TRPCError) {
-      return { success: false, error: error.message, correlationId }
+      const safeMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
+      return { success: false, error: safeMessage, correlationId }
     }
-    return { success: false, error: "Failed to delete rotation policy", correlationId }
+    return { success: false, error: fallbackMessage, correlationId }
   }
 }
 
@@ -94,10 +100,12 @@ export async function assignPolicyToPasswordAction(passwordId: string, policyId:
   } catch (error: unknown) {
     if (isRedirectError(error)) throw error
     logError(correlationId, error, { action: "assignPolicyToPasswordAction", passwordId, policyId })
+    const fallbackMessage = "Failed to assign policy"
     if (error instanceof TRPCError) {
-      return { success: false, error: error.message, correlationId }
+      const safeMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
+      return { success: false, error: safeMessage, correlationId }
     }
-    return { success: false, error: "Failed to assign policy", correlationId }
+    return { success: false, error: fallbackMessage, correlationId }
   }
 }
 

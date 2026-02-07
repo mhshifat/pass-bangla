@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { serverTrpc } from "@/trpc/server-caller"
 import { TRPCError } from "@trpc/server"
-import { generateCorrelationId, logError } from "@/lib/correlation-id-util"
+import { generateCorrelationId, logError, sanitizeClientErrorMessage } from "@/lib/correlation-id-util"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
 
 export interface ImportPreviewResult {
@@ -89,9 +89,11 @@ export async function commitImportAction(
   } catch (error: unknown) {
     if (isRedirectError(error)) throw error
     logError(correlationId, error, { action: "commitImportAction" })
+    const fallbackMessage = "Failed to import passwords"
     if (error instanceof TRPCError) {
-      throw new Error(`${error.message} (ID: ${correlationId})`)
+      const safeMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
+      throw new Error(`${safeMessage} (ID: ${correlationId})`)
     }
-    throw new Error(`Failed to commit import (ID: ${correlationId})`)
+    throw new Error(`${fallbackMessage} (ID: ${correlationId})`)
   }
 }

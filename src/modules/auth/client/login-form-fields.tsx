@@ -5,17 +5,18 @@ import { useTranslation } from "react-i18next"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ErrorWithCorrelationId } from "@/components/shared/ErrorWithCorrelationId"
 import { useCorrelationIdError } from "@/hooks/use-correlation-id-error"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Lock, Mail, AlertCircle, RefreshCw } from "lucide-react"
+import { Lock, Mail, RefreshCw } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { Building2 } from "lucide-react"
 
-export function createLoginSchema(t: (key: string) => string, requiresCaptcha?: boolean) {
+export function createLoginSchema(t: (key: string) => string, requiresCaptcha?: boolean, requiresCompany?: boolean) {
   return z.object({
+      company: requiresCompany ? z.string().min(1, t("errors.required")) : z.string().optional(),
     email: z.string().email(t("errors.invalidEmail")),
     password: z.string().min(1, t("errors.passwordRequired")),
     captchaAnswer: requiresCaptcha ? z.number().min(0, t("auth.captchaAnswerRequired")) : z.number().optional(),
@@ -25,6 +26,7 @@ export function createLoginSchema(t: (key: string) => string, requiresCaptcha?: 
 interface LoginFormFieldsProps {
   formAction: (payload: FormData) => void
   isPending: boolean
+    isMainDomain: boolean
   state: { 
     error?: string
     correlationId?: string
@@ -35,7 +37,7 @@ interface LoginFormFieldsProps {
   } | null
 }
 
-export function LoginFormFields({ formAction, isPending, state }: LoginFormFieldsProps) {
+export function LoginFormFields({ formAction, isPending, state, isMainDomain }: LoginFormFieldsProps) {
   const { t } = useTranslation()
   const [isTransitionPending, startTransition] = useTransition()
   const requiresCaptcha = state?.requiresCaptcha || false
@@ -43,12 +45,13 @@ export function LoginFormFields({ formAction, isPending, state }: LoginFormField
   const captchaQuestion = state?.captchaQuestion || null
   const pending = isPending || isTransitionPending
   
-  const loginSchema = createLoginSchema(t, requiresCaptcha)
+  const loginSchema = createLoginSchema(t, requiresCaptcha, isMainDomain)
   type LoginFormValues = z.infer<typeof loginSchema>
   
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
+        company: "",
       email: "",
       password: "",
       captchaAnswer: undefined,
@@ -114,6 +117,32 @@ export function LoginFormFields({ formAction, isPending, state }: LoginFormField
         )}
 
         <div className="space-y-4">
+                    {/* Company Field - Only show on main domain */}
+                    {isMainDomain && (
+                      <FormField
+                        control={form.control}
+                        name="company"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{t("auth.companyName")}</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <Building2 className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                                <Input
+                                  type="text"
+                                  placeholder={t("auth.companyNamePlaceholder")}
+                                  className="pl-10"
+                                  disabled={pending}
+                                  {...field}
+                                />
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+
           <FormField
             control={form.control}
             name="email"

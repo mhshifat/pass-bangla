@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { serverTrpc } from "@/trpc/server-caller"
 import { TRPCError } from "@trpc/server"
-import { generateCorrelationId, logError } from "@/lib/correlation-id-util"
+import { generateCorrelationId, logError, sanitizeClientErrorMessage } from "@/lib/correlation-id-util"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
 
 type ServerActionResult = {
@@ -29,10 +29,12 @@ export async function createTagAction(data: {
   } catch (error: unknown) {
     if (isRedirectError(error)) throw error
     logError(correlationId, error, { action: "createTagAction", data })
+    const fallbackMessage = "Failed to create tag"
     if (error instanceof TRPCError) {
-      return { success: false, error: error.message, correlationId }
+      const safeMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
+      return { success: false, error: safeMessage, correlationId }
     }
-    return { success: false, error: "Failed to create tag", correlationId }
+    return { success: false, error: fallbackMessage, correlationId }
   }
 }
 
@@ -54,10 +56,12 @@ export async function updateTagAction(
   } catch (error: unknown) {
     if (isRedirectError(error)) throw error
     logError(correlationId, error, { action: "updateTagAction", id, data })
+    const fallbackMessage = "Failed to update tag"
     if (error instanceof TRPCError) {
-      return { success: false, error: error.message, correlationId }
+      const safeMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
+      return { success: false, error: safeMessage, correlationId }
     }
-    return { success: false, error: "Failed to update tag", correlationId }
+    return { success: false, error: fallbackMessage, correlationId }
   }
 }
 
@@ -72,9 +76,11 @@ export async function deleteTagAction(id: string) {
   } catch (error: unknown) {
     if (isRedirectError(error)) throw error
     logError(correlationId, error, { action: "deleteTagAction", id })
+    const fallbackMessage = "Failed to delete tag"
     if (error instanceof TRPCError) {
-      return { success: false, error: error.message, correlationId }
+      const safeMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
+      return { success: false, error: safeMessage, correlationId }
     }
-    return { success: false, error: "Failed to delete tag", correlationId }
+    return { success: false, error: fallbackMessage, correlationId }
   }
 }

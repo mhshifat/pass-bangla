@@ -4,7 +4,7 @@ import { redirect } from "next/navigation"
 import { serverTrpc } from "@/trpc/server-caller"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
 import { TRPCError } from "@trpc/server"
-import { generateCorrelationId, logError, formatErrorWithCorrelationId } from "@/lib/correlation-id-util"
+import { generateCorrelationId, logError, formatErrorWithCorrelationId, sanitizeClientErrorMessage } from "@/lib/correlation-id-util"
 
 type FieldErrors = {
   [key: string]: string
@@ -71,6 +71,8 @@ export async function registerAction(
     
     // Handle tRPC errors
     if (error instanceof TRPCError) {
+      const fallbackMessage = "Registration failed"
+      const safeErrorMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
       // Check if it's a validation error
       if (error.code === "BAD_REQUEST") {
         try {
@@ -90,22 +92,24 @@ export async function registerAction(
         } catch {
           // If parsing fails, return the message as a root error
           return { 
-            error: error.message, 
-            correlationId: (error as ErrorWithCause).cause?.correlationId || correlationId 
+            error: safeErrorMessage, 
+            correlationId
           }
         }
       }
       
       // For other tRPC errors, return the message with correlation ID
       return {
-        error: error.message,
-        correlationId: (error as ErrorWithCause).cause?.correlationId || correlationId,
+        error: safeErrorMessage,
+        correlationId,
       }
     }
     
-    const message = error instanceof Error ? error.message : "Registration failed"
+    const fallbackMessage = "Registration failed"
+    const message = error instanceof Error ? error.message : fallbackMessage
+    const safeMessage = sanitizeClientErrorMessage(message, fallbackMessage)
     return { 
-      error: formatErrorWithCorrelationId(message, correlationId), 
+      error: formatErrorWithCorrelationId(safeMessage, correlationId), 
       correlationId 
     }
   }

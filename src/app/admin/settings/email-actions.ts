@@ -2,16 +2,8 @@
 
 import { revalidatePath } from "next/cache"
 import { serverTrpc } from "@/trpc/server-caller"
-import { generateCorrelationId, logError } from "@/lib/correlation-id-util"
+import { generateCorrelationId, logError, sanitizeClientErrorMessage } from "@/lib/correlation-id-util"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
-
-type ServerActionResult = {
-  error?: string;
-  correlationId?: string;
-  fieldErrors?: Record<string, string>;
-  success?: boolean;
-} | { success: true };
-
 
 export async function updateEmailConfigAction(
   _prevState: unknown,
@@ -51,8 +43,10 @@ export async function updateEmailConfigAction(
   } catch (error) {
     if (isRedirectError(error)) throw error
     logError(correlationId, error, { action: "updateEmailConfigAction" })
+    const fallbackMessage = "Failed to update email configuration"
+    const message = error instanceof Error ? error.message : fallbackMessage
     return {
-      error: error instanceof Error ? error.message : "Failed to update email configuration",
+      error: sanitizeClientErrorMessage(message, fallbackMessage),
       correlationId,
     }
   }
@@ -78,8 +72,10 @@ export async function testEmailConfigAction(
   } catch (error) {
     if (isRedirectError(error)) throw error
     logError(correlationId, error, { action: "testEmailConfigAction", testEmail })
+    const fallbackMessage = "Failed to send test email"
+    const message = error instanceof Error ? error.message : fallbackMessage
     return {
-      error: error instanceof Error ? error.message : "Failed to send test email",
+      error: sanitizeClientErrorMessage(message, fallbackMessage),
       correlationId,
     }
   }

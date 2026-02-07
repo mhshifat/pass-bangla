@@ -4,7 +4,7 @@ import { serverTrpc } from "@/trpc/server-caller"
 import { TRPCError } from "@trpc/server"
 import { revalidatePath } from "next/cache"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
-import { generateCorrelationId, logError } from "@/lib/correlation-id-util"
+import { generateCorrelationId, logError, sanitizeClientErrorMessage } from "@/lib/correlation-id-util"
 
 type FieldErrors = {
   [key: string]: string
@@ -51,6 +51,8 @@ export async function createPasswordAction(
     logError(correlationId, error, { action: "createPassword" })
     
     if (error instanceof TRPCError) {
+      const fallbackMessage = "Failed to create password"
+      const safeErrorMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
       if (error.code === "BAD_REQUEST") {
         try {
           const zodErrors = JSON.parse(error.message)
@@ -67,15 +69,17 @@ export async function createPasswordAction(
             return { fieldErrors, correlationId }
           }
         } catch {
-          return { error: error.message, correlationId }
+          return { error: safeErrorMessage, correlationId }
         }
       }
 
-      return { error: error.message, correlationId }
+      return { error: safeErrorMessage, correlationId }
     }
 
-    const message = error instanceof Error ? error.message : "Failed to create password"
-    return { error: message, correlationId }
+    const fallbackMessage = "Failed to create password"
+    const message = error instanceof Error ? error.message : fallbackMessage
+    const safeMessage = sanitizeClientErrorMessage(message, fallbackMessage)
+    return { error: safeMessage, correlationId }
   }
 }
 
@@ -115,6 +119,8 @@ export async function updatePasswordAction(
     logError(correlationId, error, { action: "updatePassword" })
     
     if (error instanceof TRPCError) {
+      const fallbackMessage = "Failed to update password"
+      const safeErrorMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
       if (error.code === "BAD_REQUEST") {
         try {
           const zodErrors = JSON.parse(error.message)
@@ -131,15 +137,17 @@ export async function updatePasswordAction(
             return { fieldErrors, correlationId }
           }
         } catch {
-          return { error: error.message, correlationId }
+          return { error: safeErrorMessage, correlationId }
         }
       }
 
-      return { error: error.message, correlationId }
+      return { error: safeErrorMessage, correlationId }
     }
 
-    const message = error instanceof Error ? error.message : "Failed to update password"
-    return { error: message, correlationId }
+    const fallbackMessage = "Failed to update password"
+    const message = error instanceof Error ? error.message : fallbackMessage
+    const safeMessage = sanitizeClientErrorMessage(message, fallbackMessage)
+    return { error: safeMessage, correlationId }
   }
 }
 
@@ -156,11 +164,13 @@ export async function deletePasswordAction(passwordId: string): Promise<ActionRe
     logError(correlationId, error, { action: "deletePassword" })
     
     if (error instanceof TRPCError) {
-      return { error: error.message, correlationId }
+      const safeMessage = sanitizeClientErrorMessage(error.message, "Failed to delete password")
+      return { error: safeMessage, correlationId }
     }
 
     const message = error instanceof Error ? error.message : "Failed to delete password"
-    return { error: message, correlationId }
+    const safeMessage = sanitizeClientErrorMessage(message, "Failed to delete password")
+    return { error: safeMessage, correlationId }
   }
 }
 

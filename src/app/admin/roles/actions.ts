@@ -3,20 +3,12 @@
 import { serverTrpc } from "@/trpc/server-caller"
 import { TRPCError } from "@trpc/server"
 import { revalidatePath } from "next/cache"
-import { generateCorrelationId, logError } from "@/lib/correlation-id-util"
+import { generateCorrelationId, logError, sanitizeClientErrorMessage } from "@/lib/correlation-id-util"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
 
 type FieldErrors = {
   [key: string]: string
 }
-
-type ServerActionResult = {
-  error?: string;
-  correlationId?: string;
-  fieldErrors?: Record<string, string>;
-  success?: boolean;
-} | { success: true };
-
 
 export async function createRoleAction(
   prevState: { error?: string; fieldErrors?: FieldErrors; success?: boolean; correlationId?: string } | null,
@@ -38,6 +30,7 @@ export async function createRoleAction(
   } catch (error: unknown) {
     if (isRedirectError(error)) throw error
     logError(correlationId, error, { action: "createRoleAction", name })
+    const fallbackMessage = "Failed to create role"
     // Handle tRPC errors
     if (error instanceof TRPCError) {
       // Check if it's a validation error
@@ -58,16 +51,19 @@ export async function createRoleAction(
           }
         } catch {
           // If parsing fails, return the message as a root error
-          return { error: `${error.message} (ID: ${correlationId})`, correlationId }
+          const safeMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
+          return { error: `${safeMessage} (ID: ${correlationId})`, correlationId }
         }
       }
 
       // For other tRPC errors, return the message
-      return { error: `${error.message} (ID: ${correlationId})`, correlationId }
+      const safeMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
+      return { error: `${safeMessage} (ID: ${correlationId})`, correlationId }
     }
 
-    const message = error instanceof Error ? error.message : "Failed to create role"
-    return { error: `${message} (ID: ${correlationId})`, correlationId }
+    const message = error instanceof Error ? error.message : fallbackMessage
+    const safeMessage = sanitizeClientErrorMessage(message, fallbackMessage)
+    return { error: `${safeMessage} (ID: ${correlationId})`, correlationId }
   }
 }
 
@@ -94,6 +90,7 @@ export async function updateRoleAction(
   } catch (error: unknown) {
     if (isRedirectError(error)) throw error
     logError(correlationId, error, { action: "updateRoleAction", roleId })
+    const fallbackMessage = "Failed to update role"
     // Handle tRPC errors
     if (error instanceof TRPCError) {
       // Check if it's a validation error
@@ -114,16 +111,19 @@ export async function updateRoleAction(
           }
         } catch {
           // If parsing fails, return the message as a root error
-          return { error: `${error.message} (ID: ${correlationId})`, correlationId }
+          const safeMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
+          return { error: `${safeMessage} (ID: ${correlationId})`, correlationId }
         }
       }
 
       // For other tRPC errors, return the message
-      return { error: `${error.message} (ID: ${correlationId})`, correlationId }
+      const safeMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
+      return { error: `${safeMessage} (ID: ${correlationId})`, correlationId }
     }
 
-    const message = error instanceof Error ? error.message : "Failed to update role"
-    return { error: `${message} (ID: ${correlationId})`, correlationId }
+    const message = error instanceof Error ? error.message : fallbackMessage
+    const safeMessage = sanitizeClientErrorMessage(message, fallbackMessage)
+    return { error: `${safeMessage} (ID: ${correlationId})`, correlationId }
   }
 }
 
@@ -139,11 +139,13 @@ export async function deleteRoleAction(roleId: string) {
     if (isRedirectError(error)) throw error
     logError(correlationId, error, { action: "deleteRoleAction", roleId })
     if (error instanceof TRPCError) {
-      return { error: `${error.message} (ID: ${correlationId})`, correlationId }
+      const safeMessage = sanitizeClientErrorMessage(error.message, "Failed to delete role")
+      return { error: `${safeMessage} (ID: ${correlationId})`, correlationId }
     }
 
     const message = error instanceof Error ? error.message : "Failed to delete role"
-    return { error: `${message} (ID: ${correlationId})`, correlationId }
+    const safeMessage = sanitizeClientErrorMessage(message, "Failed to delete role")
+    return { error: `${safeMessage} (ID: ${correlationId})`, correlationId }
   }
 }
 

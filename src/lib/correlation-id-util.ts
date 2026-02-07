@@ -32,6 +32,25 @@ export function formatErrorWithCorrelationId(message: string, correlationId: str
 }
 
 /**
+ * Sanitize error messages for client display
+ */
+export function sanitizeClientErrorMessage(message: string, fallback: string): string {
+  const normalized = message.toLowerCase()
+
+  const isPrismaError =
+    normalized.includes("prisma") ||
+    normalized.includes("prismaclient") ||
+    normalized.includes("invalid `prisma") ||
+    normalized.includes("prisma.")
+
+  if (isPrismaError) {
+    return fallback
+  }
+
+  return message
+}
+
+/**
  * Extract correlation ID from error message
  */
 export function extractCorrelationId(message: string): string | null {

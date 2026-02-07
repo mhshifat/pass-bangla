@@ -7,10 +7,20 @@ import { TRPCError } from "@trpc/server";
 import { decrypt } from "@/lib/crypto";
 import { getRequestMetadata } from "@/lib/audit-log";
 import { headers, cookies } from "next/headers";
+import type { AuthenticationResponseJSON, RegistrationResponseJSON } from "@/lib/webauthn";
 
 const globalWithPasskeys = globalThis as typeof globalThis & {
     passkeyRegistrationChallenges?: Map<string, string>
     passkeyAuthenticationChallenges?: Map<string, { challenge: string; userId: string }>
+}
+
+type WebAuthnDeviceType = "singleDevice" | "multiDevice" | null
+
+function normalizeWebAuthnDeviceType(value: string | null): WebAuthnDeviceType {
+    if (value === "singleDevice" || value === "multiDevice") {
+        return value
+    }
+    return null
 }
 
 /**
@@ -394,6 +404,7 @@ export const authRouter = createTRPCRouter({
     login: baseProcedure
         .input(
             z.object({
+                company: z.string().optional(),
                 email: z.string().email("Invalid email address"),
                 password: z.string().min(1, "Password is required"),
                 captchaToken: z.string().optional(),
@@ -408,23 +419,37 @@ export const authRouter = createTRPCRouter({
             // Get subdomain from context (set by middleware)
             const subdomain = ctx.subdomain
 
-            // Login must be on a subdomain (not main domain)
-            if (!subdomain) {
+            // Find company by subdomain OR company name from input
+            let company;
+            
+            if (subdomain) {
+                // Login via subdomain (e.g., company.passbangla.com)
+                company = await prisma.company.findUnique({
+                    where: { subdomain },
+                })
+            } else if (input.company) {
+                const normalizedCompany = input.company.trim()
+                // Login via main domain with company name/subdomain
+                company = await prisma.company.findFirst({
+                    where: {
+                        OR: [
+                            { subdomain: normalizedCompany.toLowerCase() },
+                            { name: { equals: normalizedCompany, mode: "insensitive" } },
+                        ]
+                    },
+                })
+            } else {
+                // No subdomain and no company provided
                 throw new TRPCError({
                     code: "FORBIDDEN",
-                    message: "Login is only available on company subdomains",
+                    message: "Please provide your company name to login",
                 })
             }
-
-            // Find company by subdomain
-            const company = await prisma.company.findUnique({
-                where: { subdomain },
-            })
 
             if (!company) {
                 throw new TRPCError({
                     code: "NOT_FOUND",
-                    message: "Company not found for this subdomain",
+                    message: "Company not found. Please check your company name and try again",
                 })
             }
 
@@ -1742,7 +1767,7 @@ export const authRouter = createTRPCRouter({
                 credentialID: cred.credentialId,
                 publicKey: cred.publicKey,
                 counter: Number(cred.counter),
-                deviceType: cred.deviceType,
+                deviceType: normalizeWebAuthnDeviceType(cred.deviceType),
                 backedUp: cred.backedUp,
                 transports: cred.transports ? JSON.parse(cred.transports) : undefined,
             }))
@@ -1799,7 +1824,8 @@ export const authRouter = createTRPCRouter({
             const headersList = await headers()
             const origin = headersList.get("origin") || headersList.get("referer") || undefined
             
-            const result = await verifyWebAuthnRegistration(input.response, expectedChallenge, origin)
+            const response = input.response as RegistrationResponseJSON
+            const result = await verifyWebAuthnRegistration(response, expectedChallenge, origin)
 
             if (!result.verified || !result.credential) {
                 throw new TRPCError({
@@ -1867,7 +1893,7 @@ export const authRouter = createTRPCRouter({
                 credentialID: cred.credentialId,
                 publicKey: cred.publicKey,
                 counter: Number(cred.counter),
-                deviceType: cred.deviceType,
+                deviceType: normalizeWebAuthnDeviceType(cred.deviceType),
                 backedUp: cred.backedUp,
                 transports: cred.transports ? JSON.parse(cred.transports) : undefined,
             }))
@@ -1918,7 +1944,8 @@ export const authRouter = createTRPCRouter({
 
             // Find the credential being used
             // The response.id is already base64url encoded
-            const credentialId = input.response.id
+            const response = input.response as AuthenticationResponseJSON
+            const credentialId = response.id
             const credential = user.mfaCredentials.find((c) => c.credentialId === credentialId)
 
             if (!credential) {
@@ -1933,13 +1960,13 @@ export const authRouter = createTRPCRouter({
                 credentialID: credential.credentialId,
                 publicKey: credential.publicKey,
                 counter: Number(credential.counter),
-                deviceType: credential.deviceType,
+                deviceType: normalizeWebAuthnDeviceType(credential.deviceType),
                 backedUp: credential.backedUp,
                 transports: credential.transports ? JSON.parse(credential.transports) : undefined,
             }
 
             const result = await verifyWebAuthnAuthentication(
-                input.response,
+                response,
                 expectedChallenge,
                 credentialData
             )
@@ -3038,7 +3065,8 @@ export const authRouter = createTRPCRouter({
             const headersList = await headers()
             const origin = headersList.get("origin") || headersList.get("referer") || undefined
             
-            const result = await verifyWebAuthnRegistration(input.response, expectedChallenge, origin)
+            const response = input.response as RegistrationResponseJSON
+            const result = await verifyWebAuthnRegistration(response, expectedChallenge, origin)
 
             if (!result.verified || !result.credential) {
                 throw new TRPCError({
@@ -3108,15 +3136,6 @@ export const authRouter = createTRPCRouter({
             }
 
             const { generateWebAuthnAuthenticationOptions } = await import("@/lib/webauthn")
-            
-            const credentials = user.passkeyCredentials.map((cred) => ({
-                credentialID: cred.credentialId,
-                publicKey: cred.publicKey,
-                counter: Number(cred.counter),
-                deviceType: cred.deviceType as "singleDevice" | "multiDevice" | undefined,
-                backedUp: cred.backedUp,
-                transports: cred.transports ? JSON.parse(cred.transports) : undefined,
-            }))
 
             // Get origin from headers
             const headersList = await headers()
@@ -3193,7 +3212,8 @@ export const authRouter = createTRPCRouter({
             }
 
             // Find the credential being used
-            const credentialId = input.response.id
+            const response = input.response as AuthenticationResponseJSON
+            const credentialId = response.id
             
             // Try to find credential with exact match first
             let credential = user.passkeyCredentials.find((c) => c.credentialId === credentialId)
@@ -3213,8 +3233,8 @@ export const authRouter = createTRPCRouter({
             }
             
             // Also try matching rawId if provided
-            if (!credential && input.response.rawId) {
-                credential = user.passkeyCredentials.find((c) => c.credentialId === input.response.rawId)
+            if (!credential && response.rawId) {
+                credential = user.passkeyCredentials.find((c) => c.credentialId === response.rawId)
             }
 
             if (!credential) {
@@ -3239,7 +3259,7 @@ export const authRouter = createTRPCRouter({
             const origin = headersList.get("origin") || headersList.get("referer") || undefined
 
             const verification = await verifyWebAuthnAuthentication(
-                input.response,
+                response,
                 storedData.challenge,
                 credentialData,
                 origin

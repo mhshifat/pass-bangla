@@ -3,7 +3,7 @@
 import { serverTrpc } from "@/trpc/server-caller"
 import { revalidatePath } from "next/cache"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
-import { generateCorrelationId, logError } from "@/lib/correlation-id-util"
+import { generateCorrelationId, logError, sanitizeClientErrorMessage } from "@/lib/correlation-id-util"
 
 type ServerActionResult = {
   error?: string;
@@ -24,7 +24,9 @@ export async function setupMfaAction(_prevState: unknown, formData: FormData) {
   } catch (err) {
     if (isRedirectError(err)) throw err
     logError(correlationId, err, { action: "setupMfa" })
-    const message = err instanceof Error ? err.message : "MFA setup failed";
-    return { success: false, error: message, correlationId }
+    const fallbackMessage = "MFA setup failed"
+    const message = err instanceof Error ? err.message : fallbackMessage
+    const safeMessage = sanitizeClientErrorMessage(message, fallbackMessage)
+    return { success: false, error: safeMessage, correlationId }
   }
 }

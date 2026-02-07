@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { serverTrpc } from "@/trpc/server-caller"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
-import { generateCorrelationId, logError } from "@/lib/correlation-id-util"
+import { generateCorrelationId, logError, sanitizeClientErrorMessage } from "@/lib/correlation-id-util"
 
 type ServerActionResult = {
   error?: string;
@@ -35,7 +35,9 @@ export async function verifyMfaAction(
   } catch (err) {
     if (isRedirectError(err)) throw err
     logError(correlationId, err, { action: "verifyMfa" })
-    const message = err instanceof Error ? err.message : "MFA verification failed"
-    return { success: false, error: message, correlationId }
+    const fallbackMessage = "MFA verification failed"
+    const message = err instanceof Error ? err.message : fallbackMessage
+    const safeMessage = sanitizeClientErrorMessage(message, fallbackMessage)
+    return { success: false, error: safeMessage, correlationId }
   }
 }

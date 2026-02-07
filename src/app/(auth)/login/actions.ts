@@ -4,7 +4,7 @@ import { redirect } from "next/navigation"
 import { serverTrpc } from "@/trpc/server-caller"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
 import { TRPCError } from "@trpc/server"
-import { generateCorrelationId, logError, formatErrorWithCorrelationId } from "@/lib/correlation-id-util"
+import { generateCorrelationId, logError, formatErrorWithCorrelationId, sanitizeClientErrorMessage } from "@/lib/correlation-id-util"
 
 type FieldErrors = {
   [key: string]: string
@@ -30,6 +30,7 @@ export async function loginAction(
   formData: FormData
 ): Promise<LoginActionResult> {
   const correlationId = generateCorrelationId();
+  const company = formData.get("company") as string | null
   const email = formData.get("email") as string
   const password = formData.get("password") as string
   const captchaToken = formData.get("captchaToken") as string | null
@@ -37,7 +38,8 @@ export async function loginAction(
 
   try {
     const trpc = await serverTrpc()
-    const { mfaRequired, mfaSetupRequired } = await trpc.auth.login({ 
+    const { mfaRequired, mfaSetupRequired } = await trpc.auth.login({
+      company: company || undefined,
       email, 
       password,
       captchaToken: captchaToken || undefined,
@@ -59,16 +61,19 @@ export async function loginAction(
     // Log error with correlation ID
     logError(correlationId, error, {
       action: "login",
+      company: company || "none",
       email,
     });
     
     // Handle tRPC errors
     if (error instanceof TRPCError) {
+      const fallbackMessage = "Invalid email or password"
+      const safeErrorMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
       // Handle CAPTCHA requirement
       if (error.code === "PRECONDITION_FAILED" && error.cause && typeof error.cause === "object" && "requiresCaptcha" in error.cause) {
         const cause = error.cause as { requiresCaptcha: boolean; captchaToken?: string; captchaQuestion?: string; correlationId?: string }
         return {
-          error: error.message,
+          error: safeErrorMessage,
           correlationId: cause.correlationId || correlationId,
           requiresCaptcha: true,
           captchaToken: cause.captchaToken,
@@ -95,7 +100,7 @@ export async function loginAction(
         } catch {
           // If parsing fails, return the message as a root error
           return {
-            error: error.message,
+            error: safeErrorMessage,
             correlationId: (error as ErrorWithCause).cause?.correlationId || correlationId,
           }
         }
@@ -103,15 +108,17 @@ export async function loginAction(
 
       // For other tRPC errors, return the message with correlation ID
       return {
-        error: error.message,
+        error: safeErrorMessage,
         correlationId: (error as ErrorWithCause).cause?.correlationId || correlationId,
       }
     }
     
-    const message = error instanceof Error ? error.message : "Invalid email or password"
+    const fallbackMessage = "Invalid email or password"
+    const message = error instanceof Error ? error.message : fallbackMessage
+    const safeMessage = sanitizeClientErrorMessage(message, fallbackMessage)
     return { 
-      error: formatErrorWithCorrelationId(message, correlationId), 
-      correlationId 
+      error: formatErrorWithCorrelationId(safeMessage, correlationId), 
+      correlationId,
     }
   }
 }

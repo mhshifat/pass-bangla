@@ -3,16 +3,8 @@
 import { serverTrpc } from "@/trpc/server-caller"
 import { TRPCError } from "@trpc/server"
 import { revalidatePath } from "next/cache"
-import { generateCorrelationId, logError } from "@/lib/correlation-id-util"
+import { generateCorrelationId, logError, sanitizeClientErrorMessage } from "@/lib/correlation-id-util"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
-
-type ServerActionResult = {
-  error?: string;
-  correlationId?: string;
-  fieldErrors?: Record<string, string>;
-  success?: boolean;
-} | { success: true };
-
 
 export async function updateRolePermissionsAction(
   roleId: string,
@@ -32,11 +24,13 @@ export async function updateRolePermissionsAction(
     if (isRedirectError(error)) throw error
     logError(correlationId, error, { action: "updateRolePermissionsAction", roleId })
     if (error instanceof TRPCError) {
-      return { error: error.message, correlationId }
+      const safeMessage = sanitizeClientErrorMessage(error.message, "Failed to update permissions")
+      return { error: safeMessage, correlationId }
     }
 
     const message = error instanceof Error ? error.message : "Failed to update permissions"
-    return { error: message, correlationId }
+    const safeMessage = sanitizeClientErrorMessage(message, "Failed to update permissions")
+    return { error: safeMessage, correlationId }
   }
 }
 

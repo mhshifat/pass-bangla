@@ -3,20 +3,12 @@
 import { serverTrpc } from "@/trpc/server-caller"
 import { TRPCError } from "@trpc/server"
 import { revalidatePath } from "next/cache"
-import { generateCorrelationId, logError } from "@/lib/correlation-id-util"
+import { generateCorrelationId, logError, sanitizeClientErrorMessage } from "@/lib/correlation-id-util"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
 
 type FieldErrors = {
   [key: string]: string
 }
-
-type ServerActionResult = {
-  error?: string;
-  correlationId?: string;
-  fieldErrors?: Record<string, string>;
-  success?: boolean;
-} | { success: true };
-
 
 export async function createTeamAction(
   prevState: { error?: string; fieldErrors?: FieldErrors; success?: boolean; correlationId?: string } | null,
@@ -38,6 +30,7 @@ export async function createTeamAction(
   } catch (error: unknown) {
     if (isRedirectError(error)) throw error
     logError(correlationId, error, { action: "createTeamAction", name })
+    const fallbackMessage = "Failed to create team"
     // Handle tRPC errors
     if (error instanceof TRPCError) {
       // Check if it's a validation error
@@ -58,16 +51,19 @@ export async function createTeamAction(
           }
         } catch {
           // If parsing fails, return the message as a root error
-          return { error: `${error.message} (ID: ${correlationId})`, correlationId }
+          const safeMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
+          return { error: `${safeMessage} (ID: ${correlationId})`, correlationId }
         }
       }
 
       // For other tRPC errors, return the message
-      return { error: `${error.message} (ID: ${correlationId})`, correlationId }
+      const safeMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
+      return { error: `${safeMessage} (ID: ${correlationId})`, correlationId }
     }
 
-    const message = error instanceof Error ? error.message : "Failed to create team"
-    return { error: `${message} (ID: ${correlationId})`, correlationId }
+    const message = error instanceof Error ? error.message : fallbackMessage
+    const safeMessage = sanitizeClientErrorMessage(message, fallbackMessage)
+    return { error: `${safeMessage} (ID: ${correlationId})`, correlationId }
   }
 }
 
@@ -93,6 +89,7 @@ export async function updateTeamAction(
   } catch (error: unknown) {
     if (isRedirectError(error)) throw error
     logError(correlationId, error, { action: "updateTeamAction", teamId })
+    const fallbackMessage = "Failed to update team"
     // Handle tRPC errors
     if (error instanceof TRPCError) {
       // Check if it's a validation error
@@ -113,16 +110,19 @@ export async function updateTeamAction(
           }
         } catch {
           // If parsing fails, return the message as a root error
-          return { error: `${error.message} (ID: ${correlationId})`, correlationId }
+          const safeMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
+          return { error: `${safeMessage} (ID: ${correlationId})`, correlationId }
         }
       }
 
       // For other tRPC errors, return the message
-      return { error: `${error.message} (ID: ${correlationId})`, correlationId }
+      const safeMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
+      return { error: `${safeMessage} (ID: ${correlationId})`, correlationId }
     }
 
-    const message = error instanceof Error ? error.message : "Failed to update team"
-    return { error: `${message} (ID: ${correlationId})`, correlationId }
+    const message = error instanceof Error ? error.message : fallbackMessage
+    const safeMessage = sanitizeClientErrorMessage(message, fallbackMessage)
+    return { error: `${safeMessage} (ID: ${correlationId})`, correlationId }
   }
 }
 
@@ -138,11 +138,13 @@ export async function deleteTeamAction(teamId: string) {
     if (isRedirectError(error)) throw error
     logError(correlationId, error, { action: "deleteTeamAction", teamId })
     if (error instanceof TRPCError) {
-      return { error: `${error.message} (ID: ${correlationId})`, correlationId }
+      const safeMessage = sanitizeClientErrorMessage(error.message, "Failed to delete team")
+      return { error: `${safeMessage} (ID: ${correlationId})`, correlationId }
     }
 
     const message = error instanceof Error ? error.message : "Failed to delete team"
-    return { error: `${message} (ID: ${correlationId})`, correlationId }
+    const safeMessage = sanitizeClientErrorMessage(message, "Failed to delete team")
+    return { error: `${safeMessage} (ID: ${correlationId})`, correlationId }
   }
 }
 

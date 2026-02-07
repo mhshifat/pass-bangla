@@ -1,9 +1,8 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
 import { serverTrpc } from "@/trpc/server-caller"
 import { TRPCError } from "@trpc/server"
-import { generateCorrelationId, logError } from "@/lib/correlation-id-util"
+import { generateCorrelationId, logError, sanitizeClientErrorMessage } from "@/lib/correlation-id-util"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
 
 export interface DuplicateResolutionOptions {
@@ -11,13 +10,6 @@ export interface DuplicateResolutionOptions {
   passwordIds: string[]
   keepPasswordId?: string
 }
-
-type ServerActionResult = {
-  error?: string;
-  correlationId?: string;
-  fieldErrors?: Record<string, string>;
-  success?: boolean;
-} | { success: true };
 
 
 export async function findDuplicatesAction(threshold?: number) {
@@ -28,10 +20,12 @@ export async function findDuplicatesAction(threshold?: number) {
   } catch (error: unknown) {
     if (isRedirectError(error)) throw error
     logError(correlationId, error, { action: "findDuplicatesAction", threshold })
+    const fallbackMessage = "Failed to find duplicates"
     if (error instanceof TRPCError) {
-      throw new Error(`${error.message} (ID: ${correlationId})`)
+      const safeMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
+      throw new Error(`${safeMessage} (ID: ${correlationId})`)
     }
-    throw new Error(`Failed to find duplicates (ID: ${correlationId})`)
+    throw new Error(`${fallbackMessage} (ID: ${correlationId})`)
   }
 }
 
@@ -43,10 +37,12 @@ export async function findReusedAction() {
   } catch (error: unknown) {
     if (isRedirectError(error)) throw error
     logError(correlationId, error, { action: "findReusedAction" })
+    const fallbackMessage = "Failed to find reused passwords"
     if (error instanceof TRPCError) {
-      throw new Error(`${error.message} (ID: ${correlationId})`)
+      const safeMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
+      throw new Error(`${safeMessage} (ID: ${correlationId})`)
     }
-    throw new Error(`Failed to find reused passwords (ID: ${correlationId})`)
+    throw new Error(`${fallbackMessage} (ID: ${correlationId})`)
   }
 }
 
@@ -58,10 +54,12 @@ export async function findSimilarAction(threshold?: number) {
   } catch (error: unknown) {
     if (isRedirectError(error)) throw error
     logError(correlationId, error, { action: "findSimilarAction", threshold })
+    const fallbackMessage = "Failed to find similar passwords"
     if (error instanceof TRPCError) {
-      throw new Error(`${error.message} (ID: ${correlationId})`)
+      const safeMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
+      throw new Error(`${safeMessage} (ID: ${correlationId})`)
     }
-    throw new Error(`Failed to find similar passwords (ID: ${correlationId})`)
+    throw new Error(`${fallbackMessage} (ID: ${correlationId})`)
   }
 }
 
@@ -72,14 +70,15 @@ export async function bulkResolveDuplicatesAction(
   try {
     const trpc = await serverTrpc()
     const result = await trpc.passwords.bulkResolveDuplicates(options)
-    revalidatePath("/admin/passwords")
-    return result
+    return Object.assign(result, { correlationId })
   } catch (error: unknown) {
     if (isRedirectError(error)) throw error
     logError(correlationId, error, { action: "bulkResolveDuplicatesAction", options })
+    const fallbackMessage = "Failed to resolve duplicates"
     if (error instanceof TRPCError) {
-      throw new Error(`${error.message} (ID: ${correlationId})`)
+      const safeMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
+      throw new Error(`${safeMessage} (ID: ${correlationId})`)
     }
-    throw new Error(`Failed to resolve duplicates (ID: ${correlationId})`)
+    throw new Error(`${fallbackMessage} (ID: ${correlationId})`)
   }
 }

@@ -3,20 +3,12 @@
 import { serverTrpc } from "@/trpc/server-caller"
 import { TRPCError } from "@trpc/server"
 import { revalidatePath } from "next/cache"
-import { generateCorrelationId, logError } from "@/lib/correlation-id-util"
+import { generateCorrelationId, logError, sanitizeClientErrorMessage } from "@/lib/correlation-id-util"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
 
 type FieldErrors = {
   [key: string]: string
 }
-
-type ServerActionResult = {
-  error?: string;
-  correlationId?: string;
-  fieldErrors?: Record<string, string>;
-  success?: boolean;
-} | { success: true };
-
 
 export async function sharePasswordWithTeamFormAction(
   prevState: { error?: string; fieldErrors?: FieldErrors; success?: boolean; correlationId?: string } | null,
@@ -40,6 +32,7 @@ export async function sharePasswordWithTeamFormAction(
   } catch (error: unknown) {
     if (isRedirectError(error)) throw error
     logError(correlationId, error, { action: "sharePasswordWithTeamFormAction", passwordId, teamId })
+    const fallbackMessage = "Failed to share password with team"
     if (error instanceof TRPCError) {
       if (error.code === "BAD_REQUEST") {
         try {
@@ -57,15 +50,18 @@ export async function sharePasswordWithTeamFormAction(
             return { fieldErrors, correlationId }
           }
         } catch {
-          return { error: `${error.message} (ID: ${correlationId})`, correlationId }
+          const safeMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
+          return { error: `${safeMessage} (ID: ${correlationId})`, correlationId }
         }
       }
 
-      return { error: `${error.message} (ID: ${correlationId})`, correlationId }
+      const safeMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
+      return { error: `${safeMessage} (ID: ${correlationId})`, correlationId }
     }
 
-    const message = error instanceof Error ? error.message : "Failed to share password with team"
-    return { error: `${message} (ID: ${correlationId})`, correlationId }
+    const message = error instanceof Error ? error.message : fallbackMessage
+    const safeMessage = sanitizeClientErrorMessage(message, fallbackMessage)
+    return { error: `${safeMessage} (ID: ${correlationId})`, correlationId }
   }
 }
 
@@ -110,6 +106,7 @@ export async function createPasswordAndShareAction(
   } catch (error: unknown) {
     if (isRedirectError(error)) throw error
     logError(correlationId, error, { action: "createPasswordAndShareAction", teamId })
+    const fallbackMessage = "Failed to create and share password"
     if (error instanceof TRPCError) {
       if (error.code === "BAD_REQUEST") {
         try {
@@ -127,15 +124,18 @@ export async function createPasswordAndShareAction(
             return { fieldErrors, correlationId }
           }
         } catch {
-          return { error: `${error.message} (ID: ${correlationId})`, correlationId }
+          const safeMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
+          return { error: `${safeMessage} (ID: ${correlationId})`, correlationId }
         }
       }
 
-      return { error: `${error.message} (ID: ${correlationId})`, correlationId }
+      const safeMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
+      return { error: `${safeMessage} (ID: ${correlationId})`, correlationId }
     }
 
-    const message = error instanceof Error ? error.message : "Failed to create and share password"
-    return { error: `${message} (ID: ${correlationId})`, correlationId }
+    const message = error instanceof Error ? error.message : fallbackMessage
+    const safeMessage = sanitizeClientErrorMessage(message, fallbackMessage)
+    return { error: `${safeMessage} (ID: ${correlationId})`, correlationId }
   }
 }
 

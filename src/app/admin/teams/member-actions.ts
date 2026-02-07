@@ -3,16 +3,8 @@
 import { serverTrpc } from "@/trpc/server-caller"
 import { TRPCError } from "@trpc/server"
 import { revalidatePath } from "next/cache"
-import { generateCorrelationId, logError } from "@/lib/correlation-id-util"
+import { generateCorrelationId, logError, sanitizeClientErrorMessage } from "@/lib/correlation-id-util"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
-
-type ServerActionResult = {
-  error?: string;
-  correlationId?: string;
-  fieldErrors?: Record<string, string>;
-  success?: boolean;
-} | { success: true };
-
 
 export async function addTeamMemberAction(teamId: string, userId: string, role: "MANAGER" | "MEMBER") {
   const correlationId = generateCorrelationId()
@@ -30,11 +22,13 @@ export async function addTeamMemberAction(teamId: string, userId: string, role: 
     if (isRedirectError(error)) throw error
     logError(correlationId, error, { action: "addTeamMemberAction", teamId, userId })
     if (error instanceof TRPCError) {
-      return { error: error.message, correlationId }
+      const safeMessage = sanitizeClientErrorMessage(error.message, "Failed to add team member")
+      return { error: safeMessage, correlationId }
     }
 
     const message = error instanceof Error ? error.message : "Failed to add team member"
-    return { error: message, correlationId }
+    const safeMessage = sanitizeClientErrorMessage(message, "Failed to add team member")
+    return { error: safeMessage, correlationId }
   }
 }
 
@@ -53,11 +47,13 @@ export async function removeTeamMemberAction(teamId: string, userId: string) {
     if (isRedirectError(error)) throw error
     logError(correlationId, error, { action: "removeTeamMemberAction", teamId, userId })
     if (error instanceof TRPCError) {
-      return { error: error.message, correlationId }
+      const safeMessage = sanitizeClientErrorMessage(error.message, "Failed to remove team member")
+      return { error: safeMessage, correlationId }
     }
 
     const message = error instanceof Error ? error.message : "Failed to remove team member"
-    return { error: message, correlationId }
+    const safeMessage = sanitizeClientErrorMessage(message, "Failed to remove team member")
+    return { error: safeMessage, correlationId }
   }
 }
 
@@ -81,11 +77,13 @@ export async function updateTeamMemberRoleAction(
     if (isRedirectError(error)) throw error
     logError(correlationId, error, { action: "updateTeamMemberRoleAction", teamId, userId })
     if (error instanceof TRPCError) {
-      return { error: error.message, correlationId }
+      const safeMessage = sanitizeClientErrorMessage(error.message, "Failed to update member role")
+      return { error: safeMessage, correlationId }
     }
 
     const message = error instanceof Error ? error.message : "Failed to update member role"
-    return { error: message, correlationId }
+    const safeMessage = sanitizeClientErrorMessage(message, "Failed to update member role")
+    return { error: safeMessage, correlationId }
   }
 }
 

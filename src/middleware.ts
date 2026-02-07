@@ -60,10 +60,9 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/login", req.url))
   }
 
-  // Block /login on main domain (only allow on subdomains)
-  if (!subdomain && pathname.startsWith("/login")) {
-    return NextResponse.redirect(new URL("/register", req.url))
-  }
+  // Allow /login on both main domain and subdomains
+  // On main domain, users will enter their company name
+  // On subdomain, users will login directly to their company
 
   // Create response with subdomain header
   const response = NextResponse.next({

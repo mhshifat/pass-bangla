@@ -9,7 +9,11 @@ import { useTranslation } from "react-i18next"
 import { PasskeyLoginButton } from "./passkey-login-button"
 import { Separator } from "@/components/ui/separator"
 
-export function LoginForm() {
+interface LoginFormProps {
+  isMainDomain: boolean
+}
+
+export function LoginForm({ isMainDomain }: LoginFormProps) {
   const { t } = useTranslation()
   const [state, formAction, isPending] = useActionState(loginAction, null);
   
@@ -89,7 +93,12 @@ export function LoginForm() {
   return (
     <>
       <CardContent>
-        <LoginFormFields formAction={formAction} isPending={isPending} state={state} />
+        <LoginFormFields
+          formAction={formAction}
+          isPending={isPending}
+          state={state}
+          isMainDomain={isMainDomain}
+        />
       </CardContent>
       <CardFooter className="flex flex-col space-y-4">
         <Button type="submit" className="w-full" disabled={isPending} form="login-form">

@@ -4,7 +4,8 @@ import superjson from 'superjson';
 import { headers } from 'next/headers';
 import { getSession } from "@/lib/session";
 import { getUserPermissions, getUserRoleName } from "@/lib/permissions";
-import { generateCorrelationId, logError, formatErrorWithCorrelationId } from "@/lib/correlation-id-util";
+import { generateCorrelationId, logError, formatErrorWithCorrelationId, sanitizeClientErrorMessage } from "@/lib/correlation-id-util";
+import prisma from "@/lib/prisma";
 
 export type Context = {
   userId: string;
@@ -13,8 +14,8 @@ export type Context = {
   subdomain: string | null;
   companyId: string | null;
   userTeams: string[];
-  sessionToken?: string; // Add session token to context for client-side decryption
-  correlationId: string; // Add correlation ID to context
+  sessionToken: string | null; // Session token for client-side decryption
+  correlationId: string; // Correlation ID for request tracking
 };
 
 export const createTRPCContext = cache(async (): Promise<Context> => {
@@ -82,6 +83,7 @@ export const createTRPCContext = cache(async (): Promise<Context> => {
   
   // If no session or no userId, return empty context
   if (!session?.isLoggedIn || !userId) {
+    const correlationId = generateCorrelationId();
     return {
       userId: "",
       userRole: null,
@@ -89,6 +91,8 @@ export const createTRPCContext = cache(async (): Promise<Context> => {
       subdomain,
       companyId: null,
       userTeams: [],
+      sessionToken: null,
+      correlationId,
     };
   }
   
@@ -102,7 +106,7 @@ export const createTRPCContext = cache(async (): Promise<Context> => {
       where: { id: userId },
       select: {
         companyId: true,
-        teamMembers: {
+        teamMemberships: {
           select: { teamId: true },
         },
       },
@@ -110,7 +114,7 @@ export const createTRPCContext = cache(async (): Promise<Context> => {
   );
 
   const companyId = userWithTeams?.companyId || null;
-  const userTeams = userWithTeams?.teamMembers?.map((tm) => tm.teamId) || [];
+  const userTeams = userWithTeams?.teamMemberships?.map((tm: { teamId: string }) => tm.teamId) || [];
 
   const [userRole, permissions] = await Promise.all([
     limit(() => getUserRoleName(userId).catch(() => null)),
@@ -119,11 +123,11 @@ export const createTRPCContext = cache(async (): Promise<Context> => {
   
   // Get session token for client-side decryption
   // Try header first (for extensions), then cookie (for web)
-  let sessionToken = sessionTokenFromHeader;
+  let sessionToken: string | null = sessionTokenFromHeader || null;
   if (!sessionToken) {
     const { cookies } = await import("next/headers");
     const cookieStore = await cookies();
-    sessionToken = cookieStore.get("session")?.value || undefined;
+    sessionToken = cookieStore.get("session")?.value || null;
   }
   
   // Generate correlation ID for request tracking
@@ -169,18 +173,26 @@ const errorHandlingMiddleware = t.middleware(async ({ ctx, next }) => {
 
     // If it's a TRPCError, enhance it with correlation ID
     if (error instanceof TRPCError) {
+      const safeMessage = sanitizeClientErrorMessage(
+        error.message,
+        "Something went wrong. Please try again."
+      );
       throw new TRPCError({
         ...error,
-        message: formatErrorWithCorrelationId(error.message, ctx.correlationId),
+        message: formatErrorWithCorrelationId(safeMessage, ctx.correlationId),
         cause: {
-          ...((error.cause as Record<string, unknown>) || {}),
+          ...((error.cause as unknown as Record<string, unknown>) || {}),
           correlationId: ctx.correlationId,
         },
       });
     }
 
     // For other errors, wrap them in a TRPCError with correlation ID
-    const message = error instanceof Error ? error.message : "An unexpected error occurred";
+    const rawMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+    const message = sanitizeClientErrorMessage(
+      rawMessage,
+      "Something went wrong. Please try again."
+    );
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",
       message: formatErrorWithCorrelationId(message, ctx.correlationId),

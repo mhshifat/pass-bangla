@@ -5,6 +5,7 @@ import { AlertCircle, Copy, Check } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 interface ErrorWithCorrelationIdProps {
   message: string;
@@ -36,7 +37,7 @@ export const ErrorWithCorrelationId: React.FC<ErrorWithCorrelationIdProps> = ({
   };
 
   return (
-    <Alert variant={variant} className={className}>
+    <Alert variant={variant} className={cn("mb-5", className)}>
       <AlertCircle className="h-4 w-4" />
       <AlertDescription className="flex flex-col gap-2">
         <div>{message}</div>
