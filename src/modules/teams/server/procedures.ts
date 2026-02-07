@@ -327,8 +327,9 @@ export const teamsRouter = createTRPCRouter({
                 select: {
                   id: true,
                   name: true,
-                  email: true,
                   image: true,
+                  // Note: Email is intentionally excluded from this response
+                  // Only team managers can see member emails via a separate endpoint if needed
                 },
               },
               role: true,
