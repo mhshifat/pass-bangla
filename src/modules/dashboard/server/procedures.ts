@@ -95,32 +95,29 @@ export const dashboardRouter = createTRPCRouter({
           : Promise.resolve(0),
       ])
 
-      // Calculate changes (simplified - in real app, compare with previous period)
-      const userChange = "+12%"
-      const passwordChange = "+8%"
-      const teamChange = "+2"
-      const securityChange = "-15%"
+      // Calculate changes - show neutral when totals are low/zero
+      // In production, these would be calculated by comparing with previous period data
 
       return {
         users: {
           total: userStats,
-          change: userChange,
-          changeType: "positive" as const,
+          change: "+0%",
+          changeType: "neutral" as const,
         },
         passwords: {
           total: passwordStats,
-          change: passwordChange,
-          changeType: "positive" as const,
+          change: "+0%",
+          changeType: "neutral" as const,
         },
         teams: {
           total: teamStats,
-          change: teamChange,
-          changeType: "positive" as const,
+          change: "+0",
+          changeType: "neutral" as const,
         },
         securityEvents: {
           total: securityEvents,
-          change: securityChange,
-          changeType: "negative" as const,
+          change: "+0%",
+          changeType: "neutral" as const,
         },
       }
     }),
