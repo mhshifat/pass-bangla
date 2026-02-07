@@ -6,6 +6,9 @@ import { trpc } from "@/trpc/client"
  * Hook to get current logged-in user information
  * Works on the client side using tRPC
  * 
+ * When used in layouts that prefetch user data (like admin layout),
+ * this hook will use the prefetched data without making an API call.
+ * 
  * @example
  * ```tsx
  * function MyComponent() {
@@ -22,6 +25,7 @@ export function useCurrentUser() {
   const { data, isLoading, error } = trpc.auth.getCurrentUser.useQuery(undefined, {
     retry: false,
     refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
   })
 
   return {
@@ -31,7 +35,7 @@ export function useCurrentUser() {
     isLoading,
     isAuthenticated: !!data?.user,
     error: error?.message || null,
-    createdById: data?.user.createdById || null,
+    createdById: data?.user?.createdById || null,
   }
 }
 

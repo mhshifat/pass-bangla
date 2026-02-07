@@ -7,7 +7,7 @@ import { trpc } from "@/trpc/client"
 
 /**
  * Component to sync accessibility preferences from user settings
- * This ensures accessibility preferences from database are applied
+ * Uses a lightweight API endpoint to fetch only accessibility preferences
  * Only runs on authenticated pages (not on auth pages like /register, /login)
  */
 export function AccessibilityInitializer() {
@@ -22,9 +22,11 @@ export function AccessibilityInitializer() {
                      pathname?.startsWith("/mfa-setup") ||
                      pathname?.startsWith("/mfa-verify")
   
-  const { data: userProfile } = trpc.users.getProfile.useQuery(undefined, {
+  const { data: accessibilityData } = trpc.users.getAccessibilityPreferences.useQuery(undefined, {
     enabled: mounted && !isAuthPage, // Only fetch on non-auth pages
     retry: false,
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    refetchOnWindowFocus: false, // Don't refetch on window focus
   })
 
   React.useEffect(() => {
@@ -33,16 +35,12 @@ export function AccessibilityInitializer() {
 
   // Load accessibility preferences from user profile
   React.useEffect(() => {
-    if (!mounted || isAuthPage || !userProfile) return
+    if (!mounted || isAuthPage || !accessibilityData) return
     
-    const user = userProfile as unknown as { user?: { preferences?: unknown } }
-    if (!user?.user?.preferences) return
-
-    const preferences = user.user.preferences as Record<string, unknown>
-    if (preferences?.accessibility) {
-      updatePreferences(preferences.accessibility)
+    if (accessibilityData.accessibility) {
+      updatePreferences(accessibilityData.accessibility)
     }
-  }, [mounted, isAuthPage, userProfile, updatePreferences])
+  }, [mounted, isAuthPage, accessibilityData, updatePreferences])
 
   return null
 }

@@ -2,6 +2,8 @@ import { Suspense } from "react"
 import { VerifyEmailRequiredPage } from "@/modules/auth/client/verify-email-required-page"
 import { getCurrentUser } from "@/lib/current-user"
 import { redirect } from "next/navigation"
+import { prefetchCurrentUser } from "@/trpc/server-prefetch"
+import { HydrationBoundary } from "@tanstack/react-query"
 
 // Mark this route as dynamic since it uses cookies()
 export const dynamic = 'force-dynamic'
@@ -20,7 +22,14 @@ async function VerifyEmailRequiredPageContent() {
     redirect("/admin")
   }
 
-  return <VerifyEmailRequiredPage />
+  // Prefetch user data for client-side hydration
+  const dehydratedState = await prefetchCurrentUser()
+
+  return (
+    <HydrationBoundary state={dehydratedState}>
+      <VerifyEmailRequiredPage />
+    </HydrationBoundary>
+  )
 }
 
 export default function VerifyEmailRequiredPageRoute() {

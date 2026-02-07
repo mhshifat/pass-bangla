@@ -13,20 +13,21 @@ import { showErrorFromException } from "@/lib/error-toast"
 export function VerifyEmailRequiredPage() {
   const { t } = useTranslation()
   const router = useRouter()
-  const { data: userData, refetch, isFetching, isRefetching } = trpc.auth.getCurrentUser.useQuery(undefined, {
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
-  })
+  const utils = trpc.useUtils()
   const [emailSent, setEmailSent] = React.useState(false)
   const [isChecking, setIsChecking] = React.useState(false)
+
+  const { data: emailStatus } = trpc.auth.checkEmailVerification.useQuery(undefined, {
+    refetchInterval: 3000, // Poll every 3 seconds to check if email is verified
+  })
 
   const resendMutation = trpc.auth.resendVerificationEmail.useMutation({
     onSuccess: () => {
       setEmailSent(true)
       toast.success(t("auth.emailVerification.emailSent") || "Verification email sent successfully!")
-      // Refetch user data to check if email was verified
+      // Invalidate and refetch email verification status
       setTimeout(() => {
-        refetch()
+        utils.auth.checkEmailVerification.invalidate()
       }, 2000)
     },
     onError: (error) => {
@@ -36,19 +37,10 @@ export function VerifyEmailRequiredPage() {
 
   // Check if email is verified and redirect
   React.useEffect(() => {
-    if (userData?.user?.emailVerified) {
+    if (emailStatus?.emailVerified !== null) {
       router.replace("/admin")
     }
-  }, [userData?.user?.emailVerified, router])
-
-  // Periodically check if email was verified (in case user verified in another tab)
-  React.useEffect(() => {
-    const interval = setInterval(() => {
-      refetch()
-    }, 3000) // Check every 3 seconds
-
-    return () => clearInterval(interval)
-  }, [refetch])
+  }, [emailStatus?.emailVerified, router])
 
   const handleResend = () => {
     resendMutation.mutate()
@@ -57,7 +49,7 @@ export function VerifyEmailRequiredPage() {
   const handleCheckAgain = async () => {
     setIsChecking(true)
     try {
-      await refetch()
+      await utils.auth.checkEmailVerification.invalidate()
     } finally {
       setIsChecking(false)
     }
@@ -79,15 +71,6 @@ export function VerifyEmailRequiredPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {userData?.user?.email && (
-            <div className="text-center p-4 bg-muted rounded-lg">
-              <p className="text-sm text-muted-foreground mb-1">
-                {t("auth.emailVerification.sentTo") || "Verification email sent to:"}
-              </p>
-              <p className="font-medium">{userData.user.email}</p>
-            </div>
-          )}
-
           {emailSent && (
             <div className="flex items-center gap-2 p-3 bg-green-100 dark:bg-green-900/20 rounded-lg text-green-700 dark:text-green-400 text-sm">
               <CheckCircle2 className="h-4 w-4 shrink-0" />
@@ -117,11 +100,11 @@ export function VerifyEmailRequiredPage() {
 
             <Button
               onClick={handleCheckAgain}
-              disabled={resendMutation.isPending || isChecking || isFetching || isRefetching}
+              disabled={resendMutation.isPending || isChecking}
               className="w-full"
               variant="outline"
             >
-              {isChecking || isFetching || isRefetching ? (
+              {isChecking ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   {t("auth.emailVerification.checking") || "Checking..."}

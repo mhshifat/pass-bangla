@@ -358,7 +358,7 @@ export const authRouter = createTRPCRouter({
                     role,
                     companyId: company.id,
                     emailVerified: null, // Email not verified yet
-                    mfaEnabled: true, // MFA enabled by default - user must set it up
+                    mfaEnabled: false, // MFA enabled by default - user must set it up
                 },
             });
 
@@ -3388,5 +3388,34 @@ export const authRouter = createTRPCRouter({
             })
 
             return { success: true }
+        }),
+    checkEmailVerification: baseProcedure
+        .query(async () => {
+            const session = await getSession();
+            
+            if (!session) {
+                throw new TRPCError({
+                    code: "UNAUTHORIZED",
+                    message: "Not authenticated",
+                });
+            }
+
+            const user = await prisma.user.findUnique({
+                where: { id: session.userId },
+                select: {
+                    emailVerified: true,
+                },
+            });
+
+            if (!user) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "User not found",
+                });
+            }
+
+            return {
+                emailVerified: user.emailVerified,
+            };
         }),
 });

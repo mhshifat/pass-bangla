@@ -1,6 +1,5 @@
 "use client"
 
-import * as React from "react"
 import { useTranslation } from "react-i18next"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -21,7 +20,11 @@ import { PasskeyManagement } from "./passkey-management"
 
 export function EnhancedProfilePage() {
   const { t } = useTranslation()
-  const { data, isLoading, error, refetch } = trpc.users.getProfile.useQuery()
+  const { data, isLoading, error, refetch } = trpc.users.getProfile.useQuery(undefined, {
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+  })
 
   if (isLoading) {
     return (
@@ -109,7 +112,13 @@ export function EnhancedProfilePage() {
         </TabsContent>
 
         <TabsContent value="preferences" className="space-y-6">
-          <UserPreferences user={data.user} onUpdate={refetch} />
+          <UserPreferences 
+            user={{
+              id: data.user.id,
+              preferences: (data.user.preferences as { language?: string; theme?: "light" | "dark" | "system" } | null) || undefined
+            }} 
+            onUpdate={refetch} 
+          />
         </TabsContent>
 
         <TabsContent value="activity" className="space-y-6">

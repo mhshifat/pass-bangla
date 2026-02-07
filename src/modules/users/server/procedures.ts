@@ -1765,4 +1765,38 @@ export const usersRouter = createTRPCRouter({
 
       return { success: true, completedSteps }
     }),
+  getAccessibilityPreferences: baseProcedure
+    .use(async ({ ctx, next }) => {
+      // Check if user is authenticated
+      if (!ctx.userId) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "You must be logged in to view accessibility preferences",
+        })
+      }
+      return next({ ctx })
+    })
+    .query(async ({ ctx }) => {
+      const user = await prisma.user.findUnique({
+        where: { id: ctx.userId },
+        select: {
+          preferences: true,
+        },
+      })
+
+      if (!user) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "User not found",
+        })
+      }
+
+      // Extract only accessibility preferences
+      const preferences = user.preferences as Record<string, unknown> | null
+      const accessibility = preferences?.accessibility || null
+
+      return {
+        accessibility,
+      }
+    }),
 })

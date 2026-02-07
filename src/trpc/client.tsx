@@ -1,7 +1,7 @@
 'use client';
 import superjson from 'superjson';
 import type { QueryClient } from '@tanstack/react-query';
-import { QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider, HydrationBoundary } from '@tanstack/react-query';
 import { httpBatchLink } from '@trpc/client';
 import { createTRPCReact } from '@trpc/react-query';
 import { useState } from 'react';
@@ -33,6 +33,7 @@ function getUrl() {
 export function TRPCReactProvider(
   props: Readonly<{
     children: React.ReactNode;
+    dehydratedState?: unknown;
   }>,
 ) {
   // NOTE: Avoid useState when initializing the query client if you don't
@@ -53,7 +54,9 @@ export function TRPCReactProvider(
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
-        {props.children}
+        <HydrationBoundary state={props.dehydratedState}>
+          {props.children}
+        </HydrationBoundary>
       </QueryClientProvider>
     </trpc.Provider>
   );

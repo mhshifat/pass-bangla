@@ -1,8 +1,17 @@
 import { Suspense } from "react"
 import { VerifyEmailPage } from "@/modules/auth/client/verify-email-page"
+import { prefetchCurrentUser } from "@/trpc/server-prefetch"
+import { HydrationBoundary } from "@tanstack/react-query"
 
-function VerifyEmailPageContent() {
-  return <VerifyEmailPage />
+async function VerifyEmailPageContent() {
+  // Prefetch user data for client-side hydration (user may or may not be logged in)
+  const dehydratedState = await prefetchCurrentUser()
+  
+  return (
+    <HydrationBoundary state={dehydratedState}>
+      <VerifyEmailPage />
+    </HydrationBoundary>
+  )
 }
 
 export default function VerifyEmailPageRoute() {

@@ -7,9 +7,9 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { AppSidebar } from "@/components/shared/sidebar"
 import { Logo } from "@/components/shared/logo"
 import { cn } from "@/lib/utils"
-import { getUserData } from "./actions"
 import { OnboardingProvider } from "@/modules/onboarding/client"
 import { CommandPaletteProvider } from "@/modules/quick-actions/client"
+import { useCurrentUser } from "@/hooks/use-current-user"
 
 export function AdminLayoutClient({
   children,
@@ -17,17 +17,9 @@ export function AdminLayoutClient({
   children: React.ReactNode
 }) {
   const [isCollapsed, setIsCollapsed] = React.useState(false)
-  const [user, setUser] = React.useState<{
-    id: string
-    name: string
-    email: string
-    image?: string | null
-    role: string
-  } | null>(null)
-
-  React.useEffect(() => {
-    getUserData().then(setUser)
-  }, [])
+  
+  // Use the prefetched user data from the server
+  const { user, isLoading } = useCurrentUser()
 
   // Prevent body scrolling when in admin layout
   React.useEffect(() => {
@@ -43,7 +35,8 @@ export function AdminLayoutClient({
     setIsCollapsed(!isCollapsed)
   }
 
-  if (!user) {
+  // Show nothing while loading (this should be instant with SSR prefetching)
+  if (isLoading || !user) {
     return null
   }
 
@@ -57,7 +50,17 @@ export function AdminLayoutClient({
             isCollapsed ? "w-16" : "w-64"
           )}
         >
-          <AppSidebar user={user} isCollapsed={isCollapsed} onToggleCollapse={toggleCollapse} />
+          <AppSidebar 
+            user={{
+              id: user.id,
+              name: user.name,
+              email: user.email,
+              image: user.image,
+              role: user.role,
+            }} 
+            isCollapsed={isCollapsed} 
+            onToggleCollapse={toggleCollapse} 
+          />
         </aside>
 
         {/* Main Content */}
@@ -75,7 +78,17 @@ export function AdminLayoutClient({
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-64 p-0">
-                <AppSidebar user={user} isCollapsed={false} onToggleCollapse={() => {}} />
+                <AppSidebar 
+                  user={{
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    image: user.image,
+                    role: user.role,
+                  }} 
+                  isCollapsed={false} 
+                  onToggleCollapse={() => {}} 
+                />
               </SheetContent>
             </Sheet>
           </header>
