@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
+import { PasswordInput } from "@/components/ui/password-input"
 import { Switch } from "@/components/ui/switch"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -199,12 +200,13 @@ export function ExportPasswordDialog({
                   <Label htmlFor="encryptionKey">
                     {t("passwords.export.encryptionKey")}
                   </Label>
-                  <Input
+                  <PasswordInput
                     id="encryptionKey"
-                    type="password"
                     value={encryptionKey}
                     onChange={(e) => setEncryptionKey(e.target.value)}
                     placeholder={t("passwords.export.encryptionKeyPlaceholder")}
+                    showToggleButton={true}
+                    showGenerateButton={false}
                   />
                 </div>
               )}

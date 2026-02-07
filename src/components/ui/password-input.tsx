@@ -3,12 +3,13 @@
 import * as React from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Key } from "lucide-react"
+import { Eye, EyeOff, Key } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface PasswordInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   onGenerate?: () => void
   showGenerateButton?: boolean
+  showToggleButton?: boolean
 }
 
 /**
@@ -49,38 +50,75 @@ export function generateStrongPassword(length: number = 16): string {
 }
 
 export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
-  ({ className, onGenerate, showGenerateButton = true, type = "password", ...props }, ref) => {
+  ({ className, onGenerate, showGenerateButton = false, showToggleButton = true, type = "password", ...props }, ref) => {
+    const [showPassword, setShowPassword] = React.useState(false)
+    
     const handleGenerate = () => {
       if (onGenerate) {
         onGenerate()
       }
     }
 
-    if (!showGenerateButton) {
-      return <Input ref={ref} type={type} className={className} {...props} />
+    const togglePasswordVisibility = () => {
+      setShowPassword((prev) => !prev)
     }
+
+    const hasButtons = showGenerateButton || showToggleButton
+    const inputType = showPassword ? "text" : "password"
+
+    if (!hasButtons) {
+      return <Input ref={ref} type={inputType} className={className} {...props} />
+    }
+
+    // Calculate padding based on number of buttons
+    const buttonCount = (showGenerateButton ? 1 : 0) + (showToggleButton ? 1 : 0)
+    const paddingRight = buttonCount === 2 ? "pr-20" : "pr-10"
 
     return (
       <div className="relative">
         <Input
           ref={ref}
-          type={type}
-          className={cn("pr-10", className)}
+          type={inputType}
+          className={cn(paddingRight, className)}
           {...props}
         />
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-          onClick={handleGenerate}
-          disabled={props.disabled}
-          title="Generate strong password"
-        >
-          <Key className="h-4 w-4 text-muted-foreground" />
-        </Button>
+        <div className="absolute right-0 top-0 h-full flex items-center">
+          {showToggleButton && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-full px-3 py-2 hover:bg-transparent"
+              onClick={togglePasswordVisibility}
+              disabled={props.disabled}
+              title={showPassword ? "Hide password" : "Show password"}
+              tabIndex={-1}
+            >
+              {showPassword ? (
+                <EyeOff className="h-4 w-4 text-muted-foreground" />
+              ) : (
+                <Eye className="h-4 w-4 text-muted-foreground" />
+              )}
+            </Button>
+          )}
+          {showGenerateButton && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-full px-3 py-2 hover:bg-transparent"
+              onClick={handleGenerate}
+              disabled={props.disabled}
+              title="Generate strong password"
+              tabIndex={-1}
+            >
+              <Key className="h-4 w-4 text-muted-foreground" />
+            </Button>
+          )}
+        </div>
       </div>
     )
   }
 )
 PasswordInput.displayName = "PasswordInput"
+

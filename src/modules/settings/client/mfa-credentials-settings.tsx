@@ -4,6 +4,7 @@ import { useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { PasswordInput } from "@/components/ui/password-input"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form"
@@ -157,11 +158,12 @@ export function MfaCredentialsSettings() {
                 <FormItem>
                   <FormLabel>{t("settings.mfaCredentialsSettings.smsAuthToken")}</FormLabel>
                   <FormControl>
-                    <Input
-                      type="password"
+                    <PasswordInput
                       placeholder={t("settings.mfaCredentialsSettings.smsAuthTokenPlaceholder")}
                       {...field}
                       disabled={!canEdit}
+                      showToggleButton={true}
+                      showGenerateButton={false}
                     />
                   </FormControl>
                   <FormDescription>

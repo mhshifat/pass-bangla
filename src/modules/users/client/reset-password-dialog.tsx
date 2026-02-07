@@ -93,11 +93,12 @@ export function ResetPasswordDialog({
             <Label htmlFor="newPassword">{t("users.newPassword")}</Label>
             <PasswordInput
               id="newPassword"
-              type="password"
               placeholder="••••••••"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               disabled={isLoading}
+              showToggleButton={true}
+              showGenerateButton={true}
               onGenerate={() => setNewPassword(generateStrongPassword(16))}
             />
             <p className="text-xs text-muted-foreground">
@@ -107,13 +108,14 @@ export function ResetPasswordDialog({
 
           <div className="space-y-2">
             <Label htmlFor="confirmPassword">{t("users.confirmPassword")}</Label>
-            <Input
+            <PasswordInput
               id="confirmPassword"
-              type="password"
               placeholder="••••••••"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               disabled={isLoading}
+              showToggleButton={true}
+              showGenerateButton={false}
             />
           </div>
         </div>

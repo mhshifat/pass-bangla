@@ -8,6 +8,7 @@ import * as z from "zod"
 import { AuthCard } from "./auth-card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { PasswordInput } from "@/components/ui/password-input"
 import {
   Form,
   FormControl,
@@ -137,12 +138,13 @@ export function ResetPasswordViaQuestionsPage() {
                     <FormControl>
                       <div className="relative">
                         <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                        <Input
+                        <PasswordInput
                           {...field}
-                          type="password"
                           placeholder={t("auth.newPasswordPlaceholder")}
                           className="pl-10"
                           disabled={resetPasswordMutation.isPending}
+                          showToggleButton={true}
+                          showGenerateButton={false}
                         />
                       </div>
                     </FormControl>
@@ -163,12 +165,13 @@ export function ResetPasswordViaQuestionsPage() {
                     <FormControl>
                       <div className="relative">
                         <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                        <Input
+                        <PasswordInput
                           {...field}
-                          type="password"
                           placeholder={t("auth.confirmPasswordPlaceholder")}
                           className="pl-10"
                           disabled={resetPasswordMutation.isPending}
+                          showToggleButton={true}
+                          showGenerateButton={false}
                         />
                       </div>
                     </FormControl>

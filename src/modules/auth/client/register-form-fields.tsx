@@ -138,6 +138,8 @@ export function RegisterFormFields({ formAction, isPending, state }: RegisterFor
                       placeholder="••••••••"
                       className="pl-10"
                       disabled={isPending}
+                      showToggleButton={true}
+                      showGenerateButton={true}
                       {...field}
                       onGenerate={() => {
                         const generated = generateStrongPassword(16)
@@ -162,11 +164,12 @@ export function RegisterFormFields({ formAction, isPending, state }: RegisterFor
                 <FormControl>
                   <div className="relative">
                     <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input
-                      type="password"
+                    <PasswordInput
                       placeholder="••••••••"
                       className="pl-10"
                       disabled={isPending}
+                      showToggleButton={true}
+                      showGenerateButton={false}
                       {...field}
                     />
                   </div>

@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { PasswordInput, generateStrongPassword } from "@/components/ui/password-input"
-import { Loader2, Eye, EyeOff } from "lucide-react"
+import { Loader2 } from "lucide-react"
 import { showErrorFromException } from "@/lib/error-toast"
 
 const changePasswordSchema = z.object({
@@ -28,9 +28,6 @@ type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>
 
 export function ChangePasswordForm() {
   const { t } = useTranslation()
-  const [showCurrentPassword, setShowCurrentPassword] = React.useState(false)
-  const [showNewPassword, setShowNewPassword] = React.useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false)
 
   const utils = trpc.useUtils()
   
@@ -82,28 +79,13 @@ export function ChangePasswordForm() {
                 <FormItem>
                   <FormLabel>{t("profile.currentPassword")}</FormLabel>
                   <FormControl>
-                    <div className="relative">
-                      <Input
-                        type={showCurrentPassword ? "text" : "password"}
-                        {...field}
-                        placeholder={t("profile.currentPasswordPlaceholder")}
-                        disabled={isLoading}
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                        disabled={isLoading}
-                      >
-                        {showCurrentPassword ? (
-                          <EyeOff className="h-4 w-4 text-muted-foreground" />
-                        ) : (
-                          <Eye className="h-4 w-4 text-muted-foreground" />
-                        )}
-                      </Button>
-                    </div>
+                    <PasswordInput
+                      {...field}
+                      placeholder={t("profile.currentPasswordPlaceholder")}
+                      disabled={isLoading}
+                      showToggleButton={true}
+                      showGenerateButton={false}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -117,33 +99,18 @@ export function ChangePasswordForm() {
                 <FormItem>
                   <FormLabel>{t("profile.newPassword")}</FormLabel>
                   <FormControl>
-                    <div className="relative">
-                      <PasswordInput
-                        type={showNewPassword ? "text" : "password"}
-                        {...field}
-                        placeholder={t("profile.newPasswordPlaceholder")}
-                        disabled={isLoading}
-                        onGenerate={() => {
-                          const generated = generateStrongPassword(16)
-                          form.setValue("newPassword", generated)
-                          field.onChange({ target: { value: generated } })
-                        }}
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-10 top-0 h-full px-3 py-2 hover:bg-transparent"
-                        onClick={() => setShowNewPassword(!showNewPassword)}
-                        disabled={isLoading}
-                      >
-                        {showNewPassword ? (
-                          <EyeOff className="h-4 w-4 text-muted-foreground" />
-                        ) : (
-                          <Eye className="h-4 w-4 text-muted-foreground" />
-                        )}
-                      </Button>
-                    </div>
+                    <PasswordInput
+                      {...field}
+                      placeholder={t("profile.newPasswordPlaceholder")}
+                      disabled={isLoading}
+                      showToggleButton={true}
+                      showGenerateButton={true}
+                      onGenerate={() => {
+                        const generated = generateStrongPassword(16)
+                        form.setValue("newPassword", generated)
+                        field.onChange({ target: { value: generated } })
+                      }}
+                    />
                   </FormControl>
                   <p className="text-xs text-muted-foreground">
                     {t("profile.newPasswordDescription")}
@@ -160,28 +127,13 @@ export function ChangePasswordForm() {
                 <FormItem>
                   <FormLabel>{t("profile.confirmPassword")}</FormLabel>
                   <FormControl>
-                    <div className="relative">
-                      <Input
-                        type={showConfirmPassword ? "text" : "password"}
-                        {...field}
-                        placeholder={t("profile.confirmPasswordPlaceholder")}
-                        disabled={isLoading}
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        disabled={isLoading}
-                      >
-                        {showConfirmPassword ? (
-                          <EyeOff className="h-4 w-4 text-muted-foreground" />
-                        ) : (
-                          <Eye className="h-4 w-4 text-muted-foreground" />
-                        )}
-                      </Button>
-                    </div>
+                    <PasswordInput
+                      {...field}
+                      placeholder={t("profile.confirmPasswordPlaceholder")}
+                      disabled={isLoading}
+                      showToggleButton={true}
+                      showGenerateButton={false}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -216,6 +216,8 @@ export function UserFormDialog({
                       <PasswordInput
                         placeholder="••••••••"
                         {...field}
+                        showToggleButton={true}
+                        showGenerateButton={true}
                         onGenerate={() => {
                           const generated = generateStrongPassword(16)
                           form.setValue("password", generated)
