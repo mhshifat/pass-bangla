@@ -1,14 +1,14 @@
 "use client"
 
-import { trpc } from "@/trpc/client"
+import { useCurrentUser } from "./use-current-user"
 
 /**
  * Hook to get current user's permissions
+ * Uses the useCurrentUser hook to avoid making a separate API call
+ * Permissions are already included in the getCurrentUser response
  */
 export function usePermissions() {
-  const { data: permissionsData, isLoading } = trpc.auth.getCurrentUserPermissions.useQuery()
-
-  const permissions = permissionsData?.permissions || []
+  const { permissions, isLoading } = useCurrentUser()
 
   const hasPermission = (permissionKey: string) => {
     return permissions.includes(permissionKey)

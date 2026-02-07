@@ -32,6 +32,7 @@ export function useCurrentUser() {
     user: data?.user || null,
     session: data?.session || null,
     shouldVerifyMfa: data?.shouldVerifyMfa || false,
+    permissions: data?.permissions || [], // Expose permissions from getCurrentUser
     isLoading,
     isAuthenticated: !!data?.user,
     error: error?.message || null,

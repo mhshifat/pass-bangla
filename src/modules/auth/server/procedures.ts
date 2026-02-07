@@ -1111,7 +1111,7 @@ export const authRouter = createTRPCRouter({
             return { success: true };
         }),
     getCurrentUser: baseProcedure
-        .query(async () => {
+        .query(async ({ ctx }) => {
             const session = await getSession();
             
             if (!session) {
@@ -1180,6 +1180,7 @@ export const authRouter = createTRPCRouter({
                 shouldVerifyMfa,
                 mfaSetupRequired,
                 mfaMethod: rest.mfaMethod,
+                permissions: ctx.permissions, // Include permissions from context
             };
         }),
     getCurrentUserPermissions: baseProcedure
