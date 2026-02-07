@@ -40,6 +40,13 @@ model Company {
   // Tag relation
   tags Tag[]
 
+  // Additional multi-tenant relations
+  passwords        Password[]
+  auditLogs        AuditLog[]
+  roles            Role[]
+  rotationPolicies PasswordRotationPolicy[]
+  sessions         Session[]
+
   @@index([subdomain])
 }
 
@@ -138,6 +145,7 @@ model Session {
   id                String   @id @default(cuid())
   sessionToken      String   @unique
   userId            String
+  companyId         String? // Company for session isolation
   expires           DateTime
   ipAddress         String?
   userAgent         String?
@@ -149,12 +157,14 @@ model Session {
   lastActiveAt      DateTime @default(now()) // Last activity timestamp
   createdAt         DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([userId, isTrusted])
   @@index([userId, deviceFingerprint])
   @@index([expires])
+  @@index([companyId])
 }
 
 model Password {
@@ -165,6 +175,7 @@ model Password {
   url        String?
   notes      String?
   folderId   String?
+  companyId  String? // Company for multi-tenant isolation
   strength   PasswordStrength @default(MEDIUM)
   hasTotp    Boolean          @default(false)
   totpSecret String? // Encrypted
@@ -177,6 +188,7 @@ model Password {
   // Relations
   owner            User                     @relation("PasswordOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   folder           Folder?                  @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  company          Company?                 @relation(fields: [companyId], references: [id], onDelete: Cascade)
   sharedWith       PasswordShare[]
   temporaryShares  TemporaryPasswordShare[]
   tags             PasswordTag[]
@@ -192,6 +204,7 @@ model Password {
   @@index([folderId])
   @@index([rotationPolicyId])
   @@index([isFavorite])
+  @@index([companyId])
 }
 
 model PasswordHistory {
@@ -207,13 +220,13 @@ model PasswordHistory {
   hasTotp    Boolean
   totpSecret String? // Encrypted
   expiresAt  DateTime?
-  changedBy  String // User ID who made the change
+  changedBy  String? // User ID who made the change (optional for user deletion)
   changeType String           @default("UPDATE") // CREATE, UPDATE, RESTORE
   createdAt  DateTime         @default(now())
 
   // Relations
   passwordEntry Password @relation(fields: [passwordId], references: [id], onDelete: Cascade)
-  changedByUser User     @relation("PasswordHistoryChangedBy", fields: [changedBy], references: [id], onDelete: SetNull)
+  changedByUser User?    @relation("PasswordHistoryChangedBy", fields: [changedBy], references: [id], onDelete: SetNull)
 
   @@index([passwordId])
   @@index([changedBy])
@@ -227,14 +240,14 @@ model PasswordBreach {
   breachCount Int       @default(0)
   hashPrefix  String // First 5 chars of SHA-1 hash (k-anonymity)
   checkedAt   DateTime  @default(now())
-  checkedBy   String // User ID who triggered the check
+  checkedBy   String? // User ID who triggered the check (optional for user deletion)
   resolved    Boolean   @default(false) // User marked as resolved
   resolvedAt  DateTime?
   resolvedBy  String? // User ID who resolved it
 
   // Relations
   password       Password @relation(fields: [passwordId], references: [id], onDelete: Cascade)
-  checkedByUser  User     @relation("PasswordBreachCheckedBy", fields: [checkedBy], references: [id], onDelete: SetNull)
+  checkedByUser  User?    @relation("PasswordBreachCheckedBy", fields: [checkedBy], references: [id], onDelete: SetNull)
   resolvedByUser User?    @relation("PasswordBreachResolvedBy", fields: [resolvedBy], references: [id], onDelete: SetNull)
 
   @@index([passwordId])
@@ -254,16 +267,19 @@ model PasswordRotationPolicy {
   requireApproval Boolean  @default(false) // Require approval before auto-rotation
   isActive        Boolean  @default(true)
   ownerId         String // User who created the policy
+  companyId       String? // Company for multi-tenant isolation
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   // Relations
   owner     User               @relation("PasswordRotationPolicyOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  company   Company?           @relation(fields: [companyId], references: [id], onDelete: Cascade)
   passwords Password[]
   rotations PasswordRotation[]
 
   @@index([ownerId])
   @@index([isActive])
+  @@index([companyId])
 }
 
 model PasswordRotation {
@@ -274,7 +290,7 @@ model PasswordRotation {
   oldPassword  String? // Encrypted old password (optional, for history)
   newPassword  String // Encrypted new password
   rotatedAt    DateTime  @default(now())
-  rotatedBy    String // User ID who performed the rotation
+  rotatedBy    String? // User ID who performed the rotation (optional for user deletion)
   scheduledFor DateTime? // When this rotation was scheduled for
   completedAt  DateTime? // When rotation was actually completed
   status       String    @default("COMPLETED") // COMPLETED, PENDING, FAILED, CANCELLED
@@ -283,7 +299,7 @@ model PasswordRotation {
   // Relations
   password      Password                @relation(fields: [passwordId], references: [id], onDelete: Cascade)
   policy        PasswordRotationPolicy? @relation(fields: [policyId], references: [id], onDelete: SetNull)
-  rotatedByUser User                    @relation("PasswordRotationRotatedBy", fields: [rotatedBy], references: [id], onDelete: SetNull)
+  rotatedByUser User?                   @relation("PasswordRotationRotatedBy", fields: [rotatedBy], references: [id], onDelete: SetNull)
 
   @@index([passwordId])
   @@index([policyId])
@@ -300,7 +316,7 @@ model Folder {
   icon        String?
   color       String?
   parentId    String?
-  companyId   String? // Company that owns this folder
+  companyId   String // Company that owns this folder
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -308,7 +324,7 @@ model Folder {
   parent    Folder?    @relation("FolderHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
   children  Folder[]   @relation("FolderHierarchy")
   passwords Password[]
-  company   Company?   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  company   Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   @@index([parentId])
   @@index([companyId])
@@ -423,6 +439,7 @@ model PasswordTag {
 model AuditLog {
   id         String      @id @default(cuid())
   userId     String?
+  companyId  String? // Company for multi-tenant audit isolation
   action     String
   resource   String
   resourceId String?
@@ -433,7 +450,8 @@ model AuditLog {
   createdAt  DateTime    @default(now())
 
   // Relations
-  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user    User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
   // Note: resourceId is a generic field that can reference any resource type (User, Password, Team, etc.)
   // It does not have a foreign key constraint because it's polymorphic
 
@@ -443,6 +461,7 @@ model AuditLog {
   @@index([action])
   @@index([status])
   @@index([resource])
+  @@index([companyId])
 }
 
 model AuditLogArchive {
@@ -566,19 +585,23 @@ enum RateLimitType {
 
 model Role {
   id          String   @id @default(cuid())
-  name        String   @unique
+  name        String
   description String?
   isSystem    Boolean  @default(false)
+  companyId   String? // null for system roles, set for company-specific roles
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   // Relations
   createdById String?
   createdBy   User?            @relation("RoleCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  company     Company?         @relation(fields: [companyId], references: [id], onDelete: Cascade)
   permissions RolePermission[]
 
+  @@unique([name, companyId]) // Role names unique within company (or globally for system roles)
   @@index([name])
   @@index([createdById])
+  @@index([companyId])
 }
 
 model Permission {

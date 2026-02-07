@@ -147,7 +147,8 @@ export const passwordsRouter = createTRPCRouter({
       // Query passwords that are either:
       // 1. Owned by the user, OR
       // 2. Shared with teams where the user is a member (not expired)
-      const where = {
+      // All passwords must belong to the same company (multi-tenant isolation)
+      const baseWhere = {
         OR: [
           // Passwords owned by the user
           {
@@ -229,6 +230,11 @@ export const passwordsRouter = createTRPCRouter({
             : []),
         ],
       }
+
+      // Add company isolation filter if user belongs to a company
+      const where: Prisma.PasswordWhereInput = ctx.companyId
+        ? { AND: [{ companyId: ctx.companyId }, baseWhere] }
+        : baseWhere
 
       const [passwords, total] = await Promise.all([
         prisma.password.findMany({
@@ -403,6 +409,7 @@ export const passwordsRouter = createTRPCRouter({
           hasTotp: !!input.totpSecret,
           totpSecret: encryptedTotpSecret,
           ownerId: ctx.userId,
+          companyId: ctx.companyId || null,
         },
         select: {
           id: true,
@@ -1455,6 +1462,7 @@ export const passwordsRouter = createTRPCRouter({
               hasTotp: !!item.totpSecret,
               totpSecret: encryptedTotpSecret,
               ownerId: ctx.userId,
+              companyId: ctx.companyId || null,
             },
             select: {
               id: true,

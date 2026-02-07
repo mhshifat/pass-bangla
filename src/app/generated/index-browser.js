@@ -171,6 +171,7 @@ exports.Prisma.SessionScalarFieldEnum = {
   id: 'id',
   sessionToken: 'sessionToken',
   userId: 'userId',
+  companyId: 'companyId',
   expires: 'expires',
   ipAddress: 'ipAddress',
   userAgent: 'userAgent',
@@ -191,6 +192,7 @@ exports.Prisma.PasswordScalarFieldEnum = {
   url: 'url',
   notes: 'notes',
   folderId: 'folderId',
+  companyId: 'companyId',
   strength: 'strength',
   hasTotp: 'hasTotp',
   totpSecret: 'totpSecret',
@@ -243,6 +245,7 @@ exports.Prisma.PasswordRotationPolicyScalarFieldEnum = {
   requireApproval: 'requireApproval',
   isActive: 'isActive',
   ownerId: 'ownerId',
+  companyId: 'companyId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -335,6 +338,7 @@ exports.Prisma.PasswordTagScalarFieldEnum = {
 exports.Prisma.AuditLogScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
+  companyId: 'companyId',
   action: 'action',
   resource: 'resource',
   resourceId: 'resourceId',
@@ -410,6 +414,7 @@ exports.Prisma.RoleScalarFieldEnum = {
   name: 'name',
   description: 'description',
   isSystem: 'isSystem',
+  companyId: 'companyId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   createdById: 'createdById'

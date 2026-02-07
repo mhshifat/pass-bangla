@@ -172,20 +172,28 @@ async function main() {
   for (const roleData of systemRoles) {
     const { permissions, ...roleInfo } = roleData
 
-    // Upsert role
-    const role = await prisma.role.upsert({
-      where: { name: roleInfo.name },
-      update: {
-        description: roleInfo.description,
-        isSystem: true, // Ensure it stays as system role
-      },
-      create: {
-        name: roleInfo.name,
-        description: roleInfo.description,
-        isSystem: true,
-        createdById: null,
-      },
+    // Find existing system role (system roles have null companyId)
+    const existingRole = await prisma.role.findFirst({
+      where: { name: roleInfo.name, companyId: null, isSystem: true },
     })
+
+    // Upsert role
+    const role = existingRole
+      ? await prisma.role.update({
+          where: { id: existingRole.id },
+          data: {
+            description: roleInfo.description,
+            isSystem: true, // Ensure it stays as system role
+          },
+        })
+      : await prisma.role.create({
+          data: {
+            name: roleInfo.name,
+            description: roleInfo.description,
+            isSystem: true,
+            createdById: null,
+          },
+        })
 
     // Get permission IDs for this role
     const permissionIds = permissions

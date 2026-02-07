@@ -133,20 +133,28 @@ async function ensureAllSystemRoles() {
   for (const roleData of systemRoles) {
     const { permissions, ...roleInfo } = roleData;
 
-    // Create or update the role
-    const role = await prisma.role.upsert({
-      where: { name: roleInfo.name },
-      update: {
-        description: roleInfo.description,
-        isSystem: true,
-      },
-      create: {
-        name: roleInfo.name,
-        description: roleInfo.description,
-        isSystem: true,
-        createdById: null,
-      },
+    // Find existing system role (system roles have null companyId)
+    const existingRole = await prisma.role.findFirst({
+      where: { name: roleInfo.name, companyId: null, isSystem: true },
     });
+
+    // Create or update the role
+    const role = existingRole
+      ? await prisma.role.update({
+          where: { id: existingRole.id },
+          data: {
+            description: roleInfo.description,
+            isSystem: true,
+          },
+        })
+      : await prisma.role.create({
+          data: {
+            name: roleInfo.name,
+            description: roleInfo.description,
+            isSystem: true,
+            createdById: null,
+          },
+        });
 
     // Get permission IDs for this role
     const permissionIds = permissions
@@ -205,28 +213,34 @@ async function createSystemRoleWithPermissions(roleName: string, isFirstUser: bo
     ];
   }
 
-  // Create or update the role
-  const role = await prisma.role.upsert({
-    where: { name: roleName },
-    update: {
-      description: isFirstUser 
-        ? "Super Administrator with ultimate system control - can manage roles and system settings"
-        : roleName === "ADMIN"
-        ? "Administrator with elevated permissions"
-        : "Standard user with basic permissions",
-      isSystem: true, // Ensure it stays as system role
-    },
-    create: {
-      name: roleName,
-      description: isFirstUser 
-        ? "Super Administrator with ultimate system control - can manage roles and system settings"
-        : roleName === "ADMIN"
-        ? "Administrator with elevated permissions"
-        : "Standard user with basic permissions",
-      isSystem: true,
-      createdById: null,
-    },
+  // Find existing system role (system roles have null companyId)
+  const existingRole = await prisma.role.findFirst({
+    where: { name: roleName, companyId: null, isSystem: true },
   });
+
+  const roleDescription = isFirstUser 
+    ? "Super Administrator with ultimate system control - can manage roles and system settings"
+    : roleName === "ADMIN"
+    ? "Administrator with elevated permissions"
+    : "Standard user with basic permissions";
+
+  // Create or update the role
+  const role = existingRole
+    ? await prisma.role.update({
+        where: { id: existingRole.id },
+        data: {
+          description: roleDescription,
+          isSystem: true, // Ensure it stays as system role
+        },
+      })
+    : await prisma.role.create({
+        data: {
+          name: roleName,
+          description: roleDescription,
+          isSystem: true,
+          createdById: null,
+        },
+      });
 
   // Delete existing permissions for this role (to ensure correct permissions are set)
   await prisma.rolePermission.deleteMany({
@@ -370,10 +384,14 @@ export const authRouter = createTRPCRouter({
             await ensureSystemRolesExist();
 
             // Verify the assigned role exists and has permissions (should exist after ensureSystemRolesExist)
-            const roleExists = await prisma.role.findUnique({
-                where: { name: role },
+            const roleExists = await prisma.role.findFirst({
+                where: { name: role, companyId: null, isSystem: true },
                 include: {
-                    permissions: true,
+                    permissions: {
+                      include: {
+                        permission: true,
+                      },
+                    },
                 },
             });
 
@@ -1094,6 +1112,7 @@ export const authRouter = createTRPCRouter({
                     data: {
                         sessionToken: sessionToken,
                         userId: user.id,
+                        companyId: user.companyId || null,
                         expires,
                         ipAddress: ipAddress || null,
                         userAgent: userAgent || null,

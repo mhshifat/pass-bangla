@@ -8,10 +8,14 @@ export const passwordRotationRouter = createTRPCRouter({
   // Rotation Policies
   listPolicies: protectedProcedure("password.view")
     .query(async ({ ctx }) => {
+      // Build where clause for policies accessible to user
+      // Show policies owned by user OR policies from the same company
+      const where: Prisma.PasswordRotationPolicyWhereInput = ctx.companyId
+        ? { OR: [{ ownerId: ctx.userId }, { companyId: ctx.companyId }] }
+        : { ownerId: ctx.userId }
+
       const policies = await prisma.passwordRotationPolicy.findMany({
-        where: {
-          ownerId: ctx.userId,
-        },
+        where,
         include: {
           _count: {
             select: {
@@ -79,6 +83,7 @@ export const passwordRotationRouter = createTRPCRouter({
         data: {
           ...input,
           ownerId: ctx.userId,
+          companyId: ctx.companyId || null,
         },
       })
 

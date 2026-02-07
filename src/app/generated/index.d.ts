@@ -4812,6 +4812,11 @@ export namespace Prisma {
     reportTemplates: number
     scheduledReports: number
     tags: number
+    passwords: number
+    auditLogs: number
+    roles: number
+    rotationPolicies: number
+    sessions: number
   }
 
   export type CompanyCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -4831,6 +4836,11 @@ export namespace Prisma {
     reportTemplates?: boolean | CompanyCountOutputTypeCountReportTemplatesArgs
     scheduledReports?: boolean | CompanyCountOutputTypeCountScheduledReportsArgs
     tags?: boolean | CompanyCountOutputTypeCountTagsArgs
+    passwords?: boolean | CompanyCountOutputTypeCountPasswordsArgs
+    auditLogs?: boolean | CompanyCountOutputTypeCountAuditLogsArgs
+    roles?: boolean | CompanyCountOutputTypeCountRolesArgs
+    rotationPolicies?: boolean | CompanyCountOutputTypeCountRotationPoliciesArgs
+    sessions?: boolean | CompanyCountOutputTypeCountSessionsArgs
   }
 
   // Custom InputTypes
@@ -4954,6 +4964,41 @@ export namespace Prisma {
    */
   export type CompanyCountOutputTypeCountTagsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: TagWhereInput
+  }
+
+  /**
+   * CompanyCountOutputType without action
+   */
+  export type CompanyCountOutputTypeCountPasswordsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PasswordWhereInput
+  }
+
+  /**
+   * CompanyCountOutputType without action
+   */
+  export type CompanyCountOutputTypeCountAuditLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AuditLogWhereInput
+  }
+
+  /**
+   * CompanyCountOutputType without action
+   */
+  export type CompanyCountOutputTypeCountRolesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: RoleWhereInput
+  }
+
+  /**
+   * CompanyCountOutputType without action
+   */
+  export type CompanyCountOutputTypeCountRotationPoliciesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PasswordRotationPolicyWhereInput
+  }
+
+  /**
+   * CompanyCountOutputType without action
+   */
+  export type CompanyCountOutputTypeCountSessionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SessionWhereInput
   }
 
 
@@ -5818,6 +5863,11 @@ export namespace Prisma {
     reportTemplates?: boolean | Company$reportTemplatesArgs<ExtArgs>
     scheduledReports?: boolean | Company$scheduledReportsArgs<ExtArgs>
     tags?: boolean | Company$tagsArgs<ExtArgs>
+    passwords?: boolean | Company$passwordsArgs<ExtArgs>
+    auditLogs?: boolean | Company$auditLogsArgs<ExtArgs>
+    roles?: boolean | Company$rolesArgs<ExtArgs>
+    rotationPolicies?: boolean | Company$rotationPoliciesArgs<ExtArgs>
+    sessions?: boolean | Company$sessionsArgs<ExtArgs>
     _count?: boolean | CompanyCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["company"]>
 
@@ -5865,6 +5915,11 @@ export namespace Prisma {
     reportTemplates?: boolean | Company$reportTemplatesArgs<ExtArgs>
     scheduledReports?: boolean | Company$scheduledReportsArgs<ExtArgs>
     tags?: boolean | Company$tagsArgs<ExtArgs>
+    passwords?: boolean | Company$passwordsArgs<ExtArgs>
+    auditLogs?: boolean | Company$auditLogsArgs<ExtArgs>
+    roles?: boolean | Company$rolesArgs<ExtArgs>
+    rotationPolicies?: boolean | Company$rotationPoliciesArgs<ExtArgs>
+    sessions?: boolean | Company$sessionsArgs<ExtArgs>
     _count?: boolean | CompanyCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type CompanyIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -5891,6 +5946,11 @@ export namespace Prisma {
       reportTemplates: Prisma.$ReportTemplatePayload<ExtArgs>[]
       scheduledReports: Prisma.$ScheduledReportPayload<ExtArgs>[]
       tags: Prisma.$TagPayload<ExtArgs>[]
+      passwords: Prisma.$PasswordPayload<ExtArgs>[]
+      auditLogs: Prisma.$AuditLogPayload<ExtArgs>[]
+      roles: Prisma.$RolePayload<ExtArgs>[]
+      rotationPolicies: Prisma.$PasswordRotationPolicyPayload<ExtArgs>[]
+      sessions: Prisma.$SessionPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -6310,6 +6370,11 @@ export namespace Prisma {
     reportTemplates<T extends Company$reportTemplatesArgs<ExtArgs> = {}>(args?: Subset<T, Company$reportTemplatesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReportTemplatePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     scheduledReports<T extends Company$scheduledReportsArgs<ExtArgs> = {}>(args?: Subset<T, Company$scheduledReportsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ScheduledReportPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     tags<T extends Company$tagsArgs<ExtArgs> = {}>(args?: Subset<T, Company$tagsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TagPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    passwords<T extends Company$passwordsArgs<ExtArgs> = {}>(args?: Subset<T, Company$passwordsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PasswordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    auditLogs<T extends Company$auditLogsArgs<ExtArgs> = {}>(args?: Subset<T, Company$auditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    roles<T extends Company$rolesArgs<ExtArgs> = {}>(args?: Subset<T, Company$rolesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RolePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    rotationPolicies<T extends Company$rotationPoliciesArgs<ExtArgs> = {}>(args?: Subset<T, Company$rotationPoliciesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PasswordRotationPolicyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    sessions<T extends Company$sessionsArgs<ExtArgs> = {}>(args?: Subset<T, Company$sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -7151,6 +7216,126 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: TagScalarFieldEnum | TagScalarFieldEnum[]
+  }
+
+  /**
+   * Company.passwords
+   */
+  export type Company$passwordsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Password
+     */
+    select?: PasswordSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Password
+     */
+    omit?: PasswordOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PasswordInclude<ExtArgs> | null
+    where?: PasswordWhereInput
+    orderBy?: PasswordOrderByWithRelationInput | PasswordOrderByWithRelationInput[]
+    cursor?: PasswordWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PasswordScalarFieldEnum | PasswordScalarFieldEnum[]
+  }
+
+  /**
+   * Company.auditLogs
+   */
+  export type Company$auditLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AuditLog
+     */
+    select?: AuditLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AuditLog
+     */
+    omit?: AuditLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AuditLogInclude<ExtArgs> | null
+    where?: AuditLogWhereInput
+    orderBy?: AuditLogOrderByWithRelationInput | AuditLogOrderByWithRelationInput[]
+    cursor?: AuditLogWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AuditLogScalarFieldEnum | AuditLogScalarFieldEnum[]
+  }
+
+  /**
+   * Company.roles
+   */
+  export type Company$rolesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Role
+     */
+    select?: RoleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Role
+     */
+    omit?: RoleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RoleInclude<ExtArgs> | null
+    where?: RoleWhereInput
+    orderBy?: RoleOrderByWithRelationInput | RoleOrderByWithRelationInput[]
+    cursor?: RoleWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: RoleScalarFieldEnum | RoleScalarFieldEnum[]
+  }
+
+  /**
+   * Company.rotationPolicies
+   */
+  export type Company$rotationPoliciesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PasswordRotationPolicy
+     */
+    select?: PasswordRotationPolicySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PasswordRotationPolicy
+     */
+    omit?: PasswordRotationPolicyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PasswordRotationPolicyInclude<ExtArgs> | null
+    where?: PasswordRotationPolicyWhereInput
+    orderBy?: PasswordRotationPolicyOrderByWithRelationInput | PasswordRotationPolicyOrderByWithRelationInput[]
+    cursor?: PasswordRotationPolicyWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PasswordRotationPolicyScalarFieldEnum | PasswordRotationPolicyScalarFieldEnum[]
+  }
+
+  /**
+   * Company.sessions
+   */
+  export type Company$sessionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Session
+     */
+    select?: SessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Session
+     */
+    omit?: SessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SessionInclude<ExtArgs> | null
+    where?: SessionWhereInput
+    orderBy?: SessionOrderByWithRelationInput | SessionOrderByWithRelationInput[]
+    cursor?: SessionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: SessionScalarFieldEnum | SessionScalarFieldEnum[]
   }
 
   /**
@@ -10687,6 +10872,7 @@ export namespace Prisma {
     id: string | null
     sessionToken: string | null
     userId: string | null
+    companyId: string | null
     expires: Date | null
     ipAddress: string | null
     userAgent: string | null
@@ -10703,6 +10889,7 @@ export namespace Prisma {
     id: string | null
     sessionToken: string | null
     userId: string | null
+    companyId: string | null
     expires: Date | null
     ipAddress: string | null
     userAgent: string | null
@@ -10719,6 +10906,7 @@ export namespace Prisma {
     id: number
     sessionToken: number
     userId: number
+    companyId: number
     expires: number
     ipAddress: number
     userAgent: number
@@ -10737,6 +10925,7 @@ export namespace Prisma {
     id?: true
     sessionToken?: true
     userId?: true
+    companyId?: true
     expires?: true
     ipAddress?: true
     userAgent?: true
@@ -10753,6 +10942,7 @@ export namespace Prisma {
     id?: true
     sessionToken?: true
     userId?: true
+    companyId?: true
     expires?: true
     ipAddress?: true
     userAgent?: true
@@ -10769,6 +10959,7 @@ export namespace Prisma {
     id?: true
     sessionToken?: true
     userId?: true
+    companyId?: true
     expires?: true
     ipAddress?: true
     userAgent?: true
@@ -10858,6 +11049,7 @@ export namespace Prisma {
     id: string
     sessionToken: string
     userId: string
+    companyId: string | null
     expires: Date
     ipAddress: string | null
     userAgent: string | null
@@ -10891,6 +11083,7 @@ export namespace Prisma {
     id?: boolean
     sessionToken?: boolean
     userId?: boolean
+    companyId?: boolean
     expires?: boolean
     ipAddress?: boolean
     userAgent?: boolean
@@ -10902,12 +11095,14 @@ export namespace Prisma {
     lastActiveAt?: boolean
     createdAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
+    company?: boolean | Session$companyArgs<ExtArgs>
   }, ExtArgs["result"]["session"]>
 
   export type SessionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     sessionToken?: boolean
     userId?: boolean
+    companyId?: boolean
     expires?: boolean
     ipAddress?: boolean
     userAgent?: boolean
@@ -10919,12 +11114,14 @@ export namespace Prisma {
     lastActiveAt?: boolean
     createdAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
+    company?: boolean | Session$companyArgs<ExtArgs>
   }, ExtArgs["result"]["session"]>
 
   export type SessionSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     sessionToken?: boolean
     userId?: boolean
+    companyId?: boolean
     expires?: boolean
     ipAddress?: boolean
     userAgent?: boolean
@@ -10936,12 +11133,14 @@ export namespace Prisma {
     lastActiveAt?: boolean
     createdAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
+    company?: boolean | Session$companyArgs<ExtArgs>
   }, ExtArgs["result"]["session"]>
 
   export type SessionSelectScalar = {
     id?: boolean
     sessionToken?: boolean
     userId?: boolean
+    companyId?: boolean
     expires?: boolean
     ipAddress?: boolean
     userAgent?: boolean
@@ -10954,26 +11153,31 @@ export namespace Prisma {
     createdAt?: boolean
   }
 
-  export type SessionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "sessionToken" | "userId" | "expires" | "ipAddress" | "userAgent" | "deviceName" | "deviceType" | "deviceFingerprint" | "isTrusted" | "requireMfa" | "lastActiveAt" | "createdAt", ExtArgs["result"]["session"]>
+  export type SessionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "sessionToken" | "userId" | "companyId" | "expires" | "ipAddress" | "userAgent" | "deviceName" | "deviceType" | "deviceFingerprint" | "isTrusted" | "requireMfa" | "lastActiveAt" | "createdAt", ExtArgs["result"]["session"]>
   export type SessionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
+    company?: boolean | Session$companyArgs<ExtArgs>
   }
   export type SessionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
+    company?: boolean | Session$companyArgs<ExtArgs>
   }
   export type SessionIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
+    company?: boolean | Session$companyArgs<ExtArgs>
   }
 
   export type $SessionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Session"
     objects: {
       user: Prisma.$UserPayload<ExtArgs>
+      company: Prisma.$CompanyPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       sessionToken: string
       userId: string
+      companyId: string | null
       expires: Date
       ipAddress: string | null
       userAgent: string | null
@@ -11379,6 +11583,7 @@ export namespace Prisma {
   export interface Prisma__SessionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    company<T extends Session$companyArgs<ExtArgs> = {}>(args?: Subset<T, Session$companyArgs<ExtArgs>>): Prisma__CompanyClient<$Result.GetResult<Prisma.$CompanyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -11411,6 +11616,7 @@ export namespace Prisma {
     readonly id: FieldRef<"Session", 'String'>
     readonly sessionToken: FieldRef<"Session", 'String'>
     readonly userId: FieldRef<"Session", 'String'>
+    readonly companyId: FieldRef<"Session", 'String'>
     readonly expires: FieldRef<"Session", 'DateTime'>
     readonly ipAddress: FieldRef<"Session", 'String'>
     readonly userAgent: FieldRef<"Session", 'String'>
@@ -11817,6 +12023,25 @@ export namespace Prisma {
   }
 
   /**
+   * Session.company
+   */
+  export type Session$companyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Company
+     */
+    select?: CompanySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Company
+     */
+    omit?: CompanyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CompanyInclude<ExtArgs> | null
+    where?: CompanyWhereInput
+  }
+
+  /**
    * Session without action
    */
   export type SessionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -11853,6 +12078,7 @@ export namespace Prisma {
     url: string | null
     notes: string | null
     folderId: string | null
+    companyId: string | null
     strength: $Enums.PasswordStrength | null
     hasTotp: boolean | null
     totpSecret: string | null
@@ -11872,6 +12098,7 @@ export namespace Prisma {
     url: string | null
     notes: string | null
     folderId: string | null
+    companyId: string | null
     strength: $Enums.PasswordStrength | null
     hasTotp: boolean | null
     totpSecret: string | null
@@ -11891,6 +12118,7 @@ export namespace Prisma {
     url: number
     notes: number
     folderId: number
+    companyId: number
     strength: number
     hasTotp: number
     totpSecret: number
@@ -11912,6 +12140,7 @@ export namespace Prisma {
     url?: true
     notes?: true
     folderId?: true
+    companyId?: true
     strength?: true
     hasTotp?: true
     totpSecret?: true
@@ -11931,6 +12160,7 @@ export namespace Prisma {
     url?: true
     notes?: true
     folderId?: true
+    companyId?: true
     strength?: true
     hasTotp?: true
     totpSecret?: true
@@ -11950,6 +12180,7 @@ export namespace Prisma {
     url?: true
     notes?: true
     folderId?: true
+    companyId?: true
     strength?: true
     hasTotp?: true
     totpSecret?: true
@@ -12042,6 +12273,7 @@ export namespace Prisma {
     url: string | null
     notes: string | null
     folderId: string | null
+    companyId: string | null
     strength: $Enums.PasswordStrength
     hasTotp: boolean
     totpSecret: string | null
@@ -12078,6 +12310,7 @@ export namespace Prisma {
     url?: boolean
     notes?: boolean
     folderId?: boolean
+    companyId?: boolean
     strength?: boolean
     hasTotp?: boolean
     totpSecret?: boolean
@@ -12089,6 +12322,7 @@ export namespace Prisma {
     rotationPolicyId?: boolean
     owner?: boolean | UserDefaultArgs<ExtArgs>
     folder?: boolean | Password$folderArgs<ExtArgs>
+    company?: boolean | Password$companyArgs<ExtArgs>
     sharedWith?: boolean | Password$sharedWithArgs<ExtArgs>
     temporaryShares?: boolean | Password$temporarySharesArgs<ExtArgs>
     tags?: boolean | Password$tagsArgs<ExtArgs>
@@ -12107,6 +12341,7 @@ export namespace Prisma {
     url?: boolean
     notes?: boolean
     folderId?: boolean
+    companyId?: boolean
     strength?: boolean
     hasTotp?: boolean
     totpSecret?: boolean
@@ -12118,6 +12353,7 @@ export namespace Prisma {
     rotationPolicyId?: boolean
     owner?: boolean | UserDefaultArgs<ExtArgs>
     folder?: boolean | Password$folderArgs<ExtArgs>
+    company?: boolean | Password$companyArgs<ExtArgs>
     rotationPolicy?: boolean | Password$rotationPolicyArgs<ExtArgs>
   }, ExtArgs["result"]["password"]>
 
@@ -12129,6 +12365,7 @@ export namespace Prisma {
     url?: boolean
     notes?: boolean
     folderId?: boolean
+    companyId?: boolean
     strength?: boolean
     hasTotp?: boolean
     totpSecret?: boolean
@@ -12140,6 +12377,7 @@ export namespace Prisma {
     rotationPolicyId?: boolean
     owner?: boolean | UserDefaultArgs<ExtArgs>
     folder?: boolean | Password$folderArgs<ExtArgs>
+    company?: boolean | Password$companyArgs<ExtArgs>
     rotationPolicy?: boolean | Password$rotationPolicyArgs<ExtArgs>
   }, ExtArgs["result"]["password"]>
 
@@ -12151,6 +12389,7 @@ export namespace Prisma {
     url?: boolean
     notes?: boolean
     folderId?: boolean
+    companyId?: boolean
     strength?: boolean
     hasTotp?: boolean
     totpSecret?: boolean
@@ -12162,10 +12401,11 @@ export namespace Prisma {
     rotationPolicyId?: boolean
   }
 
-  export type PasswordOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "username" | "password" | "url" | "notes" | "folderId" | "strength" | "hasTotp" | "totpSecret" | "expiresAt" | "isFavorite" | "ownerId" | "createdAt" | "updatedAt" | "rotationPolicyId", ExtArgs["result"]["password"]>
+  export type PasswordOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "username" | "password" | "url" | "notes" | "folderId" | "companyId" | "strength" | "hasTotp" | "totpSecret" | "expiresAt" | "isFavorite" | "ownerId" | "createdAt" | "updatedAt" | "rotationPolicyId", ExtArgs["result"]["password"]>
   export type PasswordInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     owner?: boolean | UserDefaultArgs<ExtArgs>
     folder?: boolean | Password$folderArgs<ExtArgs>
+    company?: boolean | Password$companyArgs<ExtArgs>
     sharedWith?: boolean | Password$sharedWithArgs<ExtArgs>
     temporaryShares?: boolean | Password$temporarySharesArgs<ExtArgs>
     tags?: boolean | Password$tagsArgs<ExtArgs>
@@ -12178,11 +12418,13 @@ export namespace Prisma {
   export type PasswordIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     owner?: boolean | UserDefaultArgs<ExtArgs>
     folder?: boolean | Password$folderArgs<ExtArgs>
+    company?: boolean | Password$companyArgs<ExtArgs>
     rotationPolicy?: boolean | Password$rotationPolicyArgs<ExtArgs>
   }
   export type PasswordIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     owner?: boolean | UserDefaultArgs<ExtArgs>
     folder?: boolean | Password$folderArgs<ExtArgs>
+    company?: boolean | Password$companyArgs<ExtArgs>
     rotationPolicy?: boolean | Password$rotationPolicyArgs<ExtArgs>
   }
 
@@ -12191,6 +12433,7 @@ export namespace Prisma {
     objects: {
       owner: Prisma.$UserPayload<ExtArgs>
       folder: Prisma.$FolderPayload<ExtArgs> | null
+      company: Prisma.$CompanyPayload<ExtArgs> | null
       sharedWith: Prisma.$PasswordSharePayload<ExtArgs>[]
       temporaryShares: Prisma.$TemporaryPasswordSharePayload<ExtArgs>[]
       tags: Prisma.$PasswordTagPayload<ExtArgs>[]
@@ -12207,6 +12450,7 @@ export namespace Prisma {
       url: string | null
       notes: string | null
       folderId: string | null
+      companyId: string | null
       strength: $Enums.PasswordStrength
       hasTotp: boolean
       totpSecret: string | null
@@ -12612,6 +12856,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     owner<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     folder<T extends Password$folderArgs<ExtArgs> = {}>(args?: Subset<T, Password$folderArgs<ExtArgs>>): Prisma__FolderClient<$Result.GetResult<Prisma.$FolderPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    company<T extends Password$companyArgs<ExtArgs> = {}>(args?: Subset<T, Password$companyArgs<ExtArgs>>): Prisma__CompanyClient<$Result.GetResult<Prisma.$CompanyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     sharedWith<T extends Password$sharedWithArgs<ExtArgs> = {}>(args?: Subset<T, Password$sharedWithArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PasswordSharePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     temporaryShares<T extends Password$temporarySharesArgs<ExtArgs> = {}>(args?: Subset<T, Password$temporarySharesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TemporaryPasswordSharePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     tags<T extends Password$tagsArgs<ExtArgs> = {}>(args?: Subset<T, Password$tagsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PasswordTagPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -12655,6 +12900,7 @@ export namespace Prisma {
     readonly url: FieldRef<"Password", 'String'>
     readonly notes: FieldRef<"Password", 'String'>
     readonly folderId: FieldRef<"Password", 'String'>
+    readonly companyId: FieldRef<"Password", 'String'>
     readonly strength: FieldRef<"Password", 'PasswordStrength'>
     readonly hasTotp: FieldRef<"Password", 'Boolean'>
     readonly totpSecret: FieldRef<"Password", 'String'>
@@ -13079,6 +13325,25 @@ export namespace Prisma {
   }
 
   /**
+   * Password.company
+   */
+  export type Password$companyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Company
+     */
+    select?: CompanySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Company
+     */
+    omit?: CompanyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CompanyInclude<ExtArgs> | null
+    where?: CompanyWhereInput
+  }
+
+  /**
    * Password.sharedWith
    */
   export type Password$sharedWithArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -13466,7 +13731,7 @@ export namespace Prisma {
     hasTotp: boolean
     totpSecret: string | null
     expiresAt: Date | null
-    changedBy: string
+    changedBy: string | null
     changeType: string
     createdAt: Date
     _count: PasswordHistoryCountAggregateOutputType | null
@@ -13505,7 +13770,7 @@ export namespace Prisma {
     changeType?: boolean
     createdAt?: boolean
     passwordEntry?: boolean | PasswordDefaultArgs<ExtArgs>
-    changedByUser?: boolean | UserDefaultArgs<ExtArgs>
+    changedByUser?: boolean | PasswordHistory$changedByUserArgs<ExtArgs>
   }, ExtArgs["result"]["passwordHistory"]>
 
   export type PasswordHistorySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -13525,7 +13790,7 @@ export namespace Prisma {
     changeType?: boolean
     createdAt?: boolean
     passwordEntry?: boolean | PasswordDefaultArgs<ExtArgs>
-    changedByUser?: boolean | UserDefaultArgs<ExtArgs>
+    changedByUser?: boolean | PasswordHistory$changedByUserArgs<ExtArgs>
   }, ExtArgs["result"]["passwordHistory"]>
 
   export type PasswordHistorySelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -13545,7 +13810,7 @@ export namespace Prisma {
     changeType?: boolean
     createdAt?: boolean
     passwordEntry?: boolean | PasswordDefaultArgs<ExtArgs>
-    changedByUser?: boolean | UserDefaultArgs<ExtArgs>
+    changedByUser?: boolean | PasswordHistory$changedByUserArgs<ExtArgs>
   }, ExtArgs["result"]["passwordHistory"]>
 
   export type PasswordHistorySelectScalar = {
@@ -13569,22 +13834,22 @@ export namespace Prisma {
   export type PasswordHistoryOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "passwordId" | "name" | "username" | "password" | "url" | "notes" | "folderId" | "strength" | "hasTotp" | "totpSecret" | "expiresAt" | "changedBy" | "changeType" | "createdAt", ExtArgs["result"]["passwordHistory"]>
   export type PasswordHistoryInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     passwordEntry?: boolean | PasswordDefaultArgs<ExtArgs>
-    changedByUser?: boolean | UserDefaultArgs<ExtArgs>
+    changedByUser?: boolean | PasswordHistory$changedByUserArgs<ExtArgs>
   }
   export type PasswordHistoryIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     passwordEntry?: boolean | PasswordDefaultArgs<ExtArgs>
-    changedByUser?: boolean | UserDefaultArgs<ExtArgs>
+    changedByUser?: boolean | PasswordHistory$changedByUserArgs<ExtArgs>
   }
   export type PasswordHistoryIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     passwordEntry?: boolean | PasswordDefaultArgs<ExtArgs>
-    changedByUser?: boolean | UserDefaultArgs<ExtArgs>
+    changedByUser?: boolean | PasswordHistory$changedByUserArgs<ExtArgs>
   }
 
   export type $PasswordHistoryPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "PasswordHistory"
     objects: {
       passwordEntry: Prisma.$PasswordPayload<ExtArgs>
-      changedByUser: Prisma.$UserPayload<ExtArgs>
+      changedByUser: Prisma.$UserPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -13599,7 +13864,7 @@ export namespace Prisma {
       hasTotp: boolean
       totpSecret: string | null
       expiresAt: Date | null
-      changedBy: string
+      changedBy: string | null
       changeType: string
       createdAt: Date
     }, ExtArgs["result"]["passwordHistory"]>
@@ -13997,7 +14262,7 @@ export namespace Prisma {
   export interface Prisma__PasswordHistoryClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     passwordEntry<T extends PasswordDefaultArgs<ExtArgs> = {}>(args?: Subset<T, PasswordDefaultArgs<ExtArgs>>): Prisma__PasswordClient<$Result.GetResult<Prisma.$PasswordPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-    changedByUser<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    changedByUser<T extends PasswordHistory$changedByUserArgs<ExtArgs> = {}>(args?: Subset<T, PasswordHistory$changedByUserArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -14438,6 +14703,25 @@ export namespace Prisma {
   }
 
   /**
+   * PasswordHistory.changedByUser
+   */
+  export type PasswordHistory$changedByUserArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the User
+     */
+    select?: UserSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the User
+     */
+    omit?: UserOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    where?: UserWhereInput
+  }
+
+  /**
    * PasswordHistory without action
    */
   export type PasswordHistoryDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -14658,7 +14942,7 @@ export namespace Prisma {
     breachCount: number
     hashPrefix: string
     checkedAt: Date
-    checkedBy: string
+    checkedBy: string | null
     resolved: boolean
     resolvedAt: Date | null
     resolvedBy: string | null
@@ -14695,7 +14979,7 @@ export namespace Prisma {
     resolvedAt?: boolean
     resolvedBy?: boolean
     password?: boolean | PasswordDefaultArgs<ExtArgs>
-    checkedByUser?: boolean | UserDefaultArgs<ExtArgs>
+    checkedByUser?: boolean | PasswordBreach$checkedByUserArgs<ExtArgs>
     resolvedByUser?: boolean | PasswordBreach$resolvedByUserArgs<ExtArgs>
   }, ExtArgs["result"]["passwordBreach"]>
 
@@ -14711,7 +14995,7 @@ export namespace Prisma {
     resolvedAt?: boolean
     resolvedBy?: boolean
     password?: boolean | PasswordDefaultArgs<ExtArgs>
-    checkedByUser?: boolean | UserDefaultArgs<ExtArgs>
+    checkedByUser?: boolean | PasswordBreach$checkedByUserArgs<ExtArgs>
     resolvedByUser?: boolean | PasswordBreach$resolvedByUserArgs<ExtArgs>
   }, ExtArgs["result"]["passwordBreach"]>
 
@@ -14727,7 +15011,7 @@ export namespace Prisma {
     resolvedAt?: boolean
     resolvedBy?: boolean
     password?: boolean | PasswordDefaultArgs<ExtArgs>
-    checkedByUser?: boolean | UserDefaultArgs<ExtArgs>
+    checkedByUser?: boolean | PasswordBreach$checkedByUserArgs<ExtArgs>
     resolvedByUser?: boolean | PasswordBreach$resolvedByUserArgs<ExtArgs>
   }, ExtArgs["result"]["passwordBreach"]>
 
@@ -14747,17 +15031,17 @@ export namespace Prisma {
   export type PasswordBreachOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "passwordId" | "isBreached" | "breachCount" | "hashPrefix" | "checkedAt" | "checkedBy" | "resolved" | "resolvedAt" | "resolvedBy", ExtArgs["result"]["passwordBreach"]>
   export type PasswordBreachInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     password?: boolean | PasswordDefaultArgs<ExtArgs>
-    checkedByUser?: boolean | UserDefaultArgs<ExtArgs>
+    checkedByUser?: boolean | PasswordBreach$checkedByUserArgs<ExtArgs>
     resolvedByUser?: boolean | PasswordBreach$resolvedByUserArgs<ExtArgs>
   }
   export type PasswordBreachIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     password?: boolean | PasswordDefaultArgs<ExtArgs>
-    checkedByUser?: boolean | UserDefaultArgs<ExtArgs>
+    checkedByUser?: boolean | PasswordBreach$checkedByUserArgs<ExtArgs>
     resolvedByUser?: boolean | PasswordBreach$resolvedByUserArgs<ExtArgs>
   }
   export type PasswordBreachIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     password?: boolean | PasswordDefaultArgs<ExtArgs>
-    checkedByUser?: boolean | UserDefaultArgs<ExtArgs>
+    checkedByUser?: boolean | PasswordBreach$checkedByUserArgs<ExtArgs>
     resolvedByUser?: boolean | PasswordBreach$resolvedByUserArgs<ExtArgs>
   }
 
@@ -14765,7 +15049,7 @@ export namespace Prisma {
     name: "PasswordBreach"
     objects: {
       password: Prisma.$PasswordPayload<ExtArgs>
-      checkedByUser: Prisma.$UserPayload<ExtArgs>
+      checkedByUser: Prisma.$UserPayload<ExtArgs> | null
       resolvedByUser: Prisma.$UserPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
@@ -14775,7 +15059,7 @@ export namespace Prisma {
       breachCount: number
       hashPrefix: string
       checkedAt: Date
-      checkedBy: string
+      checkedBy: string | null
       resolved: boolean
       resolvedAt: Date | null
       resolvedBy: string | null
@@ -15174,7 +15458,7 @@ export namespace Prisma {
   export interface Prisma__PasswordBreachClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     password<T extends PasswordDefaultArgs<ExtArgs> = {}>(args?: Subset<T, PasswordDefaultArgs<ExtArgs>>): Prisma__PasswordClient<$Result.GetResult<Prisma.$PasswordPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-    checkedByUser<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    checkedByUser<T extends PasswordBreach$checkedByUserArgs<ExtArgs> = {}>(args?: Subset<T, PasswordBreach$checkedByUserArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     resolvedByUser<T extends PasswordBreach$resolvedByUserArgs<ExtArgs> = {}>(args?: Subset<T, PasswordBreach$resolvedByUserArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -15611,6 +15895,25 @@ export namespace Prisma {
   }
 
   /**
+   * PasswordBreach.checkedByUser
+   */
+  export type PasswordBreach$checkedByUserArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the User
+     */
+    select?: UserSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the User
+     */
+    omit?: UserOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    where?: UserWhereInput
+  }
+
+  /**
    * PasswordBreach.resolvedByUser
    */
   export type PasswordBreach$resolvedByUserArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -15680,6 +15983,7 @@ export namespace Prisma {
     requireApproval: boolean | null
     isActive: boolean | null
     ownerId: string | null
+    companyId: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -15694,6 +15998,7 @@ export namespace Prisma {
     requireApproval: boolean | null
     isActive: boolean | null
     ownerId: string | null
+    companyId: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -15708,6 +16013,7 @@ export namespace Prisma {
     requireApproval: number
     isActive: number
     ownerId: number
+    companyId: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -15734,6 +16040,7 @@ export namespace Prisma {
     requireApproval?: true
     isActive?: true
     ownerId?: true
+    companyId?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -15748,6 +16055,7 @@ export namespace Prisma {
     requireApproval?: true
     isActive?: true
     ownerId?: true
+    companyId?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -15762,6 +16070,7 @@ export namespace Prisma {
     requireApproval?: true
     isActive?: true
     ownerId?: true
+    companyId?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -15863,6 +16172,7 @@ export namespace Prisma {
     requireApproval: boolean
     isActive: boolean
     ownerId: string
+    companyId: string | null
     createdAt: Date
     updatedAt: Date
     _count: PasswordRotationPolicyCountAggregateOutputType | null
@@ -15896,9 +16206,11 @@ export namespace Prisma {
     requireApproval?: boolean
     isActive?: boolean
     ownerId?: boolean
+    companyId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     owner?: boolean | UserDefaultArgs<ExtArgs>
+    company?: boolean | PasswordRotationPolicy$companyArgs<ExtArgs>
     passwords?: boolean | PasswordRotationPolicy$passwordsArgs<ExtArgs>
     rotations?: boolean | PasswordRotationPolicy$rotationsArgs<ExtArgs>
     _count?: boolean | PasswordRotationPolicyCountOutputTypeDefaultArgs<ExtArgs>
@@ -15914,9 +16226,11 @@ export namespace Prisma {
     requireApproval?: boolean
     isActive?: boolean
     ownerId?: boolean
+    companyId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     owner?: boolean | UserDefaultArgs<ExtArgs>
+    company?: boolean | PasswordRotationPolicy$companyArgs<ExtArgs>
   }, ExtArgs["result"]["passwordRotationPolicy"]>
 
   export type PasswordRotationPolicySelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -15929,9 +16243,11 @@ export namespace Prisma {
     requireApproval?: boolean
     isActive?: boolean
     ownerId?: boolean
+    companyId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     owner?: boolean | UserDefaultArgs<ExtArgs>
+    company?: boolean | PasswordRotationPolicy$companyArgs<ExtArgs>
   }, ExtArgs["result"]["passwordRotationPolicy"]>
 
   export type PasswordRotationPolicySelectScalar = {
@@ -15944,28 +16260,33 @@ export namespace Prisma {
     requireApproval?: boolean
     isActive?: boolean
     ownerId?: boolean
+    companyId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type PasswordRotationPolicyOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "description" | "rotationDays" | "reminderDays" | "autoRotate" | "requireApproval" | "isActive" | "ownerId" | "createdAt" | "updatedAt", ExtArgs["result"]["passwordRotationPolicy"]>
+  export type PasswordRotationPolicyOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "description" | "rotationDays" | "reminderDays" | "autoRotate" | "requireApproval" | "isActive" | "ownerId" | "companyId" | "createdAt" | "updatedAt", ExtArgs["result"]["passwordRotationPolicy"]>
   export type PasswordRotationPolicyInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     owner?: boolean | UserDefaultArgs<ExtArgs>
+    company?: boolean | PasswordRotationPolicy$companyArgs<ExtArgs>
     passwords?: boolean | PasswordRotationPolicy$passwordsArgs<ExtArgs>
     rotations?: boolean | PasswordRotationPolicy$rotationsArgs<ExtArgs>
     _count?: boolean | PasswordRotationPolicyCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type PasswordRotationPolicyIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     owner?: boolean | UserDefaultArgs<ExtArgs>
+    company?: boolean | PasswordRotationPolicy$companyArgs<ExtArgs>
   }
   export type PasswordRotationPolicyIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     owner?: boolean | UserDefaultArgs<ExtArgs>
+    company?: boolean | PasswordRotationPolicy$companyArgs<ExtArgs>
   }
 
   export type $PasswordRotationPolicyPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "PasswordRotationPolicy"
     objects: {
       owner: Prisma.$UserPayload<ExtArgs>
+      company: Prisma.$CompanyPayload<ExtArgs> | null
       passwords: Prisma.$PasswordPayload<ExtArgs>[]
       rotations: Prisma.$PasswordRotationPayload<ExtArgs>[]
     }
@@ -15979,6 +16300,7 @@ export namespace Prisma {
       requireApproval: boolean
       isActive: boolean
       ownerId: string
+      companyId: string | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["passwordRotationPolicy"]>
@@ -16376,6 +16698,7 @@ export namespace Prisma {
   export interface Prisma__PasswordRotationPolicyClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     owner<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    company<T extends PasswordRotationPolicy$companyArgs<ExtArgs> = {}>(args?: Subset<T, PasswordRotationPolicy$companyArgs<ExtArgs>>): Prisma__CompanyClient<$Result.GetResult<Prisma.$CompanyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     passwords<T extends PasswordRotationPolicy$passwordsArgs<ExtArgs> = {}>(args?: Subset<T, PasswordRotationPolicy$passwordsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PasswordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     rotations<T extends PasswordRotationPolicy$rotationsArgs<ExtArgs> = {}>(args?: Subset<T, PasswordRotationPolicy$rotationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PasswordRotationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
@@ -16416,6 +16739,7 @@ export namespace Prisma {
     readonly requireApproval: FieldRef<"PasswordRotationPolicy", 'Boolean'>
     readonly isActive: FieldRef<"PasswordRotationPolicy", 'Boolean'>
     readonly ownerId: FieldRef<"PasswordRotationPolicy", 'String'>
+    readonly companyId: FieldRef<"PasswordRotationPolicy", 'String'>
     readonly createdAt: FieldRef<"PasswordRotationPolicy", 'DateTime'>
     readonly updatedAt: FieldRef<"PasswordRotationPolicy", 'DateTime'>
   }
@@ -16814,6 +17138,25 @@ export namespace Prisma {
   }
 
   /**
+   * PasswordRotationPolicy.company
+   */
+  export type PasswordRotationPolicy$companyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Company
+     */
+    select?: CompanySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Company
+     */
+    omit?: CompanyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CompanyInclude<ExtArgs> | null
+    where?: CompanyWhereInput
+  }
+
+  /**
    * PasswordRotationPolicy.passwords
    */
   export type PasswordRotationPolicy$passwordsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -17063,7 +17406,7 @@ export namespace Prisma {
     oldPassword: string | null
     newPassword: string
     rotatedAt: Date
-    rotatedBy: string
+    rotatedBy: string | null
     scheduledFor: Date | null
     completedAt: Date | null
     status: string
@@ -17102,7 +17445,7 @@ export namespace Prisma {
     notes?: boolean
     password?: boolean | PasswordDefaultArgs<ExtArgs>
     policy?: boolean | PasswordRotation$policyArgs<ExtArgs>
-    rotatedByUser?: boolean | UserDefaultArgs<ExtArgs>
+    rotatedByUser?: boolean | PasswordRotation$rotatedByUserArgs<ExtArgs>
   }, ExtArgs["result"]["passwordRotation"]>
 
   export type PasswordRotationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -17120,7 +17463,7 @@ export namespace Prisma {
     notes?: boolean
     password?: boolean | PasswordDefaultArgs<ExtArgs>
     policy?: boolean | PasswordRotation$policyArgs<ExtArgs>
-    rotatedByUser?: boolean | UserDefaultArgs<ExtArgs>
+    rotatedByUser?: boolean | PasswordRotation$rotatedByUserArgs<ExtArgs>
   }, ExtArgs["result"]["passwordRotation"]>
 
   export type PasswordRotationSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -17138,7 +17481,7 @@ export namespace Prisma {
     notes?: boolean
     password?: boolean | PasswordDefaultArgs<ExtArgs>
     policy?: boolean | PasswordRotation$policyArgs<ExtArgs>
-    rotatedByUser?: boolean | UserDefaultArgs<ExtArgs>
+    rotatedByUser?: boolean | PasswordRotation$rotatedByUserArgs<ExtArgs>
   }, ExtArgs["result"]["passwordRotation"]>
 
   export type PasswordRotationSelectScalar = {
@@ -17160,17 +17503,17 @@ export namespace Prisma {
   export type PasswordRotationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     password?: boolean | PasswordDefaultArgs<ExtArgs>
     policy?: boolean | PasswordRotation$policyArgs<ExtArgs>
-    rotatedByUser?: boolean | UserDefaultArgs<ExtArgs>
+    rotatedByUser?: boolean | PasswordRotation$rotatedByUserArgs<ExtArgs>
   }
   export type PasswordRotationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     password?: boolean | PasswordDefaultArgs<ExtArgs>
     policy?: boolean | PasswordRotation$policyArgs<ExtArgs>
-    rotatedByUser?: boolean | UserDefaultArgs<ExtArgs>
+    rotatedByUser?: boolean | PasswordRotation$rotatedByUserArgs<ExtArgs>
   }
   export type PasswordRotationIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     password?: boolean | PasswordDefaultArgs<ExtArgs>
     policy?: boolean | PasswordRotation$policyArgs<ExtArgs>
-    rotatedByUser?: boolean | UserDefaultArgs<ExtArgs>
+    rotatedByUser?: boolean | PasswordRotation$rotatedByUserArgs<ExtArgs>
   }
 
   export type $PasswordRotationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -17178,7 +17521,7 @@ export namespace Prisma {
     objects: {
       password: Prisma.$PasswordPayload<ExtArgs>
       policy: Prisma.$PasswordRotationPolicyPayload<ExtArgs> | null
-      rotatedByUser: Prisma.$UserPayload<ExtArgs>
+      rotatedByUser: Prisma.$UserPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -17188,7 +17531,7 @@ export namespace Prisma {
       oldPassword: string | null
       newPassword: string
       rotatedAt: Date
-      rotatedBy: string
+      rotatedBy: string | null
       scheduledFor: Date | null
       completedAt: Date | null
       status: string
@@ -17589,7 +17932,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     password<T extends PasswordDefaultArgs<ExtArgs> = {}>(args?: Subset<T, PasswordDefaultArgs<ExtArgs>>): Prisma__PasswordClient<$Result.GetResult<Prisma.$PasswordPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     policy<T extends PasswordRotation$policyArgs<ExtArgs> = {}>(args?: Subset<T, PasswordRotation$policyArgs<ExtArgs>>): Prisma__PasswordRotationPolicyClient<$Result.GetResult<Prisma.$PasswordRotationPolicyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-    rotatedByUser<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    rotatedByUser<T extends PasswordRotation$rotatedByUserArgs<ExtArgs> = {}>(args?: Subset<T, PasswordRotation$rotatedByUserArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -18046,6 +18389,25 @@ export namespace Prisma {
   }
 
   /**
+   * PasswordRotation.rotatedByUser
+   */
+  export type PasswordRotation$rotatedByUserArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the User
+     */
+    select?: UserSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the User
+     */
+    omit?: UserOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    where?: UserWhereInput
+  }
+
+  /**
    * PasswordRotation without action
    */
   export type PasswordRotationDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -18228,7 +18590,7 @@ export namespace Prisma {
     icon: string | null
     color: string | null
     parentId: string | null
-    companyId: string | null
+    companyId: string
     createdAt: Date
     updatedAt: Date
     _count: FolderCountAggregateOutputType | null
@@ -18263,7 +18625,7 @@ export namespace Prisma {
     parent?: boolean | Folder$parentArgs<ExtArgs>
     children?: boolean | Folder$childrenArgs<ExtArgs>
     passwords?: boolean | Folder$passwordsArgs<ExtArgs>
-    company?: boolean | Folder$companyArgs<ExtArgs>
+    company?: boolean | CompanyDefaultArgs<ExtArgs>
     _count?: boolean | FolderCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["folder"]>
 
@@ -18278,7 +18640,7 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     parent?: boolean | Folder$parentArgs<ExtArgs>
-    company?: boolean | Folder$companyArgs<ExtArgs>
+    company?: boolean | CompanyDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["folder"]>
 
   export type FolderSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -18292,7 +18654,7 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     parent?: boolean | Folder$parentArgs<ExtArgs>
-    company?: boolean | Folder$companyArgs<ExtArgs>
+    company?: boolean | CompanyDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["folder"]>
 
   export type FolderSelectScalar = {
@@ -18312,16 +18674,16 @@ export namespace Prisma {
     parent?: boolean | Folder$parentArgs<ExtArgs>
     children?: boolean | Folder$childrenArgs<ExtArgs>
     passwords?: boolean | Folder$passwordsArgs<ExtArgs>
-    company?: boolean | Folder$companyArgs<ExtArgs>
+    company?: boolean | CompanyDefaultArgs<ExtArgs>
     _count?: boolean | FolderCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type FolderIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     parent?: boolean | Folder$parentArgs<ExtArgs>
-    company?: boolean | Folder$companyArgs<ExtArgs>
+    company?: boolean | CompanyDefaultArgs<ExtArgs>
   }
   export type FolderIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     parent?: boolean | Folder$parentArgs<ExtArgs>
-    company?: boolean | Folder$companyArgs<ExtArgs>
+    company?: boolean | CompanyDefaultArgs<ExtArgs>
   }
 
   export type $FolderPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -18330,7 +18692,7 @@ export namespace Prisma {
       parent: Prisma.$FolderPayload<ExtArgs> | null
       children: Prisma.$FolderPayload<ExtArgs>[]
       passwords: Prisma.$PasswordPayload<ExtArgs>[]
-      company: Prisma.$CompanyPayload<ExtArgs> | null
+      company: Prisma.$CompanyPayload<ExtArgs>
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -18339,7 +18701,7 @@ export namespace Prisma {
       icon: string | null
       color: string | null
       parentId: string | null
-      companyId: string | null
+      companyId: string
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["folder"]>
@@ -18739,7 +19101,7 @@ export namespace Prisma {
     parent<T extends Folder$parentArgs<ExtArgs> = {}>(args?: Subset<T, Folder$parentArgs<ExtArgs>>): Prisma__FolderClient<$Result.GetResult<Prisma.$FolderPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     children<T extends Folder$childrenArgs<ExtArgs> = {}>(args?: Subset<T, Folder$childrenArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$FolderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     passwords<T extends Folder$passwordsArgs<ExtArgs> = {}>(args?: Subset<T, Folder$passwordsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PasswordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-    company<T extends Folder$companyArgs<ExtArgs> = {}>(args?: Subset<T, Folder$companyArgs<ExtArgs>>): Prisma__CompanyClient<$Result.GetResult<Prisma.$CompanyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    company<T extends CompanyDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CompanyDefaultArgs<ExtArgs>>): Prisma__CompanyClient<$Result.GetResult<Prisma.$CompanyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -19238,25 +19600,6 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: PasswordScalarFieldEnum | PasswordScalarFieldEnum[]
-  }
-
-  /**
-   * Folder.company
-   */
-  export type Folder$companyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Company
-     */
-    select?: CompanySelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the Company
-     */
-    omit?: CompanyOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: CompanyInclude<ExtArgs> | null
-    where?: CompanyWhereInput
   }
 
   /**
@@ -25992,6 +26335,7 @@ export namespace Prisma {
   export type AuditLogMinAggregateOutputType = {
     id: string | null
     userId: string | null
+    companyId: string | null
     action: string | null
     resource: string | null
     resourceId: string | null
@@ -26004,6 +26348,7 @@ export namespace Prisma {
   export type AuditLogMaxAggregateOutputType = {
     id: string | null
     userId: string | null
+    companyId: string | null
     action: string | null
     resource: string | null
     resourceId: string | null
@@ -26016,6 +26361,7 @@ export namespace Prisma {
   export type AuditLogCountAggregateOutputType = {
     id: number
     userId: number
+    companyId: number
     action: number
     resource: number
     resourceId: number
@@ -26031,6 +26377,7 @@ export namespace Prisma {
   export type AuditLogMinAggregateInputType = {
     id?: true
     userId?: true
+    companyId?: true
     action?: true
     resource?: true
     resourceId?: true
@@ -26043,6 +26390,7 @@ export namespace Prisma {
   export type AuditLogMaxAggregateInputType = {
     id?: true
     userId?: true
+    companyId?: true
     action?: true
     resource?: true
     resourceId?: true
@@ -26055,6 +26403,7 @@ export namespace Prisma {
   export type AuditLogCountAggregateInputType = {
     id?: true
     userId?: true
+    companyId?: true
     action?: true
     resource?: true
     resourceId?: true
@@ -26141,6 +26490,7 @@ export namespace Prisma {
   export type AuditLogGroupByOutputType = {
     id: string
     userId: string | null
+    companyId: string | null
     action: string
     resource: string
     resourceId: string | null
@@ -26171,6 +26521,7 @@ export namespace Prisma {
   export type AuditLogSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     userId?: boolean
+    companyId?: boolean
     action?: boolean
     resource?: boolean
     resourceId?: boolean
@@ -26180,11 +26531,13 @@ export namespace Prisma {
     status?: boolean
     createdAt?: boolean
     user?: boolean | AuditLog$userArgs<ExtArgs>
+    company?: boolean | AuditLog$companyArgs<ExtArgs>
   }, ExtArgs["result"]["auditLog"]>
 
   export type AuditLogSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     userId?: boolean
+    companyId?: boolean
     action?: boolean
     resource?: boolean
     resourceId?: boolean
@@ -26194,11 +26547,13 @@ export namespace Prisma {
     status?: boolean
     createdAt?: boolean
     user?: boolean | AuditLog$userArgs<ExtArgs>
+    company?: boolean | AuditLog$companyArgs<ExtArgs>
   }, ExtArgs["result"]["auditLog"]>
 
   export type AuditLogSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     userId?: boolean
+    companyId?: boolean
     action?: boolean
     resource?: boolean
     resourceId?: boolean
@@ -26208,11 +26563,13 @@ export namespace Prisma {
     status?: boolean
     createdAt?: boolean
     user?: boolean | AuditLog$userArgs<ExtArgs>
+    company?: boolean | AuditLog$companyArgs<ExtArgs>
   }, ExtArgs["result"]["auditLog"]>
 
   export type AuditLogSelectScalar = {
     id?: boolean
     userId?: boolean
+    companyId?: boolean
     action?: boolean
     resource?: boolean
     resourceId?: boolean
@@ -26223,25 +26580,30 @@ export namespace Prisma {
     createdAt?: boolean
   }
 
-  export type AuditLogOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "action" | "resource" | "resourceId" | "details" | "ipAddress" | "userAgent" | "status" | "createdAt", ExtArgs["result"]["auditLog"]>
+  export type AuditLogOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "companyId" | "action" | "resource" | "resourceId" | "details" | "ipAddress" | "userAgent" | "status" | "createdAt", ExtArgs["result"]["auditLog"]>
   export type AuditLogInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | AuditLog$userArgs<ExtArgs>
+    company?: boolean | AuditLog$companyArgs<ExtArgs>
   }
   export type AuditLogIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | AuditLog$userArgs<ExtArgs>
+    company?: boolean | AuditLog$companyArgs<ExtArgs>
   }
   export type AuditLogIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | AuditLog$userArgs<ExtArgs>
+    company?: boolean | AuditLog$companyArgs<ExtArgs>
   }
 
   export type $AuditLogPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "AuditLog"
     objects: {
       user: Prisma.$UserPayload<ExtArgs> | null
+      company: Prisma.$CompanyPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       userId: string | null
+      companyId: string | null
       action: string
       resource: string
       resourceId: string | null
@@ -26645,6 +27007,7 @@ export namespace Prisma {
   export interface Prisma__AuditLogClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     user<T extends AuditLog$userArgs<ExtArgs> = {}>(args?: Subset<T, AuditLog$userArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    company<T extends AuditLog$companyArgs<ExtArgs> = {}>(args?: Subset<T, AuditLog$companyArgs<ExtArgs>>): Prisma__CompanyClient<$Result.GetResult<Prisma.$CompanyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -26676,6 +27039,7 @@ export namespace Prisma {
   interface AuditLogFieldRefs {
     readonly id: FieldRef<"AuditLog", 'String'>
     readonly userId: FieldRef<"AuditLog", 'String'>
+    readonly companyId: FieldRef<"AuditLog", 'String'>
     readonly action: FieldRef<"AuditLog", 'String'>
     readonly resource: FieldRef<"AuditLog", 'String'>
     readonly resourceId: FieldRef<"AuditLog", 'String'>
@@ -27096,6 +27460,25 @@ export namespace Prisma {
      */
     include?: UserInclude<ExtArgs> | null
     where?: UserWhereInput
+  }
+
+  /**
+   * AuditLog.company
+   */
+  export type AuditLog$companyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Company
+     */
+    select?: CompanySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Company
+     */
+    omit?: CompanyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CompanyInclude<ExtArgs> | null
+    where?: CompanyWhereInput
   }
 
   /**
@@ -32817,6 +33200,7 @@ export namespace Prisma {
     name: string | null
     description: string | null
     isSystem: boolean | null
+    companyId: string | null
     createdAt: Date | null
     updatedAt: Date | null
     createdById: string | null
@@ -32827,6 +33211,7 @@ export namespace Prisma {
     name: string | null
     description: string | null
     isSystem: boolean | null
+    companyId: string | null
     createdAt: Date | null
     updatedAt: Date | null
     createdById: string | null
@@ -32837,6 +33222,7 @@ export namespace Prisma {
     name: number
     description: number
     isSystem: number
+    companyId: number
     createdAt: number
     updatedAt: number
     createdById: number
@@ -32849,6 +33235,7 @@ export namespace Prisma {
     name?: true
     description?: true
     isSystem?: true
+    companyId?: true
     createdAt?: true
     updatedAt?: true
     createdById?: true
@@ -32859,6 +33246,7 @@ export namespace Prisma {
     name?: true
     description?: true
     isSystem?: true
+    companyId?: true
     createdAt?: true
     updatedAt?: true
     createdById?: true
@@ -32869,6 +33257,7 @@ export namespace Prisma {
     name?: true
     description?: true
     isSystem?: true
+    companyId?: true
     createdAt?: true
     updatedAt?: true
     createdById?: true
@@ -32952,6 +33341,7 @@ export namespace Prisma {
     name: string
     description: string | null
     isSystem: boolean
+    companyId: string | null
     createdAt: Date
     updatedAt: Date
     createdById: string | null
@@ -32979,10 +33369,12 @@ export namespace Prisma {
     name?: boolean
     description?: boolean
     isSystem?: boolean
+    companyId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     createdById?: boolean
     createdBy?: boolean | Role$createdByArgs<ExtArgs>
+    company?: boolean | Role$companyArgs<ExtArgs>
     permissions?: boolean | Role$permissionsArgs<ExtArgs>
     _count?: boolean | RoleCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["role"]>
@@ -32992,10 +33384,12 @@ export namespace Prisma {
     name?: boolean
     description?: boolean
     isSystem?: boolean
+    companyId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     createdById?: boolean
     createdBy?: boolean | Role$createdByArgs<ExtArgs>
+    company?: boolean | Role$companyArgs<ExtArgs>
   }, ExtArgs["result"]["role"]>
 
   export type RoleSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -33003,10 +33397,12 @@ export namespace Prisma {
     name?: boolean
     description?: boolean
     isSystem?: boolean
+    companyId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     createdById?: boolean
     createdBy?: boolean | Role$createdByArgs<ExtArgs>
+    company?: boolean | Role$companyArgs<ExtArgs>
   }, ExtArgs["result"]["role"]>
 
   export type RoleSelectScalar = {
@@ -33014,28 +33410,33 @@ export namespace Prisma {
     name?: boolean
     description?: boolean
     isSystem?: boolean
+    companyId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     createdById?: boolean
   }
 
-  export type RoleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "description" | "isSystem" | "createdAt" | "updatedAt" | "createdById", ExtArgs["result"]["role"]>
+  export type RoleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "description" | "isSystem" | "companyId" | "createdAt" | "updatedAt" | "createdById", ExtArgs["result"]["role"]>
   export type RoleInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     createdBy?: boolean | Role$createdByArgs<ExtArgs>
+    company?: boolean | Role$companyArgs<ExtArgs>
     permissions?: boolean | Role$permissionsArgs<ExtArgs>
     _count?: boolean | RoleCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type RoleIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     createdBy?: boolean | Role$createdByArgs<ExtArgs>
+    company?: boolean | Role$companyArgs<ExtArgs>
   }
   export type RoleIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     createdBy?: boolean | Role$createdByArgs<ExtArgs>
+    company?: boolean | Role$companyArgs<ExtArgs>
   }
 
   export type $RolePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Role"
     objects: {
       createdBy: Prisma.$UserPayload<ExtArgs> | null
+      company: Prisma.$CompanyPayload<ExtArgs> | null
       permissions: Prisma.$RolePermissionPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
@@ -33043,6 +33444,7 @@ export namespace Prisma {
       name: string
       description: string | null
       isSystem: boolean
+      companyId: string | null
       createdAt: Date
       updatedAt: Date
       createdById: string | null
@@ -33441,6 +33843,7 @@ export namespace Prisma {
   export interface Prisma__RoleClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     createdBy<T extends Role$createdByArgs<ExtArgs> = {}>(args?: Subset<T, Role$createdByArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    company<T extends Role$companyArgs<ExtArgs> = {}>(args?: Subset<T, Role$companyArgs<ExtArgs>>): Prisma__CompanyClient<$Result.GetResult<Prisma.$CompanyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     permissions<T extends Role$permissionsArgs<ExtArgs> = {}>(args?: Subset<T, Role$permissionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RolePermissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -33475,6 +33878,7 @@ export namespace Prisma {
     readonly name: FieldRef<"Role", 'String'>
     readonly description: FieldRef<"Role", 'String'>
     readonly isSystem: FieldRef<"Role", 'Boolean'>
+    readonly companyId: FieldRef<"Role", 'String'>
     readonly createdAt: FieldRef<"Role", 'DateTime'>
     readonly updatedAt: FieldRef<"Role", 'DateTime'>
     readonly createdById: FieldRef<"Role", 'String'>
@@ -33890,6 +34294,25 @@ export namespace Prisma {
      */
     include?: UserInclude<ExtArgs> | null
     where?: UserWhereInput
+  }
+
+  /**
+   * Role.company
+   */
+  export type Role$companyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Company
+     */
+    select?: CompanySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Company
+     */
+    omit?: CompanyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CompanyInclude<ExtArgs> | null
+    where?: CompanyWhereInput
   }
 
   /**
@@ -57319,6 +57742,7 @@ export namespace Prisma {
     id: 'id',
     sessionToken: 'sessionToken',
     userId: 'userId',
+    companyId: 'companyId',
     expires: 'expires',
     ipAddress: 'ipAddress',
     userAgent: 'userAgent',
@@ -57342,6 +57766,7 @@ export namespace Prisma {
     url: 'url',
     notes: 'notes',
     folderId: 'folderId',
+    companyId: 'companyId',
     strength: 'strength',
     hasTotp: 'hasTotp',
     totpSecret: 'totpSecret',
@@ -57403,6 +57828,7 @@ export namespace Prisma {
     requireApproval: 'requireApproval',
     isActive: 'isActive',
     ownerId: 'ownerId',
+    companyId: 'companyId',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -57522,6 +57948,7 @@ export namespace Prisma {
   export const AuditLogScalarFieldEnum: {
     id: 'id',
     userId: 'userId',
+    companyId: 'companyId',
     action: 'action',
     resource: 'resource',
     resourceId: 'resourceId',
@@ -57615,6 +58042,7 @@ export namespace Prisma {
     name: 'name',
     description: 'description',
     isSystem: 'isSystem',
+    companyId: 'companyId',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
     createdById: 'createdById'
@@ -58233,6 +58661,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateListRelationFilter
     scheduledReports?: ScheduledReportListRelationFilter
     tags?: TagListRelationFilter
+    passwords?: PasswordListRelationFilter
+    auditLogs?: AuditLogListRelationFilter
+    roles?: RoleListRelationFilter
+    rotationPolicies?: PasswordRotationPolicyListRelationFilter
+    sessions?: SessionListRelationFilter
   }
 
   export type CompanyOrderByWithRelationInput = {
@@ -58259,6 +58692,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateOrderByRelationAggregateInput
     scheduledReports?: ScheduledReportOrderByRelationAggregateInput
     tags?: TagOrderByRelationAggregateInput
+    passwords?: PasswordOrderByRelationAggregateInput
+    auditLogs?: AuditLogOrderByRelationAggregateInput
+    roles?: RoleOrderByRelationAggregateInput
+    rotationPolicies?: PasswordRotationPolicyOrderByRelationAggregateInput
+    sessions?: SessionOrderByRelationAggregateInput
   }
 
   export type CompanyWhereUniqueInput = Prisma.AtLeast<{
@@ -58288,6 +58726,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateListRelationFilter
     scheduledReports?: ScheduledReportListRelationFilter
     tags?: TagListRelationFilter
+    passwords?: PasswordListRelationFilter
+    auditLogs?: AuditLogListRelationFilter
+    roles?: RoleListRelationFilter
+    rotationPolicies?: PasswordRotationPolicyListRelationFilter
+    sessions?: SessionListRelationFilter
   }, "id" | "subdomain">
 
   export type CompanyOrderByWithAggregationInput = {
@@ -58658,6 +59101,7 @@ export namespace Prisma {
     id?: StringFilter<"Session"> | string
     sessionToken?: StringFilter<"Session"> | string
     userId?: StringFilter<"Session"> | string
+    companyId?: StringNullableFilter<"Session"> | string | null
     expires?: DateTimeFilter<"Session"> | Date | string
     ipAddress?: StringNullableFilter<"Session"> | string | null
     userAgent?: StringNullableFilter<"Session"> | string | null
@@ -58669,12 +59113,14 @@ export namespace Prisma {
     lastActiveAt?: DateTimeFilter<"Session"> | Date | string
     createdAt?: DateTimeFilter<"Session"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    company?: XOR<CompanyNullableScalarRelationFilter, CompanyWhereInput> | null
   }
 
   export type SessionOrderByWithRelationInput = {
     id?: SortOrder
     sessionToken?: SortOrder
     userId?: SortOrder
+    companyId?: SortOrderInput | SortOrder
     expires?: SortOrder
     ipAddress?: SortOrderInput | SortOrder
     userAgent?: SortOrderInput | SortOrder
@@ -58686,6 +59132,7 @@ export namespace Prisma {
     lastActiveAt?: SortOrder
     createdAt?: SortOrder
     user?: UserOrderByWithRelationInput
+    company?: CompanyOrderByWithRelationInput
   }
 
   export type SessionWhereUniqueInput = Prisma.AtLeast<{
@@ -58695,6 +59142,7 @@ export namespace Prisma {
     OR?: SessionWhereInput[]
     NOT?: SessionWhereInput | SessionWhereInput[]
     userId?: StringFilter<"Session"> | string
+    companyId?: StringNullableFilter<"Session"> | string | null
     expires?: DateTimeFilter<"Session"> | Date | string
     ipAddress?: StringNullableFilter<"Session"> | string | null
     userAgent?: StringNullableFilter<"Session"> | string | null
@@ -58706,12 +59154,14 @@ export namespace Prisma {
     lastActiveAt?: DateTimeFilter<"Session"> | Date | string
     createdAt?: DateTimeFilter<"Session"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    company?: XOR<CompanyNullableScalarRelationFilter, CompanyWhereInput> | null
   }, "id" | "sessionToken">
 
   export type SessionOrderByWithAggregationInput = {
     id?: SortOrder
     sessionToken?: SortOrder
     userId?: SortOrder
+    companyId?: SortOrderInput | SortOrder
     expires?: SortOrder
     ipAddress?: SortOrderInput | SortOrder
     userAgent?: SortOrderInput | SortOrder
@@ -58734,6 +59184,7 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter<"Session"> | string
     sessionToken?: StringWithAggregatesFilter<"Session"> | string
     userId?: StringWithAggregatesFilter<"Session"> | string
+    companyId?: StringNullableWithAggregatesFilter<"Session"> | string | null
     expires?: DateTimeWithAggregatesFilter<"Session"> | Date | string
     ipAddress?: StringNullableWithAggregatesFilter<"Session"> | string | null
     userAgent?: StringNullableWithAggregatesFilter<"Session"> | string | null
@@ -58757,6 +59208,7 @@ export namespace Prisma {
     url?: StringNullableFilter<"Password"> | string | null
     notes?: StringNullableFilter<"Password"> | string | null
     folderId?: StringNullableFilter<"Password"> | string | null
+    companyId?: StringNullableFilter<"Password"> | string | null
     strength?: EnumPasswordStrengthFilter<"Password"> | $Enums.PasswordStrength
     hasTotp?: BoolFilter<"Password"> | boolean
     totpSecret?: StringNullableFilter<"Password"> | string | null
@@ -58768,6 +59220,7 @@ export namespace Prisma {
     rotationPolicyId?: StringNullableFilter<"Password"> | string | null
     owner?: XOR<UserScalarRelationFilter, UserWhereInput>
     folder?: XOR<FolderNullableScalarRelationFilter, FolderWhereInput> | null
+    company?: XOR<CompanyNullableScalarRelationFilter, CompanyWhereInput> | null
     sharedWith?: PasswordShareListRelationFilter
     temporaryShares?: TemporaryPasswordShareListRelationFilter
     tags?: PasswordTagListRelationFilter
@@ -58785,6 +59238,7 @@ export namespace Prisma {
     url?: SortOrderInput | SortOrder
     notes?: SortOrderInput | SortOrder
     folderId?: SortOrderInput | SortOrder
+    companyId?: SortOrderInput | SortOrder
     strength?: SortOrder
     hasTotp?: SortOrder
     totpSecret?: SortOrderInput | SortOrder
@@ -58796,6 +59250,7 @@ export namespace Prisma {
     rotationPolicyId?: SortOrderInput | SortOrder
     owner?: UserOrderByWithRelationInput
     folder?: FolderOrderByWithRelationInput
+    company?: CompanyOrderByWithRelationInput
     sharedWith?: PasswordShareOrderByRelationAggregateInput
     temporaryShares?: TemporaryPasswordShareOrderByRelationAggregateInput
     tags?: PasswordTagOrderByRelationAggregateInput
@@ -58816,6 +59271,7 @@ export namespace Prisma {
     url?: StringNullableFilter<"Password"> | string | null
     notes?: StringNullableFilter<"Password"> | string | null
     folderId?: StringNullableFilter<"Password"> | string | null
+    companyId?: StringNullableFilter<"Password"> | string | null
     strength?: EnumPasswordStrengthFilter<"Password"> | $Enums.PasswordStrength
     hasTotp?: BoolFilter<"Password"> | boolean
     totpSecret?: StringNullableFilter<"Password"> | string | null
@@ -58827,6 +59283,7 @@ export namespace Prisma {
     rotationPolicyId?: StringNullableFilter<"Password"> | string | null
     owner?: XOR<UserScalarRelationFilter, UserWhereInput>
     folder?: XOR<FolderNullableScalarRelationFilter, FolderWhereInput> | null
+    company?: XOR<CompanyNullableScalarRelationFilter, CompanyWhereInput> | null
     sharedWith?: PasswordShareListRelationFilter
     temporaryShares?: TemporaryPasswordShareListRelationFilter
     tags?: PasswordTagListRelationFilter
@@ -58844,6 +59301,7 @@ export namespace Prisma {
     url?: SortOrderInput | SortOrder
     notes?: SortOrderInput | SortOrder
     folderId?: SortOrderInput | SortOrder
+    companyId?: SortOrderInput | SortOrder
     strength?: SortOrder
     hasTotp?: SortOrder
     totpSecret?: SortOrderInput | SortOrder
@@ -58869,6 +59327,7 @@ export namespace Prisma {
     url?: StringNullableWithAggregatesFilter<"Password"> | string | null
     notes?: StringNullableWithAggregatesFilter<"Password"> | string | null
     folderId?: StringNullableWithAggregatesFilter<"Password"> | string | null
+    companyId?: StringNullableWithAggregatesFilter<"Password"> | string | null
     strength?: EnumPasswordStrengthWithAggregatesFilter<"Password"> | $Enums.PasswordStrength
     hasTotp?: BoolWithAggregatesFilter<"Password"> | boolean
     totpSecret?: StringNullableWithAggregatesFilter<"Password"> | string | null
@@ -58896,11 +59355,11 @@ export namespace Prisma {
     hasTotp?: BoolFilter<"PasswordHistory"> | boolean
     totpSecret?: StringNullableFilter<"PasswordHistory"> | string | null
     expiresAt?: DateTimeNullableFilter<"PasswordHistory"> | Date | string | null
-    changedBy?: StringFilter<"PasswordHistory"> | string
+    changedBy?: StringNullableFilter<"PasswordHistory"> | string | null
     changeType?: StringFilter<"PasswordHistory"> | string
     createdAt?: DateTimeFilter<"PasswordHistory"> | Date | string
     passwordEntry?: XOR<PasswordScalarRelationFilter, PasswordWhereInput>
-    changedByUser?: XOR<UserScalarRelationFilter, UserWhereInput>
+    changedByUser?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
   }
 
   export type PasswordHistoryOrderByWithRelationInput = {
@@ -58916,7 +59375,7 @@ export namespace Prisma {
     hasTotp?: SortOrder
     totpSecret?: SortOrderInput | SortOrder
     expiresAt?: SortOrderInput | SortOrder
-    changedBy?: SortOrder
+    changedBy?: SortOrderInput | SortOrder
     changeType?: SortOrder
     createdAt?: SortOrder
     passwordEntry?: PasswordOrderByWithRelationInput
@@ -58939,11 +59398,11 @@ export namespace Prisma {
     hasTotp?: BoolFilter<"PasswordHistory"> | boolean
     totpSecret?: StringNullableFilter<"PasswordHistory"> | string | null
     expiresAt?: DateTimeNullableFilter<"PasswordHistory"> | Date | string | null
-    changedBy?: StringFilter<"PasswordHistory"> | string
+    changedBy?: StringNullableFilter<"PasswordHistory"> | string | null
     changeType?: StringFilter<"PasswordHistory"> | string
     createdAt?: DateTimeFilter<"PasswordHistory"> | Date | string
     passwordEntry?: XOR<PasswordScalarRelationFilter, PasswordWhereInput>
-    changedByUser?: XOR<UserScalarRelationFilter, UserWhereInput>
+    changedByUser?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
   }, "id">
 
   export type PasswordHistoryOrderByWithAggregationInput = {
@@ -58959,7 +59418,7 @@ export namespace Prisma {
     hasTotp?: SortOrder
     totpSecret?: SortOrderInput | SortOrder
     expiresAt?: SortOrderInput | SortOrder
-    changedBy?: SortOrder
+    changedBy?: SortOrderInput | SortOrder
     changeType?: SortOrder
     createdAt?: SortOrder
     _count?: PasswordHistoryCountOrderByAggregateInput
@@ -58983,7 +59442,7 @@ export namespace Prisma {
     hasTotp?: BoolWithAggregatesFilter<"PasswordHistory"> | boolean
     totpSecret?: StringNullableWithAggregatesFilter<"PasswordHistory"> | string | null
     expiresAt?: DateTimeNullableWithAggregatesFilter<"PasswordHistory"> | Date | string | null
-    changedBy?: StringWithAggregatesFilter<"PasswordHistory"> | string
+    changedBy?: StringNullableWithAggregatesFilter<"PasswordHistory"> | string | null
     changeType?: StringWithAggregatesFilter<"PasswordHistory"> | string
     createdAt?: DateTimeWithAggregatesFilter<"PasswordHistory"> | Date | string
   }
@@ -58998,12 +59457,12 @@ export namespace Prisma {
     breachCount?: IntFilter<"PasswordBreach"> | number
     hashPrefix?: StringFilter<"PasswordBreach"> | string
     checkedAt?: DateTimeFilter<"PasswordBreach"> | Date | string
-    checkedBy?: StringFilter<"PasswordBreach"> | string
+    checkedBy?: StringNullableFilter<"PasswordBreach"> | string | null
     resolved?: BoolFilter<"PasswordBreach"> | boolean
     resolvedAt?: DateTimeNullableFilter<"PasswordBreach"> | Date | string | null
     resolvedBy?: StringNullableFilter<"PasswordBreach"> | string | null
     password?: XOR<PasswordScalarRelationFilter, PasswordWhereInput>
-    checkedByUser?: XOR<UserScalarRelationFilter, UserWhereInput>
+    checkedByUser?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
     resolvedByUser?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
   }
 
@@ -59014,7 +59473,7 @@ export namespace Prisma {
     breachCount?: SortOrder
     hashPrefix?: SortOrder
     checkedAt?: SortOrder
-    checkedBy?: SortOrder
+    checkedBy?: SortOrderInput | SortOrder
     resolved?: SortOrder
     resolvedAt?: SortOrderInput | SortOrder
     resolvedBy?: SortOrderInput | SortOrder
@@ -59033,12 +59492,12 @@ export namespace Prisma {
     breachCount?: IntFilter<"PasswordBreach"> | number
     hashPrefix?: StringFilter<"PasswordBreach"> | string
     checkedAt?: DateTimeFilter<"PasswordBreach"> | Date | string
-    checkedBy?: StringFilter<"PasswordBreach"> | string
+    checkedBy?: StringNullableFilter<"PasswordBreach"> | string | null
     resolved?: BoolFilter<"PasswordBreach"> | boolean
     resolvedAt?: DateTimeNullableFilter<"PasswordBreach"> | Date | string | null
     resolvedBy?: StringNullableFilter<"PasswordBreach"> | string | null
     password?: XOR<PasswordScalarRelationFilter, PasswordWhereInput>
-    checkedByUser?: XOR<UserScalarRelationFilter, UserWhereInput>
+    checkedByUser?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
     resolvedByUser?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
   }, "id">
 
@@ -59049,7 +59508,7 @@ export namespace Prisma {
     breachCount?: SortOrder
     hashPrefix?: SortOrder
     checkedAt?: SortOrder
-    checkedBy?: SortOrder
+    checkedBy?: SortOrderInput | SortOrder
     resolved?: SortOrder
     resolvedAt?: SortOrderInput | SortOrder
     resolvedBy?: SortOrderInput | SortOrder
@@ -59070,7 +59529,7 @@ export namespace Prisma {
     breachCount?: IntWithAggregatesFilter<"PasswordBreach"> | number
     hashPrefix?: StringWithAggregatesFilter<"PasswordBreach"> | string
     checkedAt?: DateTimeWithAggregatesFilter<"PasswordBreach"> | Date | string
-    checkedBy?: StringWithAggregatesFilter<"PasswordBreach"> | string
+    checkedBy?: StringNullableWithAggregatesFilter<"PasswordBreach"> | string | null
     resolved?: BoolWithAggregatesFilter<"PasswordBreach"> | boolean
     resolvedAt?: DateTimeNullableWithAggregatesFilter<"PasswordBreach"> | Date | string | null
     resolvedBy?: StringNullableWithAggregatesFilter<"PasswordBreach"> | string | null
@@ -59089,9 +59548,11 @@ export namespace Prisma {
     requireApproval?: BoolFilter<"PasswordRotationPolicy"> | boolean
     isActive?: BoolFilter<"PasswordRotationPolicy"> | boolean
     ownerId?: StringFilter<"PasswordRotationPolicy"> | string
+    companyId?: StringNullableFilter<"PasswordRotationPolicy"> | string | null
     createdAt?: DateTimeFilter<"PasswordRotationPolicy"> | Date | string
     updatedAt?: DateTimeFilter<"PasswordRotationPolicy"> | Date | string
     owner?: XOR<UserScalarRelationFilter, UserWhereInput>
+    company?: XOR<CompanyNullableScalarRelationFilter, CompanyWhereInput> | null
     passwords?: PasswordListRelationFilter
     rotations?: PasswordRotationListRelationFilter
   }
@@ -59106,9 +59567,11 @@ export namespace Prisma {
     requireApproval?: SortOrder
     isActive?: SortOrder
     ownerId?: SortOrder
+    companyId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     owner?: UserOrderByWithRelationInput
+    company?: CompanyOrderByWithRelationInput
     passwords?: PasswordOrderByRelationAggregateInput
     rotations?: PasswordRotationOrderByRelationAggregateInput
   }
@@ -59126,9 +59589,11 @@ export namespace Prisma {
     requireApproval?: BoolFilter<"PasswordRotationPolicy"> | boolean
     isActive?: BoolFilter<"PasswordRotationPolicy"> | boolean
     ownerId?: StringFilter<"PasswordRotationPolicy"> | string
+    companyId?: StringNullableFilter<"PasswordRotationPolicy"> | string | null
     createdAt?: DateTimeFilter<"PasswordRotationPolicy"> | Date | string
     updatedAt?: DateTimeFilter<"PasswordRotationPolicy"> | Date | string
     owner?: XOR<UserScalarRelationFilter, UserWhereInput>
+    company?: XOR<CompanyNullableScalarRelationFilter, CompanyWhereInput> | null
     passwords?: PasswordListRelationFilter
     rotations?: PasswordRotationListRelationFilter
   }, "id">
@@ -59143,6 +59608,7 @@ export namespace Prisma {
     requireApproval?: SortOrder
     isActive?: SortOrder
     ownerId?: SortOrder
+    companyId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: PasswordRotationPolicyCountOrderByAggregateInput
@@ -59165,6 +59631,7 @@ export namespace Prisma {
     requireApproval?: BoolWithAggregatesFilter<"PasswordRotationPolicy"> | boolean
     isActive?: BoolWithAggregatesFilter<"PasswordRotationPolicy"> | boolean
     ownerId?: StringWithAggregatesFilter<"PasswordRotationPolicy"> | string
+    companyId?: StringNullableWithAggregatesFilter<"PasswordRotationPolicy"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"PasswordRotationPolicy"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"PasswordRotationPolicy"> | Date | string
   }
@@ -59180,14 +59647,14 @@ export namespace Prisma {
     oldPassword?: StringNullableFilter<"PasswordRotation"> | string | null
     newPassword?: StringFilter<"PasswordRotation"> | string
     rotatedAt?: DateTimeFilter<"PasswordRotation"> | Date | string
-    rotatedBy?: StringFilter<"PasswordRotation"> | string
+    rotatedBy?: StringNullableFilter<"PasswordRotation"> | string | null
     scheduledFor?: DateTimeNullableFilter<"PasswordRotation"> | Date | string | null
     completedAt?: DateTimeNullableFilter<"PasswordRotation"> | Date | string | null
     status?: StringFilter<"PasswordRotation"> | string
     notes?: StringNullableFilter<"PasswordRotation"> | string | null
     password?: XOR<PasswordScalarRelationFilter, PasswordWhereInput>
     policy?: XOR<PasswordRotationPolicyNullableScalarRelationFilter, PasswordRotationPolicyWhereInput> | null
-    rotatedByUser?: XOR<UserScalarRelationFilter, UserWhereInput>
+    rotatedByUser?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
   }
 
   export type PasswordRotationOrderByWithRelationInput = {
@@ -59198,7 +59665,7 @@ export namespace Prisma {
     oldPassword?: SortOrderInput | SortOrder
     newPassword?: SortOrder
     rotatedAt?: SortOrder
-    rotatedBy?: SortOrder
+    rotatedBy?: SortOrderInput | SortOrder
     scheduledFor?: SortOrderInput | SortOrder
     completedAt?: SortOrderInput | SortOrder
     status?: SortOrder
@@ -59219,14 +59686,14 @@ export namespace Prisma {
     oldPassword?: StringNullableFilter<"PasswordRotation"> | string | null
     newPassword?: StringFilter<"PasswordRotation"> | string
     rotatedAt?: DateTimeFilter<"PasswordRotation"> | Date | string
-    rotatedBy?: StringFilter<"PasswordRotation"> | string
+    rotatedBy?: StringNullableFilter<"PasswordRotation"> | string | null
     scheduledFor?: DateTimeNullableFilter<"PasswordRotation"> | Date | string | null
     completedAt?: DateTimeNullableFilter<"PasswordRotation"> | Date | string | null
     status?: StringFilter<"PasswordRotation"> | string
     notes?: StringNullableFilter<"PasswordRotation"> | string | null
     password?: XOR<PasswordScalarRelationFilter, PasswordWhereInput>
     policy?: XOR<PasswordRotationPolicyNullableScalarRelationFilter, PasswordRotationPolicyWhereInput> | null
-    rotatedByUser?: XOR<UserScalarRelationFilter, UserWhereInput>
+    rotatedByUser?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
   }, "id">
 
   export type PasswordRotationOrderByWithAggregationInput = {
@@ -59237,7 +59704,7 @@ export namespace Prisma {
     oldPassword?: SortOrderInput | SortOrder
     newPassword?: SortOrder
     rotatedAt?: SortOrder
-    rotatedBy?: SortOrder
+    rotatedBy?: SortOrderInput | SortOrder
     scheduledFor?: SortOrderInput | SortOrder
     completedAt?: SortOrderInput | SortOrder
     status?: SortOrder
@@ -59258,7 +59725,7 @@ export namespace Prisma {
     oldPassword?: StringNullableWithAggregatesFilter<"PasswordRotation"> | string | null
     newPassword?: StringWithAggregatesFilter<"PasswordRotation"> | string
     rotatedAt?: DateTimeWithAggregatesFilter<"PasswordRotation"> | Date | string
-    rotatedBy?: StringWithAggregatesFilter<"PasswordRotation"> | string
+    rotatedBy?: StringNullableWithAggregatesFilter<"PasswordRotation"> | string | null
     scheduledFor?: DateTimeNullableWithAggregatesFilter<"PasswordRotation"> | Date | string | null
     completedAt?: DateTimeNullableWithAggregatesFilter<"PasswordRotation"> | Date | string | null
     status?: StringWithAggregatesFilter<"PasswordRotation"> | string
@@ -59275,13 +59742,13 @@ export namespace Prisma {
     icon?: StringNullableFilter<"Folder"> | string | null
     color?: StringNullableFilter<"Folder"> | string | null
     parentId?: StringNullableFilter<"Folder"> | string | null
-    companyId?: StringNullableFilter<"Folder"> | string | null
+    companyId?: StringFilter<"Folder"> | string
     createdAt?: DateTimeFilter<"Folder"> | Date | string
     updatedAt?: DateTimeFilter<"Folder"> | Date | string
     parent?: XOR<FolderNullableScalarRelationFilter, FolderWhereInput> | null
     children?: FolderListRelationFilter
     passwords?: PasswordListRelationFilter
-    company?: XOR<CompanyNullableScalarRelationFilter, CompanyWhereInput> | null
+    company?: XOR<CompanyScalarRelationFilter, CompanyWhereInput>
   }
 
   export type FolderOrderByWithRelationInput = {
@@ -59291,7 +59758,7 @@ export namespace Prisma {
     icon?: SortOrderInput | SortOrder
     color?: SortOrderInput | SortOrder
     parentId?: SortOrderInput | SortOrder
-    companyId?: SortOrderInput | SortOrder
+    companyId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     parent?: FolderOrderByWithRelationInput
@@ -59310,13 +59777,13 @@ export namespace Prisma {
     icon?: StringNullableFilter<"Folder"> | string | null
     color?: StringNullableFilter<"Folder"> | string | null
     parentId?: StringNullableFilter<"Folder"> | string | null
-    companyId?: StringNullableFilter<"Folder"> | string | null
+    companyId?: StringFilter<"Folder"> | string
     createdAt?: DateTimeFilter<"Folder"> | Date | string
     updatedAt?: DateTimeFilter<"Folder"> | Date | string
     parent?: XOR<FolderNullableScalarRelationFilter, FolderWhereInput> | null
     children?: FolderListRelationFilter
     passwords?: PasswordListRelationFilter
-    company?: XOR<CompanyNullableScalarRelationFilter, CompanyWhereInput> | null
+    company?: XOR<CompanyScalarRelationFilter, CompanyWhereInput>
   }, "id">
 
   export type FolderOrderByWithAggregationInput = {
@@ -59326,7 +59793,7 @@ export namespace Prisma {
     icon?: SortOrderInput | SortOrder
     color?: SortOrderInput | SortOrder
     parentId?: SortOrderInput | SortOrder
-    companyId?: SortOrderInput | SortOrder
+    companyId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: FolderCountOrderByAggregateInput
@@ -59344,7 +59811,7 @@ export namespace Prisma {
     icon?: StringNullableWithAggregatesFilter<"Folder"> | string | null
     color?: StringNullableWithAggregatesFilter<"Folder"> | string | null
     parentId?: StringNullableWithAggregatesFilter<"Folder"> | string | null
-    companyId?: StringNullableWithAggregatesFilter<"Folder"> | string | null
+    companyId?: StringWithAggregatesFilter<"Folder"> | string
     createdAt?: DateTimeWithAggregatesFilter<"Folder"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Folder"> | Date | string
   }
@@ -59764,6 +60231,7 @@ export namespace Prisma {
     NOT?: AuditLogWhereInput | AuditLogWhereInput[]
     id?: StringFilter<"AuditLog"> | string
     userId?: StringNullableFilter<"AuditLog"> | string | null
+    companyId?: StringNullableFilter<"AuditLog"> | string | null
     action?: StringFilter<"AuditLog"> | string
     resource?: StringFilter<"AuditLog"> | string
     resourceId?: StringNullableFilter<"AuditLog"> | string | null
@@ -59773,11 +60241,13 @@ export namespace Prisma {
     status?: EnumAuditStatusFilter<"AuditLog"> | $Enums.AuditStatus
     createdAt?: DateTimeFilter<"AuditLog"> | Date | string
     user?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
+    company?: XOR<CompanyNullableScalarRelationFilter, CompanyWhereInput> | null
   }
 
   export type AuditLogOrderByWithRelationInput = {
     id?: SortOrder
     userId?: SortOrderInput | SortOrder
+    companyId?: SortOrderInput | SortOrder
     action?: SortOrder
     resource?: SortOrder
     resourceId?: SortOrderInput | SortOrder
@@ -59787,6 +60257,7 @@ export namespace Prisma {
     status?: SortOrder
     createdAt?: SortOrder
     user?: UserOrderByWithRelationInput
+    company?: CompanyOrderByWithRelationInput
   }
 
   export type AuditLogWhereUniqueInput = Prisma.AtLeast<{
@@ -59795,6 +60266,7 @@ export namespace Prisma {
     OR?: AuditLogWhereInput[]
     NOT?: AuditLogWhereInput | AuditLogWhereInput[]
     userId?: StringNullableFilter<"AuditLog"> | string | null
+    companyId?: StringNullableFilter<"AuditLog"> | string | null
     action?: StringFilter<"AuditLog"> | string
     resource?: StringFilter<"AuditLog"> | string
     resourceId?: StringNullableFilter<"AuditLog"> | string | null
@@ -59804,11 +60276,13 @@ export namespace Prisma {
     status?: EnumAuditStatusFilter<"AuditLog"> | $Enums.AuditStatus
     createdAt?: DateTimeFilter<"AuditLog"> | Date | string
     user?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
+    company?: XOR<CompanyNullableScalarRelationFilter, CompanyWhereInput> | null
   }, "id">
 
   export type AuditLogOrderByWithAggregationInput = {
     id?: SortOrder
     userId?: SortOrderInput | SortOrder
+    companyId?: SortOrderInput | SortOrder
     action?: SortOrder
     resource?: SortOrder
     resourceId?: SortOrderInput | SortOrder
@@ -59828,6 +60302,7 @@ export namespace Prisma {
     NOT?: AuditLogScalarWhereWithAggregatesInput | AuditLogScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"AuditLog"> | string
     userId?: StringNullableWithAggregatesFilter<"AuditLog"> | string | null
+    companyId?: StringNullableWithAggregatesFilter<"AuditLog"> | string | null
     action?: StringWithAggregatesFilter<"AuditLog"> | string
     resource?: StringWithAggregatesFilter<"AuditLog"> | string
     resourceId?: StringNullableWithAggregatesFilter<"AuditLog"> | string | null
@@ -60232,10 +60707,12 @@ export namespace Prisma {
     name?: StringFilter<"Role"> | string
     description?: StringNullableFilter<"Role"> | string | null
     isSystem?: BoolFilter<"Role"> | boolean
+    companyId?: StringNullableFilter<"Role"> | string | null
     createdAt?: DateTimeFilter<"Role"> | Date | string
     updatedAt?: DateTimeFilter<"Role"> | Date | string
     createdById?: StringNullableFilter<"Role"> | string | null
     createdBy?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
+    company?: XOR<CompanyNullableScalarRelationFilter, CompanyWhereInput> | null
     permissions?: RolePermissionListRelationFilter
   }
 
@@ -60244,33 +60721,39 @@ export namespace Prisma {
     name?: SortOrder
     description?: SortOrderInput | SortOrder
     isSystem?: SortOrder
+    companyId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     createdById?: SortOrderInput | SortOrder
     createdBy?: UserOrderByWithRelationInput
+    company?: CompanyOrderByWithRelationInput
     permissions?: RolePermissionOrderByRelationAggregateInput
   }
 
   export type RoleWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-    name?: string
+    name_companyId?: RoleNameCompanyIdCompoundUniqueInput
     AND?: RoleWhereInput | RoleWhereInput[]
     OR?: RoleWhereInput[]
     NOT?: RoleWhereInput | RoleWhereInput[]
+    name?: StringFilter<"Role"> | string
     description?: StringNullableFilter<"Role"> | string | null
     isSystem?: BoolFilter<"Role"> | boolean
+    companyId?: StringNullableFilter<"Role"> | string | null
     createdAt?: DateTimeFilter<"Role"> | Date | string
     updatedAt?: DateTimeFilter<"Role"> | Date | string
     createdById?: StringNullableFilter<"Role"> | string | null
     createdBy?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
+    company?: XOR<CompanyNullableScalarRelationFilter, CompanyWhereInput> | null
     permissions?: RolePermissionListRelationFilter
-  }, "id" | "name">
+  }, "id" | "name_companyId">
 
   export type RoleOrderByWithAggregationInput = {
     id?: SortOrder
     name?: SortOrder
     description?: SortOrderInput | SortOrder
     isSystem?: SortOrder
+    companyId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     createdById?: SortOrderInput | SortOrder
@@ -60287,6 +60770,7 @@ export namespace Prisma {
     name?: StringWithAggregatesFilter<"Role"> | string
     description?: StringNullableWithAggregatesFilter<"Role"> | string | null
     isSystem?: BoolWithAggregatesFilter<"Role"> | boolean
+    companyId?: StringNullableWithAggregatesFilter<"Role"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Role"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Role"> | Date | string
     createdById?: StringNullableWithAggregatesFilter<"Role"> | string | null
@@ -62005,6 +62489,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
     tags?: TagCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogCreateNestedManyWithoutCompanyInput
+    roles?: RoleCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyCreateNestedManyWithoutCompanyInput
+    sessions?: SessionCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateInput = {
@@ -62031,6 +62520,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
     tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordUncheckedCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutCompanyInput
+    roles?: RoleUncheckedCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedCreateNestedManyWithoutCompanyInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUpdateInput = {
@@ -62057,6 +62551,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
     tags?: TagUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateInput = {
@@ -62083,6 +62582,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
     tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUncheckedUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUncheckedUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyCreateManyInput = {
@@ -62537,12 +63041,14 @@ export namespace Prisma {
     lastActiveAt?: Date | string
     createdAt?: Date | string
     user: UserCreateNestedOneWithoutSessionsInput
+    company?: CompanyCreateNestedOneWithoutSessionsInput
   }
 
   export type SessionUncheckedCreateInput = {
     id?: string
     sessionToken: string
     userId: string
+    companyId?: string | null
     expires: Date | string
     ipAddress?: string | null
     userAgent?: string | null
@@ -62569,12 +63075,14 @@ export namespace Prisma {
     lastActiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutSessionsNestedInput
+    company?: CompanyUpdateOneWithoutSessionsNestedInput
   }
 
   export type SessionUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     sessionToken?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
+    companyId?: NullableStringFieldUpdateOperationsInput | string | null
     expires?: DateTimeFieldUpdateOperationsInput | Date | string
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
     userAgent?: NullableStringFieldUpdateOperationsInput | string | null
@@ -62591,6 +63099,7 @@ export namespace Prisma {
     id?: string
     sessionToken: string
     userId: string
+    companyId?: string | null
     expires: Date | string
     ipAddress?: string | null
     userAgent?: string | null
@@ -62622,6 +63131,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     sessionToken?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
+    companyId?: NullableStringFieldUpdateOperationsInput | string | null
     expires?: DateTimeFieldUpdateOperationsInput | Date | string
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
     userAgent?: NullableStringFieldUpdateOperationsInput | string | null
@@ -62650,6 +63160,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     owner: UserCreateNestedOneWithoutOwnedPasswordsInput
     folder?: FolderCreateNestedOneWithoutPasswordsInput
+    company?: CompanyCreateNestedOneWithoutPasswordsInput
     sharedWith?: PasswordShareCreateNestedManyWithoutPasswordInput
     temporaryShares?: TemporaryPasswordShareCreateNestedManyWithoutPasswordInput
     tags?: PasswordTagCreateNestedManyWithoutPasswordInput
@@ -62667,6 +63178,7 @@ export namespace Prisma {
     url?: string | null
     notes?: string | null
     folderId?: string | null
+    companyId?: string | null
     strength?: $Enums.PasswordStrength
     hasTotp?: boolean
     totpSecret?: string | null
@@ -62700,6 +63212,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     owner?: UserUpdateOneRequiredWithoutOwnedPasswordsNestedInput
     folder?: FolderUpdateOneWithoutPasswordsNestedInput
+    company?: CompanyUpdateOneWithoutPasswordsNestedInput
     sharedWith?: PasswordShareUpdateManyWithoutPasswordNestedInput
     temporaryShares?: TemporaryPasswordShareUpdateManyWithoutPasswordNestedInput
     tags?: PasswordTagUpdateManyWithoutPasswordNestedInput
@@ -62717,6 +63230,7 @@ export namespace Prisma {
     url?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     folderId?: NullableStringFieldUpdateOperationsInput | string | null
+    companyId?: NullableStringFieldUpdateOperationsInput | string | null
     strength?: EnumPasswordStrengthFieldUpdateOperationsInput | $Enums.PasswordStrength
     hasTotp?: BoolFieldUpdateOperationsInput | boolean
     totpSecret?: NullableStringFieldUpdateOperationsInput | string | null
@@ -62742,6 +63256,7 @@ export namespace Prisma {
     url?: string | null
     notes?: string | null
     folderId?: string | null
+    companyId?: string | null
     strength?: $Enums.PasswordStrength
     hasTotp?: boolean
     totpSecret?: string | null
@@ -62777,6 +63292,7 @@ export namespace Prisma {
     url?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     folderId?: NullableStringFieldUpdateOperationsInput | string | null
+    companyId?: NullableStringFieldUpdateOperationsInput | string | null
     strength?: EnumPasswordStrengthFieldUpdateOperationsInput | $Enums.PasswordStrength
     hasTotp?: BoolFieldUpdateOperationsInput | boolean
     totpSecret?: NullableStringFieldUpdateOperationsInput | string | null
@@ -62803,7 +63319,7 @@ export namespace Prisma {
     changeType?: string
     createdAt?: Date | string
     passwordEntry: PasswordCreateNestedOneWithoutHistoryInput
-    changedByUser: UserCreateNestedOneWithoutPasswordHistoryInput
+    changedByUser?: UserCreateNestedOneWithoutPasswordHistoryInput
   }
 
   export type PasswordHistoryUncheckedCreateInput = {
@@ -62819,7 +63335,7 @@ export namespace Prisma {
     hasTotp: boolean
     totpSecret?: string | null
     expiresAt?: Date | string | null
-    changedBy: string
+    changedBy?: string | null
     changeType?: string
     createdAt?: Date | string
   }
@@ -62839,7 +63355,7 @@ export namespace Prisma {
     changeType?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     passwordEntry?: PasswordUpdateOneRequiredWithoutHistoryNestedInput
-    changedByUser?: UserUpdateOneRequiredWithoutPasswordHistoryNestedInput
+    changedByUser?: UserUpdateOneWithoutPasswordHistoryNestedInput
   }
 
   export type PasswordHistoryUncheckedUpdateInput = {
@@ -62855,7 +63371,7 @@ export namespace Prisma {
     hasTotp?: BoolFieldUpdateOperationsInput | boolean
     totpSecret?: NullableStringFieldUpdateOperationsInput | string | null
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    changedBy?: StringFieldUpdateOperationsInput | string
+    changedBy?: NullableStringFieldUpdateOperationsInput | string | null
     changeType?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -62873,7 +63389,7 @@ export namespace Prisma {
     hasTotp: boolean
     totpSecret?: string | null
     expiresAt?: Date | string | null
-    changedBy: string
+    changedBy?: string | null
     changeType?: string
     createdAt?: Date | string
   }
@@ -62907,7 +63423,7 @@ export namespace Prisma {
     hasTotp?: BoolFieldUpdateOperationsInput | boolean
     totpSecret?: NullableStringFieldUpdateOperationsInput | string | null
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    changedBy?: StringFieldUpdateOperationsInput | string
+    changedBy?: NullableStringFieldUpdateOperationsInput | string | null
     changeType?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -62921,7 +63437,7 @@ export namespace Prisma {
     resolved?: boolean
     resolvedAt?: Date | string | null
     password: PasswordCreateNestedOneWithoutBreachesInput
-    checkedByUser: UserCreateNestedOneWithoutPasswordBreachesCheckedInput
+    checkedByUser?: UserCreateNestedOneWithoutPasswordBreachesCheckedInput
     resolvedByUser?: UserCreateNestedOneWithoutPasswordBreachesResolvedInput
   }
 
@@ -62932,7 +63448,7 @@ export namespace Prisma {
     breachCount?: number
     hashPrefix: string
     checkedAt?: Date | string
-    checkedBy: string
+    checkedBy?: string | null
     resolved?: boolean
     resolvedAt?: Date | string | null
     resolvedBy?: string | null
@@ -62947,7 +63463,7 @@ export namespace Prisma {
     resolved?: BoolFieldUpdateOperationsInput | boolean
     resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     password?: PasswordUpdateOneRequiredWithoutBreachesNestedInput
-    checkedByUser?: UserUpdateOneRequiredWithoutPasswordBreachesCheckedNestedInput
+    checkedByUser?: UserUpdateOneWithoutPasswordBreachesCheckedNestedInput
     resolvedByUser?: UserUpdateOneWithoutPasswordBreachesResolvedNestedInput
   }
 
@@ -62958,7 +63474,7 @@ export namespace Prisma {
     breachCount?: IntFieldUpdateOperationsInput | number
     hashPrefix?: StringFieldUpdateOperationsInput | string
     checkedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    checkedBy?: StringFieldUpdateOperationsInput | string
+    checkedBy?: NullableStringFieldUpdateOperationsInput | string | null
     resolved?: BoolFieldUpdateOperationsInput | boolean
     resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     resolvedBy?: NullableStringFieldUpdateOperationsInput | string | null
@@ -62971,7 +63487,7 @@ export namespace Prisma {
     breachCount?: number
     hashPrefix: string
     checkedAt?: Date | string
-    checkedBy: string
+    checkedBy?: string | null
     resolved?: boolean
     resolvedAt?: Date | string | null
     resolvedBy?: string | null
@@ -62994,7 +63510,7 @@ export namespace Prisma {
     breachCount?: IntFieldUpdateOperationsInput | number
     hashPrefix?: StringFieldUpdateOperationsInput | string
     checkedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    checkedBy?: StringFieldUpdateOperationsInput | string
+    checkedBy?: NullableStringFieldUpdateOperationsInput | string | null
     resolved?: BoolFieldUpdateOperationsInput | boolean
     resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     resolvedBy?: NullableStringFieldUpdateOperationsInput | string | null
@@ -63012,6 +63528,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     owner: UserCreateNestedOneWithoutRotationPoliciesInput
+    company?: CompanyCreateNestedOneWithoutRotationPoliciesInput
     passwords?: PasswordCreateNestedManyWithoutRotationPolicyInput
     rotations?: PasswordRotationCreateNestedManyWithoutPolicyInput
   }
@@ -63026,6 +63543,7 @@ export namespace Prisma {
     requireApproval?: boolean
     isActive?: boolean
     ownerId: string
+    companyId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     passwords?: PasswordUncheckedCreateNestedManyWithoutRotationPolicyInput
@@ -63044,6 +63562,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     owner?: UserUpdateOneRequiredWithoutRotationPoliciesNestedInput
+    company?: CompanyUpdateOneWithoutRotationPoliciesNestedInput
     passwords?: PasswordUpdateManyWithoutRotationPolicyNestedInput
     rotations?: PasswordRotationUpdateManyWithoutPolicyNestedInput
   }
@@ -63058,6 +63577,7 @@ export namespace Prisma {
     requireApproval?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     ownerId?: StringFieldUpdateOperationsInput | string
+    companyId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     passwords?: PasswordUncheckedUpdateManyWithoutRotationPolicyNestedInput
@@ -63074,6 +63594,7 @@ export namespace Prisma {
     requireApproval?: boolean
     isActive?: boolean
     ownerId: string
+    companyId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -63101,6 +63622,7 @@ export namespace Prisma {
     requireApproval?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     ownerId?: StringFieldUpdateOperationsInput | string
+    companyId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -63117,7 +63639,7 @@ export namespace Prisma {
     notes?: string | null
     password: PasswordCreateNestedOneWithoutRotationsInput
     policy?: PasswordRotationPolicyCreateNestedOneWithoutRotationsInput
-    rotatedByUser: UserCreateNestedOneWithoutPasswordRotationsInput
+    rotatedByUser?: UserCreateNestedOneWithoutPasswordRotationsInput
   }
 
   export type PasswordRotationUncheckedCreateInput = {
@@ -63128,7 +63650,7 @@ export namespace Prisma {
     oldPassword?: string | null
     newPassword: string
     rotatedAt?: Date | string
-    rotatedBy: string
+    rotatedBy?: string | null
     scheduledFor?: Date | string | null
     completedAt?: Date | string | null
     status?: string
@@ -63147,7 +63669,7 @@ export namespace Prisma {
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     password?: PasswordUpdateOneRequiredWithoutRotationsNestedInput
     policy?: PasswordRotationPolicyUpdateOneWithoutRotationsNestedInput
-    rotatedByUser?: UserUpdateOneRequiredWithoutPasswordRotationsNestedInput
+    rotatedByUser?: UserUpdateOneWithoutPasswordRotationsNestedInput
   }
 
   export type PasswordRotationUncheckedUpdateInput = {
@@ -63158,7 +63680,7 @@ export namespace Prisma {
     oldPassword?: NullableStringFieldUpdateOperationsInput | string | null
     newPassword?: StringFieldUpdateOperationsInput | string
     rotatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    rotatedBy?: StringFieldUpdateOperationsInput | string
+    rotatedBy?: NullableStringFieldUpdateOperationsInput | string | null
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: StringFieldUpdateOperationsInput | string
@@ -63173,7 +63695,7 @@ export namespace Prisma {
     oldPassword?: string | null
     newPassword: string
     rotatedAt?: Date | string
-    rotatedBy: string
+    rotatedBy?: string | null
     scheduledFor?: Date | string | null
     completedAt?: Date | string | null
     status?: string
@@ -63200,7 +63722,7 @@ export namespace Prisma {
     oldPassword?: NullableStringFieldUpdateOperationsInput | string | null
     newPassword?: StringFieldUpdateOperationsInput | string
     rotatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    rotatedBy?: StringFieldUpdateOperationsInput | string
+    rotatedBy?: NullableStringFieldUpdateOperationsInput | string | null
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: StringFieldUpdateOperationsInput | string
@@ -63218,7 +63740,7 @@ export namespace Prisma {
     parent?: FolderCreateNestedOneWithoutChildrenInput
     children?: FolderCreateNestedManyWithoutParentInput
     passwords?: PasswordCreateNestedManyWithoutFolderInput
-    company?: CompanyCreateNestedOneWithoutFoldersInput
+    company: CompanyCreateNestedOneWithoutFoldersInput
   }
 
   export type FolderUncheckedCreateInput = {
@@ -63228,7 +63750,7 @@ export namespace Prisma {
     icon?: string | null
     color?: string | null
     parentId?: string | null
-    companyId?: string | null
+    companyId: string
     createdAt?: Date | string
     updatedAt?: Date | string
     children?: FolderUncheckedCreateNestedManyWithoutParentInput
@@ -63246,7 +63768,7 @@ export namespace Prisma {
     parent?: FolderUpdateOneWithoutChildrenNestedInput
     children?: FolderUpdateManyWithoutParentNestedInput
     passwords?: PasswordUpdateManyWithoutFolderNestedInput
-    company?: CompanyUpdateOneWithoutFoldersNestedInput
+    company?: CompanyUpdateOneRequiredWithoutFoldersNestedInput
   }
 
   export type FolderUncheckedUpdateInput = {
@@ -63256,7 +63778,7 @@ export namespace Prisma {
     icon?: NullableStringFieldUpdateOperationsInput | string | null
     color?: NullableStringFieldUpdateOperationsInput | string | null
     parentId?: NullableStringFieldUpdateOperationsInput | string | null
-    companyId?: NullableStringFieldUpdateOperationsInput | string | null
+    companyId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     children?: FolderUncheckedUpdateManyWithoutParentNestedInput
@@ -63270,7 +63792,7 @@ export namespace Prisma {
     icon?: string | null
     color?: string | null
     parentId?: string | null
-    companyId?: string | null
+    companyId: string
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -63292,7 +63814,7 @@ export namespace Prisma {
     icon?: NullableStringFieldUpdateOperationsInput | string | null
     color?: NullableStringFieldUpdateOperationsInput | string | null
     parentId?: NullableStringFieldUpdateOperationsInput | string | null
-    companyId?: NullableStringFieldUpdateOperationsInput | string | null
+    companyId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -63715,11 +64237,13 @@ export namespace Prisma {
     status?: $Enums.AuditStatus
     createdAt?: Date | string
     user?: UserCreateNestedOneWithoutAuditLogsInput
+    company?: CompanyCreateNestedOneWithoutAuditLogsInput
   }
 
   export type AuditLogUncheckedCreateInput = {
     id?: string
     userId?: string | null
+    companyId?: string | null
     action: string
     resource: string
     resourceId?: string | null
@@ -63741,11 +64265,13 @@ export namespace Prisma {
     status?: EnumAuditStatusFieldUpdateOperationsInput | $Enums.AuditStatus
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneWithoutAuditLogsNestedInput
+    company?: CompanyUpdateOneWithoutAuditLogsNestedInput
   }
 
   export type AuditLogUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     userId?: NullableStringFieldUpdateOperationsInput | string | null
+    companyId?: NullableStringFieldUpdateOperationsInput | string | null
     action?: StringFieldUpdateOperationsInput | string
     resource?: StringFieldUpdateOperationsInput | string
     resourceId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -63759,6 +64285,7 @@ export namespace Prisma {
   export type AuditLogCreateManyInput = {
     id?: string
     userId?: string | null
+    companyId?: string | null
     action: string
     resource: string
     resourceId?: string | null
@@ -63784,6 +64311,7 @@ export namespace Prisma {
   export type AuditLogUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     userId?: NullableStringFieldUpdateOperationsInput | string | null
+    companyId?: NullableStringFieldUpdateOperationsInput | string | null
     action?: StringFieldUpdateOperationsInput | string
     resource?: StringFieldUpdateOperationsInput | string
     resourceId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -64215,6 +64743,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: UserCreateNestedOneWithoutCreatedRolesInput
+    company?: CompanyCreateNestedOneWithoutRolesInput
     permissions?: RolePermissionCreateNestedManyWithoutRoleInput
   }
 
@@ -64223,6 +64752,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     isSystem?: boolean
+    companyId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     createdById?: string | null
@@ -64237,6 +64767,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: UserUpdateOneWithoutCreatedRolesNestedInput
+    company?: CompanyUpdateOneWithoutRolesNestedInput
     permissions?: RolePermissionUpdateManyWithoutRoleNestedInput
   }
 
@@ -64245,6 +64776,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     isSystem?: BoolFieldUpdateOperationsInput | boolean
+    companyId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdById?: NullableStringFieldUpdateOperationsInput | string | null
@@ -64256,6 +64788,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     isSystem?: boolean
+    companyId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     createdById?: string | null
@@ -64275,6 +64808,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     isSystem?: BoolFieldUpdateOperationsInput | boolean
+    companyId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdById?: NullableStringFieldUpdateOperationsInput | string | null
@@ -66239,6 +66773,36 @@ export namespace Prisma {
     none?: TagWhereInput
   }
 
+  export type PasswordListRelationFilter = {
+    every?: PasswordWhereInput
+    some?: PasswordWhereInput
+    none?: PasswordWhereInput
+  }
+
+  export type AuditLogListRelationFilter = {
+    every?: AuditLogWhereInput
+    some?: AuditLogWhereInput
+    none?: AuditLogWhereInput
+  }
+
+  export type RoleListRelationFilter = {
+    every?: RoleWhereInput
+    some?: RoleWhereInput
+    none?: RoleWhereInput
+  }
+
+  export type PasswordRotationPolicyListRelationFilter = {
+    every?: PasswordRotationPolicyWhereInput
+    some?: PasswordRotationPolicyWhereInput
+    none?: PasswordRotationPolicyWhereInput
+  }
+
+  export type SessionListRelationFilter = {
+    every?: SessionWhereInput
+    some?: SessionWhereInput
+    none?: SessionWhereInput
+  }
+
   export type UserOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -66300,6 +66864,26 @@ export namespace Prisma {
   }
 
   export type TagOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type PasswordOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type AuditLogOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type RoleOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type PasswordRotationPolicyOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type SessionOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -66425,12 +67009,6 @@ export namespace Prisma {
     isNot?: CompanyWhereInput | null
   }
 
-  export type PasswordListRelationFilter = {
-    every?: PasswordWhereInput
-    some?: PasswordWhereInput
-    none?: PasswordWhereInput
-  }
-
   export type PasswordShareListRelationFilter = {
     every?: PasswordShareWhereInput
     some?: PasswordShareWhereInput
@@ -66441,18 +67019,6 @@ export namespace Prisma {
     every?: TeamMemberWhereInput
     some?: TeamMemberWhereInput
     none?: TeamMemberWhereInput
-  }
-
-  export type AuditLogListRelationFilter = {
-    every?: AuditLogWhereInput
-    some?: AuditLogWhereInput
-    none?: AuditLogWhereInput
-  }
-
-  export type SessionListRelationFilter = {
-    every?: SessionWhereInput
-    some?: SessionWhereInput
-    none?: SessionWhereInput
   }
 
   export type AccountListRelationFilter = {
@@ -66491,12 +67057,6 @@ export namespace Prisma {
     none?: PasswordBreachWhereInput
   }
 
-  export type PasswordRotationPolicyListRelationFilter = {
-    every?: PasswordRotationPolicyWhereInput
-    some?: PasswordRotationPolicyWhereInput
-    none?: PasswordRotationPolicyWhereInput
-  }
-
   export type PasswordRotationListRelationFilter = {
     every?: PasswordRotationWhereInput
     some?: PasswordRotationWhereInput
@@ -66526,12 +67086,6 @@ export namespace Prisma {
     isNot?: UserWhereInput | null
   }
 
-  export type RoleListRelationFilter = {
-    every?: RoleWhereInput
-    some?: RoleWhereInput
-    none?: RoleWhereInput
-  }
-
   export type EmailVerificationTokenListRelationFilter = {
     every?: EmailVerificationTokenWhereInput
     some?: EmailVerificationTokenWhereInput
@@ -66555,23 +67109,11 @@ export namespace Prisma {
     nulls?: NullsOrder
   }
 
-  export type PasswordOrderByRelationAggregateInput = {
-    _count?: SortOrder
-  }
-
   export type PasswordShareOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
   export type TeamMemberOrderByRelationAggregateInput = {
-    _count?: SortOrder
-  }
-
-  export type AuditLogOrderByRelationAggregateInput = {
-    _count?: SortOrder
-  }
-
-  export type SessionOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -66599,10 +67141,6 @@ export namespace Prisma {
     _count?: SortOrder
   }
 
-  export type PasswordRotationPolicyOrderByRelationAggregateInput = {
-    _count?: SortOrder
-  }
-
   export type PasswordRotationOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -66616,10 +67154,6 @@ export namespace Prisma {
   }
 
   export type SearchHistoryOrderByRelationAggregateInput = {
-    _count?: SortOrder
-  }
-
-  export type RoleOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -66875,6 +67409,7 @@ export namespace Prisma {
     id?: SortOrder
     sessionToken?: SortOrder
     userId?: SortOrder
+    companyId?: SortOrder
     expires?: SortOrder
     ipAddress?: SortOrder
     userAgent?: SortOrder
@@ -66891,6 +67426,7 @@ export namespace Prisma {
     id?: SortOrder
     sessionToken?: SortOrder
     userId?: SortOrder
+    companyId?: SortOrder
     expires?: SortOrder
     ipAddress?: SortOrder
     userAgent?: SortOrder
@@ -66907,6 +67443,7 @@ export namespace Prisma {
     id?: SortOrder
     sessionToken?: SortOrder
     userId?: SortOrder
+    companyId?: SortOrder
     expires?: SortOrder
     ipAddress?: SortOrder
     userAgent?: SortOrder
@@ -66954,6 +67491,7 @@ export namespace Prisma {
     url?: SortOrder
     notes?: SortOrder
     folderId?: SortOrder
+    companyId?: SortOrder
     strength?: SortOrder
     hasTotp?: SortOrder
     totpSecret?: SortOrder
@@ -66973,6 +67511,7 @@ export namespace Prisma {
     url?: SortOrder
     notes?: SortOrder
     folderId?: SortOrder
+    companyId?: SortOrder
     strength?: SortOrder
     hasTotp?: SortOrder
     totpSecret?: SortOrder
@@ -66992,6 +67531,7 @@ export namespace Prisma {
     url?: SortOrder
     notes?: SortOrder
     folderId?: SortOrder
+    companyId?: SortOrder
     strength?: SortOrder
     hasTotp?: SortOrder
     totpSecret?: SortOrder
@@ -67156,6 +67696,7 @@ export namespace Prisma {
     requireApproval?: SortOrder
     isActive?: SortOrder
     ownerId?: SortOrder
+    companyId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -67175,6 +67716,7 @@ export namespace Prisma {
     requireApproval?: SortOrder
     isActive?: SortOrder
     ownerId?: SortOrder
+    companyId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -67189,6 +67731,7 @@ export namespace Prisma {
     requireApproval?: SortOrder
     isActive?: SortOrder
     ownerId?: SortOrder
+    companyId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -67241,6 +67784,11 @@ export namespace Prisma {
     completedAt?: SortOrder
     status?: SortOrder
     notes?: SortOrder
+  }
+
+  export type CompanyScalarRelationFilter = {
+    is?: CompanyWhereInput
+    isNot?: CompanyWhereInput
   }
 
   export type FolderCountOrderByAggregateInput = {
@@ -67464,11 +68012,6 @@ export namespace Prisma {
     _max?: NestedEnumTeamRoleFilter<$PrismaModel>
   }
 
-  export type CompanyScalarRelationFilter = {
-    is?: CompanyWhereInput
-    isNot?: CompanyWhereInput
-  }
-
   export type TagNameCompanyIdCompoundUniqueInput = {
     name: string
     companyId: string
@@ -67542,6 +68085,7 @@ export namespace Prisma {
   export type AuditLogCountOrderByAggregateInput = {
     id?: SortOrder
     userId?: SortOrder
+    companyId?: SortOrder
     action?: SortOrder
     resource?: SortOrder
     resourceId?: SortOrder
@@ -67555,6 +68099,7 @@ export namespace Prisma {
   export type AuditLogMaxOrderByAggregateInput = {
     id?: SortOrder
     userId?: SortOrder
+    companyId?: SortOrder
     action?: SortOrder
     resource?: SortOrder
     resourceId?: SortOrder
@@ -67567,6 +68112,7 @@ export namespace Prisma {
   export type AuditLogMinOrderByAggregateInput = {
     id?: SortOrder
     userId?: SortOrder
+    companyId?: SortOrder
     action?: SortOrder
     resource?: SortOrder
     resourceId?: SortOrder
@@ -67895,11 +68441,17 @@ export namespace Prisma {
     _count?: SortOrder
   }
 
+  export type RoleNameCompanyIdCompoundUniqueInput = {
+    name: string
+    companyId: string
+  }
+
   export type RoleCountOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
     description?: SortOrder
     isSystem?: SortOrder
+    companyId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     createdById?: SortOrder
@@ -67910,6 +68462,7 @@ export namespace Prisma {
     name?: SortOrder
     description?: SortOrder
     isSystem?: SortOrder
+    companyId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     createdById?: SortOrder
@@ -67920,6 +68473,7 @@ export namespace Prisma {
     name?: SortOrder
     description?: SortOrder
     isSystem?: SortOrder
+    companyId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     createdById?: SortOrder
@@ -68962,6 +69516,41 @@ export namespace Prisma {
     connect?: TagWhereUniqueInput | TagWhereUniqueInput[]
   }
 
+  export type PasswordCreateNestedManyWithoutCompanyInput = {
+    create?: XOR<PasswordCreateWithoutCompanyInput, PasswordUncheckedCreateWithoutCompanyInput> | PasswordCreateWithoutCompanyInput[] | PasswordUncheckedCreateWithoutCompanyInput[]
+    connectOrCreate?: PasswordCreateOrConnectWithoutCompanyInput | PasswordCreateOrConnectWithoutCompanyInput[]
+    createMany?: PasswordCreateManyCompanyInputEnvelope
+    connect?: PasswordWhereUniqueInput | PasswordWhereUniqueInput[]
+  }
+
+  export type AuditLogCreateNestedManyWithoutCompanyInput = {
+    create?: XOR<AuditLogCreateWithoutCompanyInput, AuditLogUncheckedCreateWithoutCompanyInput> | AuditLogCreateWithoutCompanyInput[] | AuditLogUncheckedCreateWithoutCompanyInput[]
+    connectOrCreate?: AuditLogCreateOrConnectWithoutCompanyInput | AuditLogCreateOrConnectWithoutCompanyInput[]
+    createMany?: AuditLogCreateManyCompanyInputEnvelope
+    connect?: AuditLogWhereUniqueInput | AuditLogWhereUniqueInput[]
+  }
+
+  export type RoleCreateNestedManyWithoutCompanyInput = {
+    create?: XOR<RoleCreateWithoutCompanyInput, RoleUncheckedCreateWithoutCompanyInput> | RoleCreateWithoutCompanyInput[] | RoleUncheckedCreateWithoutCompanyInput[]
+    connectOrCreate?: RoleCreateOrConnectWithoutCompanyInput | RoleCreateOrConnectWithoutCompanyInput[]
+    createMany?: RoleCreateManyCompanyInputEnvelope
+    connect?: RoleWhereUniqueInput | RoleWhereUniqueInput[]
+  }
+
+  export type PasswordRotationPolicyCreateNestedManyWithoutCompanyInput = {
+    create?: XOR<PasswordRotationPolicyCreateWithoutCompanyInput, PasswordRotationPolicyUncheckedCreateWithoutCompanyInput> | PasswordRotationPolicyCreateWithoutCompanyInput[] | PasswordRotationPolicyUncheckedCreateWithoutCompanyInput[]
+    connectOrCreate?: PasswordRotationPolicyCreateOrConnectWithoutCompanyInput | PasswordRotationPolicyCreateOrConnectWithoutCompanyInput[]
+    createMany?: PasswordRotationPolicyCreateManyCompanyInputEnvelope
+    connect?: PasswordRotationPolicyWhereUniqueInput | PasswordRotationPolicyWhereUniqueInput[]
+  }
+
+  export type SessionCreateNestedManyWithoutCompanyInput = {
+    create?: XOR<SessionCreateWithoutCompanyInput, SessionUncheckedCreateWithoutCompanyInput> | SessionCreateWithoutCompanyInput[] | SessionUncheckedCreateWithoutCompanyInput[]
+    connectOrCreate?: SessionCreateOrConnectWithoutCompanyInput | SessionCreateOrConnectWithoutCompanyInput[]
+    createMany?: SessionCreateManyCompanyInputEnvelope
+    connect?: SessionWhereUniqueInput | SessionWhereUniqueInput[]
+  }
+
   export type UserUncheckedCreateNestedManyWithoutCompanyInput = {
     create?: XOR<UserCreateWithoutCompanyInput, UserUncheckedCreateWithoutCompanyInput> | UserCreateWithoutCompanyInput[] | UserUncheckedCreateWithoutCompanyInput[]
     connectOrCreate?: UserCreateOrConnectWithoutCompanyInput | UserCreateOrConnectWithoutCompanyInput[]
@@ -69084,6 +69673,41 @@ export namespace Prisma {
     connectOrCreate?: TagCreateOrConnectWithoutCompanyInput | TagCreateOrConnectWithoutCompanyInput[]
     createMany?: TagCreateManyCompanyInputEnvelope
     connect?: TagWhereUniqueInput | TagWhereUniqueInput[]
+  }
+
+  export type PasswordUncheckedCreateNestedManyWithoutCompanyInput = {
+    create?: XOR<PasswordCreateWithoutCompanyInput, PasswordUncheckedCreateWithoutCompanyInput> | PasswordCreateWithoutCompanyInput[] | PasswordUncheckedCreateWithoutCompanyInput[]
+    connectOrCreate?: PasswordCreateOrConnectWithoutCompanyInput | PasswordCreateOrConnectWithoutCompanyInput[]
+    createMany?: PasswordCreateManyCompanyInputEnvelope
+    connect?: PasswordWhereUniqueInput | PasswordWhereUniqueInput[]
+  }
+
+  export type AuditLogUncheckedCreateNestedManyWithoutCompanyInput = {
+    create?: XOR<AuditLogCreateWithoutCompanyInput, AuditLogUncheckedCreateWithoutCompanyInput> | AuditLogCreateWithoutCompanyInput[] | AuditLogUncheckedCreateWithoutCompanyInput[]
+    connectOrCreate?: AuditLogCreateOrConnectWithoutCompanyInput | AuditLogCreateOrConnectWithoutCompanyInput[]
+    createMany?: AuditLogCreateManyCompanyInputEnvelope
+    connect?: AuditLogWhereUniqueInput | AuditLogWhereUniqueInput[]
+  }
+
+  export type RoleUncheckedCreateNestedManyWithoutCompanyInput = {
+    create?: XOR<RoleCreateWithoutCompanyInput, RoleUncheckedCreateWithoutCompanyInput> | RoleCreateWithoutCompanyInput[] | RoleUncheckedCreateWithoutCompanyInput[]
+    connectOrCreate?: RoleCreateOrConnectWithoutCompanyInput | RoleCreateOrConnectWithoutCompanyInput[]
+    createMany?: RoleCreateManyCompanyInputEnvelope
+    connect?: RoleWhereUniqueInput | RoleWhereUniqueInput[]
+  }
+
+  export type PasswordRotationPolicyUncheckedCreateNestedManyWithoutCompanyInput = {
+    create?: XOR<PasswordRotationPolicyCreateWithoutCompanyInput, PasswordRotationPolicyUncheckedCreateWithoutCompanyInput> | PasswordRotationPolicyCreateWithoutCompanyInput[] | PasswordRotationPolicyUncheckedCreateWithoutCompanyInput[]
+    connectOrCreate?: PasswordRotationPolicyCreateOrConnectWithoutCompanyInput | PasswordRotationPolicyCreateOrConnectWithoutCompanyInput[]
+    createMany?: PasswordRotationPolicyCreateManyCompanyInputEnvelope
+    connect?: PasswordRotationPolicyWhereUniqueInput | PasswordRotationPolicyWhereUniqueInput[]
+  }
+
+  export type SessionUncheckedCreateNestedManyWithoutCompanyInput = {
+    create?: XOR<SessionCreateWithoutCompanyInput, SessionUncheckedCreateWithoutCompanyInput> | SessionCreateWithoutCompanyInput[] | SessionUncheckedCreateWithoutCompanyInput[]
+    connectOrCreate?: SessionCreateOrConnectWithoutCompanyInput | SessionCreateOrConnectWithoutCompanyInput[]
+    createMany?: SessionCreateManyCompanyInputEnvelope
+    connect?: SessionWhereUniqueInput | SessionWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -69338,6 +69962,76 @@ export namespace Prisma {
     deleteMany?: TagScalarWhereInput | TagScalarWhereInput[]
   }
 
+  export type PasswordUpdateManyWithoutCompanyNestedInput = {
+    create?: XOR<PasswordCreateWithoutCompanyInput, PasswordUncheckedCreateWithoutCompanyInput> | PasswordCreateWithoutCompanyInput[] | PasswordUncheckedCreateWithoutCompanyInput[]
+    connectOrCreate?: PasswordCreateOrConnectWithoutCompanyInput | PasswordCreateOrConnectWithoutCompanyInput[]
+    upsert?: PasswordUpsertWithWhereUniqueWithoutCompanyInput | PasswordUpsertWithWhereUniqueWithoutCompanyInput[]
+    createMany?: PasswordCreateManyCompanyInputEnvelope
+    set?: PasswordWhereUniqueInput | PasswordWhereUniqueInput[]
+    disconnect?: PasswordWhereUniqueInput | PasswordWhereUniqueInput[]
+    delete?: PasswordWhereUniqueInput | PasswordWhereUniqueInput[]
+    connect?: PasswordWhereUniqueInput | PasswordWhereUniqueInput[]
+    update?: PasswordUpdateWithWhereUniqueWithoutCompanyInput | PasswordUpdateWithWhereUniqueWithoutCompanyInput[]
+    updateMany?: PasswordUpdateManyWithWhereWithoutCompanyInput | PasswordUpdateManyWithWhereWithoutCompanyInput[]
+    deleteMany?: PasswordScalarWhereInput | PasswordScalarWhereInput[]
+  }
+
+  export type AuditLogUpdateManyWithoutCompanyNestedInput = {
+    create?: XOR<AuditLogCreateWithoutCompanyInput, AuditLogUncheckedCreateWithoutCompanyInput> | AuditLogCreateWithoutCompanyInput[] | AuditLogUncheckedCreateWithoutCompanyInput[]
+    connectOrCreate?: AuditLogCreateOrConnectWithoutCompanyInput | AuditLogCreateOrConnectWithoutCompanyInput[]
+    upsert?: AuditLogUpsertWithWhereUniqueWithoutCompanyInput | AuditLogUpsertWithWhereUniqueWithoutCompanyInput[]
+    createMany?: AuditLogCreateManyCompanyInputEnvelope
+    set?: AuditLogWhereUniqueInput | AuditLogWhereUniqueInput[]
+    disconnect?: AuditLogWhereUniqueInput | AuditLogWhereUniqueInput[]
+    delete?: AuditLogWhereUniqueInput | AuditLogWhereUniqueInput[]
+    connect?: AuditLogWhereUniqueInput | AuditLogWhereUniqueInput[]
+    update?: AuditLogUpdateWithWhereUniqueWithoutCompanyInput | AuditLogUpdateWithWhereUniqueWithoutCompanyInput[]
+    updateMany?: AuditLogUpdateManyWithWhereWithoutCompanyInput | AuditLogUpdateManyWithWhereWithoutCompanyInput[]
+    deleteMany?: AuditLogScalarWhereInput | AuditLogScalarWhereInput[]
+  }
+
+  export type RoleUpdateManyWithoutCompanyNestedInput = {
+    create?: XOR<RoleCreateWithoutCompanyInput, RoleUncheckedCreateWithoutCompanyInput> | RoleCreateWithoutCompanyInput[] | RoleUncheckedCreateWithoutCompanyInput[]
+    connectOrCreate?: RoleCreateOrConnectWithoutCompanyInput | RoleCreateOrConnectWithoutCompanyInput[]
+    upsert?: RoleUpsertWithWhereUniqueWithoutCompanyInput | RoleUpsertWithWhereUniqueWithoutCompanyInput[]
+    createMany?: RoleCreateManyCompanyInputEnvelope
+    set?: RoleWhereUniqueInput | RoleWhereUniqueInput[]
+    disconnect?: RoleWhereUniqueInput | RoleWhereUniqueInput[]
+    delete?: RoleWhereUniqueInput | RoleWhereUniqueInput[]
+    connect?: RoleWhereUniqueInput | RoleWhereUniqueInput[]
+    update?: RoleUpdateWithWhereUniqueWithoutCompanyInput | RoleUpdateWithWhereUniqueWithoutCompanyInput[]
+    updateMany?: RoleUpdateManyWithWhereWithoutCompanyInput | RoleUpdateManyWithWhereWithoutCompanyInput[]
+    deleteMany?: RoleScalarWhereInput | RoleScalarWhereInput[]
+  }
+
+  export type PasswordRotationPolicyUpdateManyWithoutCompanyNestedInput = {
+    create?: XOR<PasswordRotationPolicyCreateWithoutCompanyInput, PasswordRotationPolicyUncheckedCreateWithoutCompanyInput> | PasswordRotationPolicyCreateWithoutCompanyInput[] | PasswordRotationPolicyUncheckedCreateWithoutCompanyInput[]
+    connectOrCreate?: PasswordRotationPolicyCreateOrConnectWithoutCompanyInput | PasswordRotationPolicyCreateOrConnectWithoutCompanyInput[]
+    upsert?: PasswordRotationPolicyUpsertWithWhereUniqueWithoutCompanyInput | PasswordRotationPolicyUpsertWithWhereUniqueWithoutCompanyInput[]
+    createMany?: PasswordRotationPolicyCreateManyCompanyInputEnvelope
+    set?: PasswordRotationPolicyWhereUniqueInput | PasswordRotationPolicyWhereUniqueInput[]
+    disconnect?: PasswordRotationPolicyWhereUniqueInput | PasswordRotationPolicyWhereUniqueInput[]
+    delete?: PasswordRotationPolicyWhereUniqueInput | PasswordRotationPolicyWhereUniqueInput[]
+    connect?: PasswordRotationPolicyWhereUniqueInput | PasswordRotationPolicyWhereUniqueInput[]
+    update?: PasswordRotationPolicyUpdateWithWhereUniqueWithoutCompanyInput | PasswordRotationPolicyUpdateWithWhereUniqueWithoutCompanyInput[]
+    updateMany?: PasswordRotationPolicyUpdateManyWithWhereWithoutCompanyInput | PasswordRotationPolicyUpdateManyWithWhereWithoutCompanyInput[]
+    deleteMany?: PasswordRotationPolicyScalarWhereInput | PasswordRotationPolicyScalarWhereInput[]
+  }
+
+  export type SessionUpdateManyWithoutCompanyNestedInput = {
+    create?: XOR<SessionCreateWithoutCompanyInput, SessionUncheckedCreateWithoutCompanyInput> | SessionCreateWithoutCompanyInput[] | SessionUncheckedCreateWithoutCompanyInput[]
+    connectOrCreate?: SessionCreateOrConnectWithoutCompanyInput | SessionCreateOrConnectWithoutCompanyInput[]
+    upsert?: SessionUpsertWithWhereUniqueWithoutCompanyInput | SessionUpsertWithWhereUniqueWithoutCompanyInput[]
+    createMany?: SessionCreateManyCompanyInputEnvelope
+    set?: SessionWhereUniqueInput | SessionWhereUniqueInput[]
+    disconnect?: SessionWhereUniqueInput | SessionWhereUniqueInput[]
+    delete?: SessionWhereUniqueInput | SessionWhereUniqueInput[]
+    connect?: SessionWhereUniqueInput | SessionWhereUniqueInput[]
+    update?: SessionUpdateWithWhereUniqueWithoutCompanyInput | SessionUpdateWithWhereUniqueWithoutCompanyInput[]
+    updateMany?: SessionUpdateManyWithWhereWithoutCompanyInput | SessionUpdateManyWithWhereWithoutCompanyInput[]
+    deleteMany?: SessionScalarWhereInput | SessionScalarWhereInput[]
+  }
+
   export type UserUncheckedUpdateManyWithoutCompanyNestedInput = {
     create?: XOR<UserCreateWithoutCompanyInput, UserUncheckedCreateWithoutCompanyInput> | UserCreateWithoutCompanyInput[] | UserUncheckedCreateWithoutCompanyInput[]
     connectOrCreate?: UserCreateOrConnectWithoutCompanyInput | UserCreateOrConnectWithoutCompanyInput[]
@@ -69580,6 +70274,76 @@ export namespace Prisma {
     update?: TagUpdateWithWhereUniqueWithoutCompanyInput | TagUpdateWithWhereUniqueWithoutCompanyInput[]
     updateMany?: TagUpdateManyWithWhereWithoutCompanyInput | TagUpdateManyWithWhereWithoutCompanyInput[]
     deleteMany?: TagScalarWhereInput | TagScalarWhereInput[]
+  }
+
+  export type PasswordUncheckedUpdateManyWithoutCompanyNestedInput = {
+    create?: XOR<PasswordCreateWithoutCompanyInput, PasswordUncheckedCreateWithoutCompanyInput> | PasswordCreateWithoutCompanyInput[] | PasswordUncheckedCreateWithoutCompanyInput[]
+    connectOrCreate?: PasswordCreateOrConnectWithoutCompanyInput | PasswordCreateOrConnectWithoutCompanyInput[]
+    upsert?: PasswordUpsertWithWhereUniqueWithoutCompanyInput | PasswordUpsertWithWhereUniqueWithoutCompanyInput[]
+    createMany?: PasswordCreateManyCompanyInputEnvelope
+    set?: PasswordWhereUniqueInput | PasswordWhereUniqueInput[]
+    disconnect?: PasswordWhereUniqueInput | PasswordWhereUniqueInput[]
+    delete?: PasswordWhereUniqueInput | PasswordWhereUniqueInput[]
+    connect?: PasswordWhereUniqueInput | PasswordWhereUniqueInput[]
+    update?: PasswordUpdateWithWhereUniqueWithoutCompanyInput | PasswordUpdateWithWhereUniqueWithoutCompanyInput[]
+    updateMany?: PasswordUpdateManyWithWhereWithoutCompanyInput | PasswordUpdateManyWithWhereWithoutCompanyInput[]
+    deleteMany?: PasswordScalarWhereInput | PasswordScalarWhereInput[]
+  }
+
+  export type AuditLogUncheckedUpdateManyWithoutCompanyNestedInput = {
+    create?: XOR<AuditLogCreateWithoutCompanyInput, AuditLogUncheckedCreateWithoutCompanyInput> | AuditLogCreateWithoutCompanyInput[] | AuditLogUncheckedCreateWithoutCompanyInput[]
+    connectOrCreate?: AuditLogCreateOrConnectWithoutCompanyInput | AuditLogCreateOrConnectWithoutCompanyInput[]
+    upsert?: AuditLogUpsertWithWhereUniqueWithoutCompanyInput | AuditLogUpsertWithWhereUniqueWithoutCompanyInput[]
+    createMany?: AuditLogCreateManyCompanyInputEnvelope
+    set?: AuditLogWhereUniqueInput | AuditLogWhereUniqueInput[]
+    disconnect?: AuditLogWhereUniqueInput | AuditLogWhereUniqueInput[]
+    delete?: AuditLogWhereUniqueInput | AuditLogWhereUniqueInput[]
+    connect?: AuditLogWhereUniqueInput | AuditLogWhereUniqueInput[]
+    update?: AuditLogUpdateWithWhereUniqueWithoutCompanyInput | AuditLogUpdateWithWhereUniqueWithoutCompanyInput[]
+    updateMany?: AuditLogUpdateManyWithWhereWithoutCompanyInput | AuditLogUpdateManyWithWhereWithoutCompanyInput[]
+    deleteMany?: AuditLogScalarWhereInput | AuditLogScalarWhereInput[]
+  }
+
+  export type RoleUncheckedUpdateManyWithoutCompanyNestedInput = {
+    create?: XOR<RoleCreateWithoutCompanyInput, RoleUncheckedCreateWithoutCompanyInput> | RoleCreateWithoutCompanyInput[] | RoleUncheckedCreateWithoutCompanyInput[]
+    connectOrCreate?: RoleCreateOrConnectWithoutCompanyInput | RoleCreateOrConnectWithoutCompanyInput[]
+    upsert?: RoleUpsertWithWhereUniqueWithoutCompanyInput | RoleUpsertWithWhereUniqueWithoutCompanyInput[]
+    createMany?: RoleCreateManyCompanyInputEnvelope
+    set?: RoleWhereUniqueInput | RoleWhereUniqueInput[]
+    disconnect?: RoleWhereUniqueInput | RoleWhereUniqueInput[]
+    delete?: RoleWhereUniqueInput | RoleWhereUniqueInput[]
+    connect?: RoleWhereUniqueInput | RoleWhereUniqueInput[]
+    update?: RoleUpdateWithWhereUniqueWithoutCompanyInput | RoleUpdateWithWhereUniqueWithoutCompanyInput[]
+    updateMany?: RoleUpdateManyWithWhereWithoutCompanyInput | RoleUpdateManyWithWhereWithoutCompanyInput[]
+    deleteMany?: RoleScalarWhereInput | RoleScalarWhereInput[]
+  }
+
+  export type PasswordRotationPolicyUncheckedUpdateManyWithoutCompanyNestedInput = {
+    create?: XOR<PasswordRotationPolicyCreateWithoutCompanyInput, PasswordRotationPolicyUncheckedCreateWithoutCompanyInput> | PasswordRotationPolicyCreateWithoutCompanyInput[] | PasswordRotationPolicyUncheckedCreateWithoutCompanyInput[]
+    connectOrCreate?: PasswordRotationPolicyCreateOrConnectWithoutCompanyInput | PasswordRotationPolicyCreateOrConnectWithoutCompanyInput[]
+    upsert?: PasswordRotationPolicyUpsertWithWhereUniqueWithoutCompanyInput | PasswordRotationPolicyUpsertWithWhereUniqueWithoutCompanyInput[]
+    createMany?: PasswordRotationPolicyCreateManyCompanyInputEnvelope
+    set?: PasswordRotationPolicyWhereUniqueInput | PasswordRotationPolicyWhereUniqueInput[]
+    disconnect?: PasswordRotationPolicyWhereUniqueInput | PasswordRotationPolicyWhereUniqueInput[]
+    delete?: PasswordRotationPolicyWhereUniqueInput | PasswordRotationPolicyWhereUniqueInput[]
+    connect?: PasswordRotationPolicyWhereUniqueInput | PasswordRotationPolicyWhereUniqueInput[]
+    update?: PasswordRotationPolicyUpdateWithWhereUniqueWithoutCompanyInput | PasswordRotationPolicyUpdateWithWhereUniqueWithoutCompanyInput[]
+    updateMany?: PasswordRotationPolicyUpdateManyWithWhereWithoutCompanyInput | PasswordRotationPolicyUpdateManyWithWhereWithoutCompanyInput[]
+    deleteMany?: PasswordRotationPolicyScalarWhereInput | PasswordRotationPolicyScalarWhereInput[]
+  }
+
+  export type SessionUncheckedUpdateManyWithoutCompanyNestedInput = {
+    create?: XOR<SessionCreateWithoutCompanyInput, SessionUncheckedCreateWithoutCompanyInput> | SessionCreateWithoutCompanyInput[] | SessionUncheckedCreateWithoutCompanyInput[]
+    connectOrCreate?: SessionCreateOrConnectWithoutCompanyInput | SessionCreateOrConnectWithoutCompanyInput[]
+    upsert?: SessionUpsertWithWhereUniqueWithoutCompanyInput | SessionUpsertWithWhereUniqueWithoutCompanyInput[]
+    createMany?: SessionCreateManyCompanyInputEnvelope
+    set?: SessionWhereUniqueInput | SessionWhereUniqueInput[]
+    disconnect?: SessionWhereUniqueInput | SessionWhereUniqueInput[]
+    delete?: SessionWhereUniqueInput | SessionWhereUniqueInput[]
+    connect?: SessionWhereUniqueInput | SessionWhereUniqueInput[]
+    update?: SessionUpdateWithWhereUniqueWithoutCompanyInput | SessionUpdateWithWhereUniqueWithoutCompanyInput[]
+    updateMany?: SessionUpdateManyWithWhereWithoutCompanyInput | SessionUpdateManyWithWhereWithoutCompanyInput[]
+    deleteMany?: SessionScalarWhereInput | SessionScalarWhereInput[]
   }
 
   export type CompanyCreateNestedOneWithoutUsersInput = {
@@ -71170,12 +71934,28 @@ export namespace Prisma {
     connect?: UserWhereUniqueInput
   }
 
+  export type CompanyCreateNestedOneWithoutSessionsInput = {
+    create?: XOR<CompanyCreateWithoutSessionsInput, CompanyUncheckedCreateWithoutSessionsInput>
+    connectOrCreate?: CompanyCreateOrConnectWithoutSessionsInput
+    connect?: CompanyWhereUniqueInput
+  }
+
   export type UserUpdateOneRequiredWithoutSessionsNestedInput = {
     create?: XOR<UserCreateWithoutSessionsInput, UserUncheckedCreateWithoutSessionsInput>
     connectOrCreate?: UserCreateOrConnectWithoutSessionsInput
     upsert?: UserUpsertWithoutSessionsInput
     connect?: UserWhereUniqueInput
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutSessionsInput, UserUpdateWithoutSessionsInput>, UserUncheckedUpdateWithoutSessionsInput>
+  }
+
+  export type CompanyUpdateOneWithoutSessionsNestedInput = {
+    create?: XOR<CompanyCreateWithoutSessionsInput, CompanyUncheckedCreateWithoutSessionsInput>
+    connectOrCreate?: CompanyCreateOrConnectWithoutSessionsInput
+    upsert?: CompanyUpsertWithoutSessionsInput
+    disconnect?: CompanyWhereInput | boolean
+    delete?: CompanyWhereInput | boolean
+    connect?: CompanyWhereUniqueInput
+    update?: XOR<XOR<CompanyUpdateToOneWithWhereWithoutSessionsInput, CompanyUpdateWithoutSessionsInput>, CompanyUncheckedUpdateWithoutSessionsInput>
   }
 
   export type UserCreateNestedOneWithoutOwnedPasswordsInput = {
@@ -71188,6 +71968,12 @@ export namespace Prisma {
     create?: XOR<FolderCreateWithoutPasswordsInput, FolderUncheckedCreateWithoutPasswordsInput>
     connectOrCreate?: FolderCreateOrConnectWithoutPasswordsInput
     connect?: FolderWhereUniqueInput
+  }
+
+  export type CompanyCreateNestedOneWithoutPasswordsInput = {
+    create?: XOR<CompanyCreateWithoutPasswordsInput, CompanyUncheckedCreateWithoutPasswordsInput>
+    connectOrCreate?: CompanyCreateOrConnectWithoutPasswordsInput
+    connect?: CompanyWhereUniqueInput
   }
 
   export type PasswordShareCreateNestedManyWithoutPasswordInput = {
@@ -71300,6 +72086,16 @@ export namespace Prisma {
     delete?: FolderWhereInput | boolean
     connect?: FolderWhereUniqueInput
     update?: XOR<XOR<FolderUpdateToOneWithWhereWithoutPasswordsInput, FolderUpdateWithoutPasswordsInput>, FolderUncheckedUpdateWithoutPasswordsInput>
+  }
+
+  export type CompanyUpdateOneWithoutPasswordsNestedInput = {
+    create?: XOR<CompanyCreateWithoutPasswordsInput, CompanyUncheckedCreateWithoutPasswordsInput>
+    connectOrCreate?: CompanyCreateOrConnectWithoutPasswordsInput
+    upsert?: CompanyUpsertWithoutPasswordsInput
+    disconnect?: CompanyWhereInput | boolean
+    delete?: CompanyWhereInput | boolean
+    connect?: CompanyWhereUniqueInput
+    update?: XOR<XOR<CompanyUpdateToOneWithWhereWithoutPasswordsInput, CompanyUpdateWithoutPasswordsInput>, CompanyUncheckedUpdateWithoutPasswordsInput>
   }
 
   export type PasswordShareUpdateManyWithoutPasswordNestedInput = {
@@ -71500,10 +72296,12 @@ export namespace Prisma {
     update?: XOR<XOR<PasswordUpdateToOneWithWhereWithoutHistoryInput, PasswordUpdateWithoutHistoryInput>, PasswordUncheckedUpdateWithoutHistoryInput>
   }
 
-  export type UserUpdateOneRequiredWithoutPasswordHistoryNestedInput = {
+  export type UserUpdateOneWithoutPasswordHistoryNestedInput = {
     create?: XOR<UserCreateWithoutPasswordHistoryInput, UserUncheckedCreateWithoutPasswordHistoryInput>
     connectOrCreate?: UserCreateOrConnectWithoutPasswordHistoryInput
     upsert?: UserUpsertWithoutPasswordHistoryInput
+    disconnect?: UserWhereInput | boolean
+    delete?: UserWhereInput | boolean
     connect?: UserWhereUniqueInput
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutPasswordHistoryInput, UserUpdateWithoutPasswordHistoryInput>, UserUncheckedUpdateWithoutPasswordHistoryInput>
   }
@@ -71542,10 +72340,12 @@ export namespace Prisma {
     update?: XOR<XOR<PasswordUpdateToOneWithWhereWithoutBreachesInput, PasswordUpdateWithoutBreachesInput>, PasswordUncheckedUpdateWithoutBreachesInput>
   }
 
-  export type UserUpdateOneRequiredWithoutPasswordBreachesCheckedNestedInput = {
+  export type UserUpdateOneWithoutPasswordBreachesCheckedNestedInput = {
     create?: XOR<UserCreateWithoutPasswordBreachesCheckedInput, UserUncheckedCreateWithoutPasswordBreachesCheckedInput>
     connectOrCreate?: UserCreateOrConnectWithoutPasswordBreachesCheckedInput
     upsert?: UserUpsertWithoutPasswordBreachesCheckedInput
+    disconnect?: UserWhereInput | boolean
+    delete?: UserWhereInput | boolean
     connect?: UserWhereUniqueInput
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutPasswordBreachesCheckedInput, UserUpdateWithoutPasswordBreachesCheckedInput>, UserUncheckedUpdateWithoutPasswordBreachesCheckedInput>
   }
@@ -71564,6 +72364,12 @@ export namespace Prisma {
     create?: XOR<UserCreateWithoutRotationPoliciesInput, UserUncheckedCreateWithoutRotationPoliciesInput>
     connectOrCreate?: UserCreateOrConnectWithoutRotationPoliciesInput
     connect?: UserWhereUniqueInput
+  }
+
+  export type CompanyCreateNestedOneWithoutRotationPoliciesInput = {
+    create?: XOR<CompanyCreateWithoutRotationPoliciesInput, CompanyUncheckedCreateWithoutRotationPoliciesInput>
+    connectOrCreate?: CompanyCreateOrConnectWithoutRotationPoliciesInput
+    connect?: CompanyWhereUniqueInput
   }
 
   export type PasswordCreateNestedManyWithoutRotationPolicyInput = {
@@ -71600,6 +72406,16 @@ export namespace Prisma {
     upsert?: UserUpsertWithoutRotationPoliciesInput
     connect?: UserWhereUniqueInput
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutRotationPoliciesInput, UserUpdateWithoutRotationPoliciesInput>, UserUncheckedUpdateWithoutRotationPoliciesInput>
+  }
+
+  export type CompanyUpdateOneWithoutRotationPoliciesNestedInput = {
+    create?: XOR<CompanyCreateWithoutRotationPoliciesInput, CompanyUncheckedCreateWithoutRotationPoliciesInput>
+    connectOrCreate?: CompanyCreateOrConnectWithoutRotationPoliciesInput
+    upsert?: CompanyUpsertWithoutRotationPoliciesInput
+    disconnect?: CompanyWhereInput | boolean
+    delete?: CompanyWhereInput | boolean
+    connect?: CompanyWhereUniqueInput
+    update?: XOR<XOR<CompanyUpdateToOneWithWhereWithoutRotationPoliciesInput, CompanyUpdateWithoutRotationPoliciesInput>, CompanyUncheckedUpdateWithoutRotationPoliciesInput>
   }
 
   export type PasswordUpdateManyWithoutRotationPolicyNestedInput = {
@@ -71694,10 +72510,12 @@ export namespace Prisma {
     update?: XOR<XOR<PasswordRotationPolicyUpdateToOneWithWhereWithoutRotationsInput, PasswordRotationPolicyUpdateWithoutRotationsInput>, PasswordRotationPolicyUncheckedUpdateWithoutRotationsInput>
   }
 
-  export type UserUpdateOneRequiredWithoutPasswordRotationsNestedInput = {
+  export type UserUpdateOneWithoutPasswordRotationsNestedInput = {
     create?: XOR<UserCreateWithoutPasswordRotationsInput, UserUncheckedCreateWithoutPasswordRotationsInput>
     connectOrCreate?: UserCreateOrConnectWithoutPasswordRotationsInput
     upsert?: UserUpsertWithoutPasswordRotationsInput
+    disconnect?: UserWhereInput | boolean
+    delete?: UserWhereInput | boolean
     connect?: UserWhereUniqueInput
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutPasswordRotationsInput, UserUpdateWithoutPasswordRotationsInput>, UserUncheckedUpdateWithoutPasswordRotationsInput>
   }
@@ -71780,12 +72598,10 @@ export namespace Prisma {
     deleteMany?: PasswordScalarWhereInput | PasswordScalarWhereInput[]
   }
 
-  export type CompanyUpdateOneWithoutFoldersNestedInput = {
+  export type CompanyUpdateOneRequiredWithoutFoldersNestedInput = {
     create?: XOR<CompanyCreateWithoutFoldersInput, CompanyUncheckedCreateWithoutFoldersInput>
     connectOrCreate?: CompanyCreateOrConnectWithoutFoldersInput
     upsert?: CompanyUpsertWithoutFoldersInput
-    disconnect?: CompanyWhereInput | boolean
-    delete?: CompanyWhereInput | boolean
     connect?: CompanyWhereUniqueInput
     update?: XOR<XOR<CompanyUpdateToOneWithWhereWithoutFoldersInput, CompanyUpdateWithoutFoldersInput>, CompanyUncheckedUpdateWithoutFoldersInput>
   }
@@ -72118,6 +72934,12 @@ export namespace Prisma {
     connect?: UserWhereUniqueInput
   }
 
+  export type CompanyCreateNestedOneWithoutAuditLogsInput = {
+    create?: XOR<CompanyCreateWithoutAuditLogsInput, CompanyUncheckedCreateWithoutAuditLogsInput>
+    connectOrCreate?: CompanyCreateOrConnectWithoutAuditLogsInput
+    connect?: CompanyWhereUniqueInput
+  }
+
   export type EnumAuditStatusFieldUpdateOperationsInput = {
     set?: $Enums.AuditStatus
   }
@@ -72130,6 +72952,16 @@ export namespace Prisma {
     delete?: UserWhereInput | boolean
     connect?: UserWhereUniqueInput
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutAuditLogsInput, UserUpdateWithoutAuditLogsInput>, UserUncheckedUpdateWithoutAuditLogsInput>
+  }
+
+  export type CompanyUpdateOneWithoutAuditLogsNestedInput = {
+    create?: XOR<CompanyCreateWithoutAuditLogsInput, CompanyUncheckedCreateWithoutAuditLogsInput>
+    connectOrCreate?: CompanyCreateOrConnectWithoutAuditLogsInput
+    upsert?: CompanyUpsertWithoutAuditLogsInput
+    disconnect?: CompanyWhereInput | boolean
+    delete?: CompanyWhereInput | boolean
+    connect?: CompanyWhereUniqueInput
+    update?: XOR<XOR<CompanyUpdateToOneWithWhereWithoutAuditLogsInput, CompanyUpdateWithoutAuditLogsInput>, CompanyUncheckedUpdateWithoutAuditLogsInput>
   }
 
   export type CompanyCreateNestedOneWithoutAuditLogArchivesInput = {
@@ -72260,6 +73092,12 @@ export namespace Prisma {
     connect?: UserWhereUniqueInput
   }
 
+  export type CompanyCreateNestedOneWithoutRolesInput = {
+    create?: XOR<CompanyCreateWithoutRolesInput, CompanyUncheckedCreateWithoutRolesInput>
+    connectOrCreate?: CompanyCreateOrConnectWithoutRolesInput
+    connect?: CompanyWhereUniqueInput
+  }
+
   export type RolePermissionCreateNestedManyWithoutRoleInput = {
     create?: XOR<RolePermissionCreateWithoutRoleInput, RolePermissionUncheckedCreateWithoutRoleInput> | RolePermissionCreateWithoutRoleInput[] | RolePermissionUncheckedCreateWithoutRoleInput[]
     connectOrCreate?: RolePermissionCreateOrConnectWithoutRoleInput | RolePermissionCreateOrConnectWithoutRoleInput[]
@@ -72282,6 +73120,16 @@ export namespace Prisma {
     delete?: UserWhereInput | boolean
     connect?: UserWhereUniqueInput
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutCreatedRolesInput, UserUpdateWithoutCreatedRolesInput>, UserUncheckedUpdateWithoutCreatedRolesInput>
+  }
+
+  export type CompanyUpdateOneWithoutRolesNestedInput = {
+    create?: XOR<CompanyCreateWithoutRolesInput, CompanyUncheckedCreateWithoutRolesInput>
+    connectOrCreate?: CompanyCreateOrConnectWithoutRolesInput
+    upsert?: CompanyUpsertWithoutRolesInput
+    disconnect?: CompanyWhereInput | boolean
+    delete?: CompanyWhereInput | boolean
+    connect?: CompanyWhereUniqueInput
+    update?: XOR<XOR<CompanyUpdateToOneWithWhereWithoutRolesInput, CompanyUpdateWithoutRolesInput>, CompanyUncheckedUpdateWithoutRolesInput>
   }
 
   export type RolePermissionUpdateManyWithoutRoleNestedInput = {
@@ -74150,6 +74998,218 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type PasswordCreateWithoutCompanyInput = {
+    id?: string
+    name: string
+    username: string
+    password: string
+    url?: string | null
+    notes?: string | null
+    strength?: $Enums.PasswordStrength
+    hasTotp?: boolean
+    totpSecret?: string | null
+    expiresAt?: Date | string | null
+    isFavorite?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    owner: UserCreateNestedOneWithoutOwnedPasswordsInput
+    folder?: FolderCreateNestedOneWithoutPasswordsInput
+    sharedWith?: PasswordShareCreateNestedManyWithoutPasswordInput
+    temporaryShares?: TemporaryPasswordShareCreateNestedManyWithoutPasswordInput
+    tags?: PasswordTagCreateNestedManyWithoutPasswordInput
+    history?: PasswordHistoryCreateNestedManyWithoutPasswordEntryInput
+    breaches?: PasswordBreachCreateNestedManyWithoutPasswordInput
+    rotations?: PasswordRotationCreateNestedManyWithoutPasswordInput
+    rotationPolicy?: PasswordRotationPolicyCreateNestedOneWithoutPasswordsInput
+  }
+
+  export type PasswordUncheckedCreateWithoutCompanyInput = {
+    id?: string
+    name: string
+    username: string
+    password: string
+    url?: string | null
+    notes?: string | null
+    folderId?: string | null
+    strength?: $Enums.PasswordStrength
+    hasTotp?: boolean
+    totpSecret?: string | null
+    expiresAt?: Date | string | null
+    isFavorite?: boolean
+    ownerId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    rotationPolicyId?: string | null
+    sharedWith?: PasswordShareUncheckedCreateNestedManyWithoutPasswordInput
+    temporaryShares?: TemporaryPasswordShareUncheckedCreateNestedManyWithoutPasswordInput
+    tags?: PasswordTagUncheckedCreateNestedManyWithoutPasswordInput
+    history?: PasswordHistoryUncheckedCreateNestedManyWithoutPasswordEntryInput
+    breaches?: PasswordBreachUncheckedCreateNestedManyWithoutPasswordInput
+    rotations?: PasswordRotationUncheckedCreateNestedManyWithoutPasswordInput
+  }
+
+  export type PasswordCreateOrConnectWithoutCompanyInput = {
+    where: PasswordWhereUniqueInput
+    create: XOR<PasswordCreateWithoutCompanyInput, PasswordUncheckedCreateWithoutCompanyInput>
+  }
+
+  export type PasswordCreateManyCompanyInputEnvelope = {
+    data: PasswordCreateManyCompanyInput | PasswordCreateManyCompanyInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type AuditLogCreateWithoutCompanyInput = {
+    id?: string
+    action: string
+    resource: string
+    resourceId?: string | null
+    details?: NullableJsonNullValueInput | InputJsonValue
+    ipAddress?: string | null
+    userAgent?: string | null
+    status?: $Enums.AuditStatus
+    createdAt?: Date | string
+    user?: UserCreateNestedOneWithoutAuditLogsInput
+  }
+
+  export type AuditLogUncheckedCreateWithoutCompanyInput = {
+    id?: string
+    userId?: string | null
+    action: string
+    resource: string
+    resourceId?: string | null
+    details?: NullableJsonNullValueInput | InputJsonValue
+    ipAddress?: string | null
+    userAgent?: string | null
+    status?: $Enums.AuditStatus
+    createdAt?: Date | string
+  }
+
+  export type AuditLogCreateOrConnectWithoutCompanyInput = {
+    where: AuditLogWhereUniqueInput
+    create: XOR<AuditLogCreateWithoutCompanyInput, AuditLogUncheckedCreateWithoutCompanyInput>
+  }
+
+  export type AuditLogCreateManyCompanyInputEnvelope = {
+    data: AuditLogCreateManyCompanyInput | AuditLogCreateManyCompanyInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type RoleCreateWithoutCompanyInput = {
+    id?: string
+    name: string
+    description?: string | null
+    isSystem?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdBy?: UserCreateNestedOneWithoutCreatedRolesInput
+    permissions?: RolePermissionCreateNestedManyWithoutRoleInput
+  }
+
+  export type RoleUncheckedCreateWithoutCompanyInput = {
+    id?: string
+    name: string
+    description?: string | null
+    isSystem?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdById?: string | null
+    permissions?: RolePermissionUncheckedCreateNestedManyWithoutRoleInput
+  }
+
+  export type RoleCreateOrConnectWithoutCompanyInput = {
+    where: RoleWhereUniqueInput
+    create: XOR<RoleCreateWithoutCompanyInput, RoleUncheckedCreateWithoutCompanyInput>
+  }
+
+  export type RoleCreateManyCompanyInputEnvelope = {
+    data: RoleCreateManyCompanyInput | RoleCreateManyCompanyInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type PasswordRotationPolicyCreateWithoutCompanyInput = {
+    id?: string
+    name: string
+    description?: string | null
+    rotationDays: number
+    reminderDays: number
+    autoRotate?: boolean
+    requireApproval?: boolean
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    owner: UserCreateNestedOneWithoutRotationPoliciesInput
+    passwords?: PasswordCreateNestedManyWithoutRotationPolicyInput
+    rotations?: PasswordRotationCreateNestedManyWithoutPolicyInput
+  }
+
+  export type PasswordRotationPolicyUncheckedCreateWithoutCompanyInput = {
+    id?: string
+    name: string
+    description?: string | null
+    rotationDays: number
+    reminderDays: number
+    autoRotate?: boolean
+    requireApproval?: boolean
+    isActive?: boolean
+    ownerId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    passwords?: PasswordUncheckedCreateNestedManyWithoutRotationPolicyInput
+    rotations?: PasswordRotationUncheckedCreateNestedManyWithoutPolicyInput
+  }
+
+  export type PasswordRotationPolicyCreateOrConnectWithoutCompanyInput = {
+    where: PasswordRotationPolicyWhereUniqueInput
+    create: XOR<PasswordRotationPolicyCreateWithoutCompanyInput, PasswordRotationPolicyUncheckedCreateWithoutCompanyInput>
+  }
+
+  export type PasswordRotationPolicyCreateManyCompanyInputEnvelope = {
+    data: PasswordRotationPolicyCreateManyCompanyInput | PasswordRotationPolicyCreateManyCompanyInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type SessionCreateWithoutCompanyInput = {
+    id?: string
+    sessionToken: string
+    expires: Date | string
+    ipAddress?: string | null
+    userAgent?: string | null
+    deviceName?: string | null
+    deviceType?: string | null
+    deviceFingerprint?: string | null
+    isTrusted?: boolean
+    requireMfa?: boolean
+    lastActiveAt?: Date | string
+    createdAt?: Date | string
+    user: UserCreateNestedOneWithoutSessionsInput
+  }
+
+  export type SessionUncheckedCreateWithoutCompanyInput = {
+    id?: string
+    sessionToken: string
+    userId: string
+    expires: Date | string
+    ipAddress?: string | null
+    userAgent?: string | null
+    deviceName?: string | null
+    deviceType?: string | null
+    deviceFingerprint?: string | null
+    isTrusted?: boolean
+    requireMfa?: boolean
+    lastActiveAt?: Date | string
+    createdAt?: Date | string
+  }
+
+  export type SessionCreateOrConnectWithoutCompanyInput = {
+    where: SessionWhereUniqueInput
+    create: XOR<SessionCreateWithoutCompanyInput, SessionUncheckedCreateWithoutCompanyInput>
+  }
+
+  export type SessionCreateManyCompanyInputEnvelope = {
+    data: SessionCreateManyCompanyInput | SessionCreateManyCompanyInput[]
+    skipDuplicates?: boolean
+  }
+
   export type UserUpsertWithWhereUniqueWithoutCompanyInput = {
     where: UserWhereUniqueInput
     update: XOR<UserUpdateWithoutCompanyInput, UserUncheckedUpdateWithoutCompanyInput>
@@ -74454,7 +75514,7 @@ export namespace Prisma {
     icon?: StringNullableFilter<"Folder"> | string | null
     color?: StringNullableFilter<"Folder"> | string | null
     parentId?: StringNullableFilter<"Folder"> | string | null
-    companyId?: StringNullableFilter<"Folder"> | string | null
+    companyId?: StringFilter<"Folder"> | string
     createdAt?: DateTimeFilter<"Folder"> | Date | string
     updatedAt?: DateTimeFilter<"Folder"> | Date | string
   }
@@ -74766,6 +75826,178 @@ export namespace Prisma {
     companyId?: StringFilter<"Tag"> | string
   }
 
+  export type PasswordUpsertWithWhereUniqueWithoutCompanyInput = {
+    where: PasswordWhereUniqueInput
+    update: XOR<PasswordUpdateWithoutCompanyInput, PasswordUncheckedUpdateWithoutCompanyInput>
+    create: XOR<PasswordCreateWithoutCompanyInput, PasswordUncheckedCreateWithoutCompanyInput>
+  }
+
+  export type PasswordUpdateWithWhereUniqueWithoutCompanyInput = {
+    where: PasswordWhereUniqueInput
+    data: XOR<PasswordUpdateWithoutCompanyInput, PasswordUncheckedUpdateWithoutCompanyInput>
+  }
+
+  export type PasswordUpdateManyWithWhereWithoutCompanyInput = {
+    where: PasswordScalarWhereInput
+    data: XOR<PasswordUpdateManyMutationInput, PasswordUncheckedUpdateManyWithoutCompanyInput>
+  }
+
+  export type PasswordScalarWhereInput = {
+    AND?: PasswordScalarWhereInput | PasswordScalarWhereInput[]
+    OR?: PasswordScalarWhereInput[]
+    NOT?: PasswordScalarWhereInput | PasswordScalarWhereInput[]
+    id?: StringFilter<"Password"> | string
+    name?: StringFilter<"Password"> | string
+    username?: StringFilter<"Password"> | string
+    password?: StringFilter<"Password"> | string
+    url?: StringNullableFilter<"Password"> | string | null
+    notes?: StringNullableFilter<"Password"> | string | null
+    folderId?: StringNullableFilter<"Password"> | string | null
+    companyId?: StringNullableFilter<"Password"> | string | null
+    strength?: EnumPasswordStrengthFilter<"Password"> | $Enums.PasswordStrength
+    hasTotp?: BoolFilter<"Password"> | boolean
+    totpSecret?: StringNullableFilter<"Password"> | string | null
+    expiresAt?: DateTimeNullableFilter<"Password"> | Date | string | null
+    isFavorite?: BoolFilter<"Password"> | boolean
+    ownerId?: StringFilter<"Password"> | string
+    createdAt?: DateTimeFilter<"Password"> | Date | string
+    updatedAt?: DateTimeFilter<"Password"> | Date | string
+    rotationPolicyId?: StringNullableFilter<"Password"> | string | null
+  }
+
+  export type AuditLogUpsertWithWhereUniqueWithoutCompanyInput = {
+    where: AuditLogWhereUniqueInput
+    update: XOR<AuditLogUpdateWithoutCompanyInput, AuditLogUncheckedUpdateWithoutCompanyInput>
+    create: XOR<AuditLogCreateWithoutCompanyInput, AuditLogUncheckedCreateWithoutCompanyInput>
+  }
+
+  export type AuditLogUpdateWithWhereUniqueWithoutCompanyInput = {
+    where: AuditLogWhereUniqueInput
+    data: XOR<AuditLogUpdateWithoutCompanyInput, AuditLogUncheckedUpdateWithoutCompanyInput>
+  }
+
+  export type AuditLogUpdateManyWithWhereWithoutCompanyInput = {
+    where: AuditLogScalarWhereInput
+    data: XOR<AuditLogUpdateManyMutationInput, AuditLogUncheckedUpdateManyWithoutCompanyInput>
+  }
+
+  export type AuditLogScalarWhereInput = {
+    AND?: AuditLogScalarWhereInput | AuditLogScalarWhereInput[]
+    OR?: AuditLogScalarWhereInput[]
+    NOT?: AuditLogScalarWhereInput | AuditLogScalarWhereInput[]
+    id?: StringFilter<"AuditLog"> | string
+    userId?: StringNullableFilter<"AuditLog"> | string | null
+    companyId?: StringNullableFilter<"AuditLog"> | string | null
+    action?: StringFilter<"AuditLog"> | string
+    resource?: StringFilter<"AuditLog"> | string
+    resourceId?: StringNullableFilter<"AuditLog"> | string | null
+    details?: JsonNullableFilter<"AuditLog">
+    ipAddress?: StringNullableFilter<"AuditLog"> | string | null
+    userAgent?: StringNullableFilter<"AuditLog"> | string | null
+    status?: EnumAuditStatusFilter<"AuditLog"> | $Enums.AuditStatus
+    createdAt?: DateTimeFilter<"AuditLog"> | Date | string
+  }
+
+  export type RoleUpsertWithWhereUniqueWithoutCompanyInput = {
+    where: RoleWhereUniqueInput
+    update: XOR<RoleUpdateWithoutCompanyInput, RoleUncheckedUpdateWithoutCompanyInput>
+    create: XOR<RoleCreateWithoutCompanyInput, RoleUncheckedCreateWithoutCompanyInput>
+  }
+
+  export type RoleUpdateWithWhereUniqueWithoutCompanyInput = {
+    where: RoleWhereUniqueInput
+    data: XOR<RoleUpdateWithoutCompanyInput, RoleUncheckedUpdateWithoutCompanyInput>
+  }
+
+  export type RoleUpdateManyWithWhereWithoutCompanyInput = {
+    where: RoleScalarWhereInput
+    data: XOR<RoleUpdateManyMutationInput, RoleUncheckedUpdateManyWithoutCompanyInput>
+  }
+
+  export type RoleScalarWhereInput = {
+    AND?: RoleScalarWhereInput | RoleScalarWhereInput[]
+    OR?: RoleScalarWhereInput[]
+    NOT?: RoleScalarWhereInput | RoleScalarWhereInput[]
+    id?: StringFilter<"Role"> | string
+    name?: StringFilter<"Role"> | string
+    description?: StringNullableFilter<"Role"> | string | null
+    isSystem?: BoolFilter<"Role"> | boolean
+    companyId?: StringNullableFilter<"Role"> | string | null
+    createdAt?: DateTimeFilter<"Role"> | Date | string
+    updatedAt?: DateTimeFilter<"Role"> | Date | string
+    createdById?: StringNullableFilter<"Role"> | string | null
+  }
+
+  export type PasswordRotationPolicyUpsertWithWhereUniqueWithoutCompanyInput = {
+    where: PasswordRotationPolicyWhereUniqueInput
+    update: XOR<PasswordRotationPolicyUpdateWithoutCompanyInput, PasswordRotationPolicyUncheckedUpdateWithoutCompanyInput>
+    create: XOR<PasswordRotationPolicyCreateWithoutCompanyInput, PasswordRotationPolicyUncheckedCreateWithoutCompanyInput>
+  }
+
+  export type PasswordRotationPolicyUpdateWithWhereUniqueWithoutCompanyInput = {
+    where: PasswordRotationPolicyWhereUniqueInput
+    data: XOR<PasswordRotationPolicyUpdateWithoutCompanyInput, PasswordRotationPolicyUncheckedUpdateWithoutCompanyInput>
+  }
+
+  export type PasswordRotationPolicyUpdateManyWithWhereWithoutCompanyInput = {
+    where: PasswordRotationPolicyScalarWhereInput
+    data: XOR<PasswordRotationPolicyUpdateManyMutationInput, PasswordRotationPolicyUncheckedUpdateManyWithoutCompanyInput>
+  }
+
+  export type PasswordRotationPolicyScalarWhereInput = {
+    AND?: PasswordRotationPolicyScalarWhereInput | PasswordRotationPolicyScalarWhereInput[]
+    OR?: PasswordRotationPolicyScalarWhereInput[]
+    NOT?: PasswordRotationPolicyScalarWhereInput | PasswordRotationPolicyScalarWhereInput[]
+    id?: StringFilter<"PasswordRotationPolicy"> | string
+    name?: StringFilter<"PasswordRotationPolicy"> | string
+    description?: StringNullableFilter<"PasswordRotationPolicy"> | string | null
+    rotationDays?: IntFilter<"PasswordRotationPolicy"> | number
+    reminderDays?: IntFilter<"PasswordRotationPolicy"> | number
+    autoRotate?: BoolFilter<"PasswordRotationPolicy"> | boolean
+    requireApproval?: BoolFilter<"PasswordRotationPolicy"> | boolean
+    isActive?: BoolFilter<"PasswordRotationPolicy"> | boolean
+    ownerId?: StringFilter<"PasswordRotationPolicy"> | string
+    companyId?: StringNullableFilter<"PasswordRotationPolicy"> | string | null
+    createdAt?: DateTimeFilter<"PasswordRotationPolicy"> | Date | string
+    updatedAt?: DateTimeFilter<"PasswordRotationPolicy"> | Date | string
+  }
+
+  export type SessionUpsertWithWhereUniqueWithoutCompanyInput = {
+    where: SessionWhereUniqueInput
+    update: XOR<SessionUpdateWithoutCompanyInput, SessionUncheckedUpdateWithoutCompanyInput>
+    create: XOR<SessionCreateWithoutCompanyInput, SessionUncheckedCreateWithoutCompanyInput>
+  }
+
+  export type SessionUpdateWithWhereUniqueWithoutCompanyInput = {
+    where: SessionWhereUniqueInput
+    data: XOR<SessionUpdateWithoutCompanyInput, SessionUncheckedUpdateWithoutCompanyInput>
+  }
+
+  export type SessionUpdateManyWithWhereWithoutCompanyInput = {
+    where: SessionScalarWhereInput
+    data: XOR<SessionUpdateManyMutationInput, SessionUncheckedUpdateManyWithoutCompanyInput>
+  }
+
+  export type SessionScalarWhereInput = {
+    AND?: SessionScalarWhereInput | SessionScalarWhereInput[]
+    OR?: SessionScalarWhereInput[]
+    NOT?: SessionScalarWhereInput | SessionScalarWhereInput[]
+    id?: StringFilter<"Session"> | string
+    sessionToken?: StringFilter<"Session"> | string
+    userId?: StringFilter<"Session"> | string
+    companyId?: StringNullableFilter<"Session"> | string | null
+    expires?: DateTimeFilter<"Session"> | Date | string
+    ipAddress?: StringNullableFilter<"Session"> | string | null
+    userAgent?: StringNullableFilter<"Session"> | string | null
+    deviceName?: StringNullableFilter<"Session"> | string | null
+    deviceType?: StringNullableFilter<"Session"> | string | null
+    deviceFingerprint?: StringNullableFilter<"Session"> | string | null
+    isTrusted?: BoolFilter<"Session"> | boolean
+    requireMfa?: BoolFilter<"Session"> | boolean
+    lastActiveAt?: DateTimeFilter<"Session"> | Date | string
+    createdAt?: DateTimeFilter<"Session"> | Date | string
+  }
+
   export type CompanyCreateWithoutUsersInput = {
     id?: string
     name: string
@@ -74789,6 +76021,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
     tags?: TagCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogCreateNestedManyWithoutCompanyInput
+    roles?: RoleCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyCreateNestedManyWithoutCompanyInput
+    sessions?: SessionCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutUsersInput = {
@@ -74814,6 +76051,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
     tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordUncheckedCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutCompanyInput
+    roles?: RoleUncheckedCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedCreateNestedManyWithoutCompanyInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutUsersInput = {
@@ -74836,6 +76078,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     folder?: FolderCreateNestedOneWithoutPasswordsInput
+    company?: CompanyCreateNestedOneWithoutPasswordsInput
     sharedWith?: PasswordShareCreateNestedManyWithoutPasswordInput
     temporaryShares?: TemporaryPasswordShareCreateNestedManyWithoutPasswordInput
     tags?: PasswordTagCreateNestedManyWithoutPasswordInput
@@ -74853,6 +76096,7 @@ export namespace Prisma {
     url?: string | null
     notes?: string | null
     folderId?: string | null
+    companyId?: string | null
     strength?: $Enums.PasswordStrength
     hasTotp?: boolean
     totpSecret?: string | null
@@ -74941,10 +76185,12 @@ export namespace Prisma {
     userAgent?: string | null
     status?: $Enums.AuditStatus
     createdAt?: Date | string
+    company?: CompanyCreateNestedOneWithoutAuditLogsInput
   }
 
   export type AuditLogUncheckedCreateWithoutUserInput = {
     id?: string
+    companyId?: string | null
     action: string
     resource: string
     resourceId?: string | null
@@ -75016,11 +76262,13 @@ export namespace Prisma {
     requireMfa?: boolean
     lastActiveAt?: Date | string
     createdAt?: Date | string
+    company?: CompanyCreateNestedOneWithoutSessionsInput
   }
 
   export type SessionUncheckedCreateWithoutUserInput = {
     id?: string
     sessionToken: string
+    companyId?: string | null
     expires: Date | string
     ipAddress?: string | null
     userAgent?: string | null
@@ -75264,7 +76512,7 @@ export namespace Prisma {
     resolved?: boolean
     resolvedAt?: Date | string | null
     password: PasswordCreateNestedOneWithoutBreachesInput
-    checkedByUser: UserCreateNestedOneWithoutPasswordBreachesCheckedInput
+    checkedByUser?: UserCreateNestedOneWithoutPasswordBreachesCheckedInput
   }
 
   export type PasswordBreachUncheckedCreateWithoutResolvedByUserInput = {
@@ -75274,7 +76522,7 @@ export namespace Prisma {
     breachCount?: number
     hashPrefix: string
     checkedAt?: Date | string
-    checkedBy: string
+    checkedBy?: string | null
     resolved?: boolean
     resolvedAt?: Date | string | null
   }
@@ -75300,6 +76548,7 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    company?: CompanyCreateNestedOneWithoutRotationPoliciesInput
     passwords?: PasswordCreateNestedManyWithoutRotationPolicyInput
     rotations?: PasswordRotationCreateNestedManyWithoutPolicyInput
   }
@@ -75313,6 +76562,7 @@ export namespace Prisma {
     autoRotate?: boolean
     requireApproval?: boolean
     isActive?: boolean
+    companyId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     passwords?: PasswordUncheckedCreateNestedManyWithoutRotationPolicyInput
@@ -75911,6 +77161,7 @@ export namespace Prisma {
     isSystem?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    company?: CompanyCreateNestedOneWithoutRolesInput
     permissions?: RolePermissionCreateNestedManyWithoutRoleInput
   }
 
@@ -75919,6 +77170,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     isSystem?: boolean
+    companyId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     permissions?: RolePermissionUncheckedCreateNestedManyWithoutRoleInput
@@ -76356,6 +77608,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
     tags?: TagUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutUsersInput = {
@@ -76381,6 +77638,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
     tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUncheckedUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUncheckedUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type PasswordUpsertWithWhereUniqueWithoutOwnerInput = {
@@ -76397,28 +77659,6 @@ export namespace Prisma {
   export type PasswordUpdateManyWithWhereWithoutOwnerInput = {
     where: PasswordScalarWhereInput
     data: XOR<PasswordUpdateManyMutationInput, PasswordUncheckedUpdateManyWithoutOwnerInput>
-  }
-
-  export type PasswordScalarWhereInput = {
-    AND?: PasswordScalarWhereInput | PasswordScalarWhereInput[]
-    OR?: PasswordScalarWhereInput[]
-    NOT?: PasswordScalarWhereInput | PasswordScalarWhereInput[]
-    id?: StringFilter<"Password"> | string
-    name?: StringFilter<"Password"> | string
-    username?: StringFilter<"Password"> | string
-    password?: StringFilter<"Password"> | string
-    url?: StringNullableFilter<"Password"> | string | null
-    notes?: StringNullableFilter<"Password"> | string | null
-    folderId?: StringNullableFilter<"Password"> | string | null
-    strength?: EnumPasswordStrengthFilter<"Password"> | $Enums.PasswordStrength
-    hasTotp?: BoolFilter<"Password"> | boolean
-    totpSecret?: StringNullableFilter<"Password"> | string | null
-    expiresAt?: DateTimeNullableFilter<"Password"> | Date | string | null
-    isFavorite?: BoolFilter<"Password"> | boolean
-    ownerId?: StringFilter<"Password"> | string
-    createdAt?: DateTimeFilter<"Password"> | Date | string
-    updatedAt?: DateTimeFilter<"Password"> | Date | string
-    rotationPolicyId?: StringNullableFilter<"Password"> | string | null
   }
 
   export type PasswordShareUpsertWithWhereUniqueWithoutUserInput = {
@@ -76493,22 +77733,6 @@ export namespace Prisma {
     data: XOR<AuditLogUpdateManyMutationInput, AuditLogUncheckedUpdateManyWithoutUserInput>
   }
 
-  export type AuditLogScalarWhereInput = {
-    AND?: AuditLogScalarWhereInput | AuditLogScalarWhereInput[]
-    OR?: AuditLogScalarWhereInput[]
-    NOT?: AuditLogScalarWhereInput | AuditLogScalarWhereInput[]
-    id?: StringFilter<"AuditLog"> | string
-    userId?: StringNullableFilter<"AuditLog"> | string | null
-    action?: StringFilter<"AuditLog"> | string
-    resource?: StringFilter<"AuditLog"> | string
-    resourceId?: StringNullableFilter<"AuditLog"> | string | null
-    details?: JsonNullableFilter<"AuditLog">
-    ipAddress?: StringNullableFilter<"AuditLog"> | string | null
-    userAgent?: StringNullableFilter<"AuditLog"> | string | null
-    status?: EnumAuditStatusFilter<"AuditLog"> | $Enums.AuditStatus
-    createdAt?: DateTimeFilter<"AuditLog"> | Date | string
-  }
-
   export type ThreatEventUpsertWithWhereUniqueWithoutUserInput = {
     where: ThreatEventWhereUniqueInput
     update: XOR<ThreatEventUpdateWithoutUserInput, ThreatEventUncheckedUpdateWithoutUserInput>
@@ -76539,25 +77763,6 @@ export namespace Prisma {
   export type SessionUpdateManyWithWhereWithoutUserInput = {
     where: SessionScalarWhereInput
     data: XOR<SessionUpdateManyMutationInput, SessionUncheckedUpdateManyWithoutUserInput>
-  }
-
-  export type SessionScalarWhereInput = {
-    AND?: SessionScalarWhereInput | SessionScalarWhereInput[]
-    OR?: SessionScalarWhereInput[]
-    NOT?: SessionScalarWhereInput | SessionScalarWhereInput[]
-    id?: StringFilter<"Session"> | string
-    sessionToken?: StringFilter<"Session"> | string
-    userId?: StringFilter<"Session"> | string
-    expires?: DateTimeFilter<"Session"> | Date | string
-    ipAddress?: StringNullableFilter<"Session"> | string | null
-    userAgent?: StringNullableFilter<"Session"> | string | null
-    deviceName?: StringNullableFilter<"Session"> | string | null
-    deviceType?: StringNullableFilter<"Session"> | string | null
-    deviceFingerprint?: StringNullableFilter<"Session"> | string | null
-    isTrusted?: BoolFilter<"Session"> | boolean
-    requireMfa?: BoolFilter<"Session"> | boolean
-    lastActiveAt?: DateTimeFilter<"Session"> | Date | string
-    createdAt?: DateTimeFilter<"Session"> | Date | string
   }
 
   export type AccountUpsertWithWhereUniqueWithoutUserInput = {
@@ -76719,7 +77924,7 @@ export namespace Prisma {
     hasTotp?: BoolFilter<"PasswordHistory"> | boolean
     totpSecret?: StringNullableFilter<"PasswordHistory"> | string | null
     expiresAt?: DateTimeNullableFilter<"PasswordHistory"> | Date | string | null
-    changedBy?: StringFilter<"PasswordHistory"> | string
+    changedBy?: StringNullableFilter<"PasswordHistory"> | string | null
     changeType?: StringFilter<"PasswordHistory"> | string
     createdAt?: DateTimeFilter<"PasswordHistory"> | Date | string
   }
@@ -76750,7 +77955,7 @@ export namespace Prisma {
     breachCount?: IntFilter<"PasswordBreach"> | number
     hashPrefix?: StringFilter<"PasswordBreach"> | string
     checkedAt?: DateTimeFilter<"PasswordBreach"> | Date | string
-    checkedBy?: StringFilter<"PasswordBreach"> | string
+    checkedBy?: StringNullableFilter<"PasswordBreach"> | string | null
     resolved?: BoolFilter<"PasswordBreach"> | boolean
     resolvedAt?: DateTimeNullableFilter<"PasswordBreach"> | Date | string | null
     resolvedBy?: StringNullableFilter<"PasswordBreach"> | string | null
@@ -76788,23 +77993,6 @@ export namespace Prisma {
     data: XOR<PasswordRotationPolicyUpdateManyMutationInput, PasswordRotationPolicyUncheckedUpdateManyWithoutOwnerInput>
   }
 
-  export type PasswordRotationPolicyScalarWhereInput = {
-    AND?: PasswordRotationPolicyScalarWhereInput | PasswordRotationPolicyScalarWhereInput[]
-    OR?: PasswordRotationPolicyScalarWhereInput[]
-    NOT?: PasswordRotationPolicyScalarWhereInput | PasswordRotationPolicyScalarWhereInput[]
-    id?: StringFilter<"PasswordRotationPolicy"> | string
-    name?: StringFilter<"PasswordRotationPolicy"> | string
-    description?: StringNullableFilter<"PasswordRotationPolicy"> | string | null
-    rotationDays?: IntFilter<"PasswordRotationPolicy"> | number
-    reminderDays?: IntFilter<"PasswordRotationPolicy"> | number
-    autoRotate?: BoolFilter<"PasswordRotationPolicy"> | boolean
-    requireApproval?: BoolFilter<"PasswordRotationPolicy"> | boolean
-    isActive?: BoolFilter<"PasswordRotationPolicy"> | boolean
-    ownerId?: StringFilter<"PasswordRotationPolicy"> | string
-    createdAt?: DateTimeFilter<"PasswordRotationPolicy"> | Date | string
-    updatedAt?: DateTimeFilter<"PasswordRotationPolicy"> | Date | string
-  }
-
   export type PasswordRotationUpsertWithWhereUniqueWithoutRotatedByUserInput = {
     where: PasswordRotationWhereUniqueInput
     update: XOR<PasswordRotationUpdateWithoutRotatedByUserInput, PasswordRotationUncheckedUpdateWithoutRotatedByUserInput>
@@ -76832,7 +78020,7 @@ export namespace Prisma {
     oldPassword?: StringNullableFilter<"PasswordRotation"> | string | null
     newPassword?: StringFilter<"PasswordRotation"> | string
     rotatedAt?: DateTimeFilter<"PasswordRotation"> | Date | string
-    rotatedBy?: StringFilter<"PasswordRotation"> | string
+    rotatedBy?: StringNullableFilter<"PasswordRotation"> | string | null
     scheduledFor?: DateTimeNullableFilter<"PasswordRotation"> | Date | string | null
     completedAt?: DateTimeNullableFilter<"PasswordRotation"> | Date | string | null
     status?: StringFilter<"PasswordRotation"> | string
@@ -77160,19 +78348,6 @@ export namespace Prisma {
   export type RoleUpdateManyWithWhereWithoutCreatedByInput = {
     where: RoleScalarWhereInput
     data: XOR<RoleUpdateManyMutationInput, RoleUncheckedUpdateManyWithoutCreatedByInput>
-  }
-
-  export type RoleScalarWhereInput = {
-    AND?: RoleScalarWhereInput | RoleScalarWhereInput[]
-    OR?: RoleScalarWhereInput[]
-    NOT?: RoleScalarWhereInput | RoleScalarWhereInput[]
-    id?: StringFilter<"Role"> | string
-    name?: StringFilter<"Role"> | string
-    description?: StringNullableFilter<"Role"> | string | null
-    isSystem?: BoolFilter<"Role"> | boolean
-    createdAt?: DateTimeFilter<"Role"> | Date | string
-    updatedAt?: DateTimeFilter<"Role"> | Date | string
-    createdById?: StringNullableFilter<"Role"> | string | null
   }
 
   export type DataExportUpsertWithWhereUniqueWithoutUserInput = {
@@ -77780,6 +78955,71 @@ export namespace Prisma {
     create: XOR<UserCreateWithoutSessionsInput, UserUncheckedCreateWithoutSessionsInput>
   }
 
+  export type CompanyCreateWithoutSessionsInput = {
+    id?: string
+    name: string
+    subdomain: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    users?: UserCreateNestedManyWithoutCompanyInput
+    teams?: TeamCreateNestedManyWithoutCompanyInput
+    templates?: PasswordTemplateCreateNestedManyWithoutCompanyInput
+    ipWhitelists?: IpWhitelistCreateNestedManyWithoutCompanyInput
+    geographicRestrictions?: GeographicRestrictionCreateNestedManyWithoutCompanyInput
+    threatEvents?: ThreatEventCreateNestedManyWithoutCompanyInput
+    rateLimits?: RateLimitCreateNestedManyWithoutCompanyInput
+    passwordPolicy?: PasswordPolicyCreateNestedOneWithoutCompanyInput
+    folders?: FolderCreateNestedManyWithoutCompanyInput
+    dataRetentionPolicy?: DataRetentionPolicyCreateNestedOneWithoutCompanyInput
+    dataExports?: DataExportCreateNestedManyWithoutCompanyInput
+    dataDeletionRequests?: DataDeletionRequestCreateNestedManyWithoutCompanyInput
+    auditLogArchives?: AuditLogArchiveCreateNestedManyWithoutCompanyInput
+    auditLogSearches?: AuditLogSearchCreateNestedManyWithoutCompanyInput
+    reports?: ReportCreateNestedManyWithoutCompanyInput
+    reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
+    scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
+    tags?: TagCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogCreateNestedManyWithoutCompanyInput
+    roles?: RoleCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyCreateNestedManyWithoutCompanyInput
+  }
+
+  export type CompanyUncheckedCreateWithoutSessionsInput = {
+    id?: string
+    name: string
+    subdomain: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    users?: UserUncheckedCreateNestedManyWithoutCompanyInput
+    teams?: TeamUncheckedCreateNestedManyWithoutCompanyInput
+    templates?: PasswordTemplateUncheckedCreateNestedManyWithoutCompanyInput
+    ipWhitelists?: IpWhitelistUncheckedCreateNestedManyWithoutCompanyInput
+    geographicRestrictions?: GeographicRestrictionUncheckedCreateNestedManyWithoutCompanyInput
+    threatEvents?: ThreatEventUncheckedCreateNestedManyWithoutCompanyInput
+    rateLimits?: RateLimitUncheckedCreateNestedManyWithoutCompanyInput
+    passwordPolicy?: PasswordPolicyUncheckedCreateNestedOneWithoutCompanyInput
+    folders?: FolderUncheckedCreateNestedManyWithoutCompanyInput
+    dataRetentionPolicy?: DataRetentionPolicyUncheckedCreateNestedOneWithoutCompanyInput
+    dataExports?: DataExportUncheckedCreateNestedManyWithoutCompanyInput
+    dataDeletionRequests?: DataDeletionRequestUncheckedCreateNestedManyWithoutCompanyInput
+    auditLogArchives?: AuditLogArchiveUncheckedCreateNestedManyWithoutCompanyInput
+    auditLogSearches?: AuditLogSearchUncheckedCreateNestedManyWithoutCompanyInput
+    reports?: ReportUncheckedCreateNestedManyWithoutCompanyInput
+    reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
+    scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
+    tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordUncheckedCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutCompanyInput
+    roles?: RoleUncheckedCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedCreateNestedManyWithoutCompanyInput
+  }
+
+  export type CompanyCreateOrConnectWithoutSessionsInput = {
+    where: CompanyWhereUniqueInput
+    create: XOR<CompanyCreateWithoutSessionsInput, CompanyUncheckedCreateWithoutSessionsInput>
+  }
+
   export type UserUpsertWithoutSessionsInput = {
     update: XOR<UserUpdateWithoutSessionsInput, UserUncheckedUpdateWithoutSessionsInput>
     create: XOR<UserCreateWithoutSessionsInput, UserUncheckedCreateWithoutSessionsInput>
@@ -77907,6 +79147,77 @@ export namespace Prisma {
     geographicRestrictions?: GeographicRestrictionUncheckedUpdateManyWithoutUserNestedInput
     createdIpWhitelists?: IpWhitelistUncheckedUpdateManyWithoutCreatorNestedInput
     createdGeographicRestrictions?: GeographicRestrictionUncheckedUpdateManyWithoutCreatorNestedInput
+  }
+
+  export type CompanyUpsertWithoutSessionsInput = {
+    update: XOR<CompanyUpdateWithoutSessionsInput, CompanyUncheckedUpdateWithoutSessionsInput>
+    create: XOR<CompanyCreateWithoutSessionsInput, CompanyUncheckedCreateWithoutSessionsInput>
+    where?: CompanyWhereInput
+  }
+
+  export type CompanyUpdateToOneWithWhereWithoutSessionsInput = {
+    where?: CompanyWhereInput
+    data: XOR<CompanyUpdateWithoutSessionsInput, CompanyUncheckedUpdateWithoutSessionsInput>
+  }
+
+  export type CompanyUpdateWithoutSessionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    subdomain?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    users?: UserUpdateManyWithoutCompanyNestedInput
+    teams?: TeamUpdateManyWithoutCompanyNestedInput
+    templates?: PasswordTemplateUpdateManyWithoutCompanyNestedInput
+    ipWhitelists?: IpWhitelistUpdateManyWithoutCompanyNestedInput
+    geographicRestrictions?: GeographicRestrictionUpdateManyWithoutCompanyNestedInput
+    threatEvents?: ThreatEventUpdateManyWithoutCompanyNestedInput
+    rateLimits?: RateLimitUpdateManyWithoutCompanyNestedInput
+    passwordPolicy?: PasswordPolicyUpdateOneWithoutCompanyNestedInput
+    folders?: FolderUpdateManyWithoutCompanyNestedInput
+    dataRetentionPolicy?: DataRetentionPolicyUpdateOneWithoutCompanyNestedInput
+    dataExports?: DataExportUpdateManyWithoutCompanyNestedInput
+    dataDeletionRequests?: DataDeletionRequestUpdateManyWithoutCompanyNestedInput
+    auditLogArchives?: AuditLogArchiveUpdateManyWithoutCompanyNestedInput
+    auditLogSearches?: AuditLogSearchUpdateManyWithoutCompanyNestedInput
+    reports?: ReportUpdateManyWithoutCompanyNestedInput
+    reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
+    scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
+    tags?: TagUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUpdateManyWithoutCompanyNestedInput
+  }
+
+  export type CompanyUncheckedUpdateWithoutSessionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    subdomain?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    users?: UserUncheckedUpdateManyWithoutCompanyNestedInput
+    teams?: TeamUncheckedUpdateManyWithoutCompanyNestedInput
+    templates?: PasswordTemplateUncheckedUpdateManyWithoutCompanyNestedInput
+    ipWhitelists?: IpWhitelistUncheckedUpdateManyWithoutCompanyNestedInput
+    geographicRestrictions?: GeographicRestrictionUncheckedUpdateManyWithoutCompanyNestedInput
+    threatEvents?: ThreatEventUncheckedUpdateManyWithoutCompanyNestedInput
+    rateLimits?: RateLimitUncheckedUpdateManyWithoutCompanyNestedInput
+    passwordPolicy?: PasswordPolicyUncheckedUpdateOneWithoutCompanyNestedInput
+    folders?: FolderUncheckedUpdateManyWithoutCompanyNestedInput
+    dataRetentionPolicy?: DataRetentionPolicyUncheckedUpdateOneWithoutCompanyNestedInput
+    dataExports?: DataExportUncheckedUpdateManyWithoutCompanyNestedInput
+    dataDeletionRequests?: DataDeletionRequestUncheckedUpdateManyWithoutCompanyNestedInput
+    auditLogArchives?: AuditLogArchiveUncheckedUpdateManyWithoutCompanyNestedInput
+    auditLogSearches?: AuditLogSearchUncheckedUpdateManyWithoutCompanyNestedInput
+    reports?: ReportUncheckedUpdateManyWithoutCompanyNestedInput
+    reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
+    scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
+    tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUncheckedUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUncheckedUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type UserCreateWithoutOwnedPasswordsInput = {
@@ -78042,7 +79353,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     parent?: FolderCreateNestedOneWithoutChildrenInput
     children?: FolderCreateNestedManyWithoutParentInput
-    company?: CompanyCreateNestedOneWithoutFoldersInput
+    company: CompanyCreateNestedOneWithoutFoldersInput
   }
 
   export type FolderUncheckedCreateWithoutPasswordsInput = {
@@ -78052,7 +79363,7 @@ export namespace Prisma {
     icon?: string | null
     color?: string | null
     parentId?: string | null
-    companyId?: string | null
+    companyId: string
     createdAt?: Date | string
     updatedAt?: Date | string
     children?: FolderUncheckedCreateNestedManyWithoutParentInput
@@ -78061,6 +79372,71 @@ export namespace Prisma {
   export type FolderCreateOrConnectWithoutPasswordsInput = {
     where: FolderWhereUniqueInput
     create: XOR<FolderCreateWithoutPasswordsInput, FolderUncheckedCreateWithoutPasswordsInput>
+  }
+
+  export type CompanyCreateWithoutPasswordsInput = {
+    id?: string
+    name: string
+    subdomain: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    users?: UserCreateNestedManyWithoutCompanyInput
+    teams?: TeamCreateNestedManyWithoutCompanyInput
+    templates?: PasswordTemplateCreateNestedManyWithoutCompanyInput
+    ipWhitelists?: IpWhitelistCreateNestedManyWithoutCompanyInput
+    geographicRestrictions?: GeographicRestrictionCreateNestedManyWithoutCompanyInput
+    threatEvents?: ThreatEventCreateNestedManyWithoutCompanyInput
+    rateLimits?: RateLimitCreateNestedManyWithoutCompanyInput
+    passwordPolicy?: PasswordPolicyCreateNestedOneWithoutCompanyInput
+    folders?: FolderCreateNestedManyWithoutCompanyInput
+    dataRetentionPolicy?: DataRetentionPolicyCreateNestedOneWithoutCompanyInput
+    dataExports?: DataExportCreateNestedManyWithoutCompanyInput
+    dataDeletionRequests?: DataDeletionRequestCreateNestedManyWithoutCompanyInput
+    auditLogArchives?: AuditLogArchiveCreateNestedManyWithoutCompanyInput
+    auditLogSearches?: AuditLogSearchCreateNestedManyWithoutCompanyInput
+    reports?: ReportCreateNestedManyWithoutCompanyInput
+    reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
+    scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
+    tags?: TagCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogCreateNestedManyWithoutCompanyInput
+    roles?: RoleCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyCreateNestedManyWithoutCompanyInput
+    sessions?: SessionCreateNestedManyWithoutCompanyInput
+  }
+
+  export type CompanyUncheckedCreateWithoutPasswordsInput = {
+    id?: string
+    name: string
+    subdomain: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    users?: UserUncheckedCreateNestedManyWithoutCompanyInput
+    teams?: TeamUncheckedCreateNestedManyWithoutCompanyInput
+    templates?: PasswordTemplateUncheckedCreateNestedManyWithoutCompanyInput
+    ipWhitelists?: IpWhitelistUncheckedCreateNestedManyWithoutCompanyInput
+    geographicRestrictions?: GeographicRestrictionUncheckedCreateNestedManyWithoutCompanyInput
+    threatEvents?: ThreatEventUncheckedCreateNestedManyWithoutCompanyInput
+    rateLimits?: RateLimitUncheckedCreateNestedManyWithoutCompanyInput
+    passwordPolicy?: PasswordPolicyUncheckedCreateNestedOneWithoutCompanyInput
+    folders?: FolderUncheckedCreateNestedManyWithoutCompanyInput
+    dataRetentionPolicy?: DataRetentionPolicyUncheckedCreateNestedOneWithoutCompanyInput
+    dataExports?: DataExportUncheckedCreateNestedManyWithoutCompanyInput
+    dataDeletionRequests?: DataDeletionRequestUncheckedCreateNestedManyWithoutCompanyInput
+    auditLogArchives?: AuditLogArchiveUncheckedCreateNestedManyWithoutCompanyInput
+    auditLogSearches?: AuditLogSearchUncheckedCreateNestedManyWithoutCompanyInput
+    reports?: ReportUncheckedCreateNestedManyWithoutCompanyInput
+    reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
+    scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
+    tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutCompanyInput
+    roles?: RoleUncheckedCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedCreateNestedManyWithoutCompanyInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutCompanyInput
+  }
+
+  export type CompanyCreateOrConnectWithoutPasswordsInput = {
+    where: CompanyWhereUniqueInput
+    create: XOR<CompanyCreateWithoutPasswordsInput, CompanyUncheckedCreateWithoutPasswordsInput>
   }
 
   export type PasswordShareCreateWithoutPasswordInput = {
@@ -78165,7 +79541,7 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     changeType?: string
     createdAt?: Date | string
-    changedByUser: UserCreateNestedOneWithoutPasswordHistoryInput
+    changedByUser?: UserCreateNestedOneWithoutPasswordHistoryInput
   }
 
   export type PasswordHistoryUncheckedCreateWithoutPasswordEntryInput = {
@@ -78180,7 +79556,7 @@ export namespace Prisma {
     hasTotp: boolean
     totpSecret?: string | null
     expiresAt?: Date | string | null
-    changedBy: string
+    changedBy?: string | null
     changeType?: string
     createdAt?: Date | string
   }
@@ -78203,7 +79579,7 @@ export namespace Prisma {
     checkedAt?: Date | string
     resolved?: boolean
     resolvedAt?: Date | string | null
-    checkedByUser: UserCreateNestedOneWithoutPasswordBreachesCheckedInput
+    checkedByUser?: UserCreateNestedOneWithoutPasswordBreachesCheckedInput
     resolvedByUser?: UserCreateNestedOneWithoutPasswordBreachesResolvedInput
   }
 
@@ -78213,7 +79589,7 @@ export namespace Prisma {
     breachCount?: number
     hashPrefix: string
     checkedAt?: Date | string
-    checkedBy: string
+    checkedBy?: string | null
     resolved?: boolean
     resolvedAt?: Date | string | null
     resolvedBy?: string | null
@@ -78240,7 +79616,7 @@ export namespace Prisma {
     status?: string
     notes?: string | null
     policy?: PasswordRotationPolicyCreateNestedOneWithoutRotationsInput
-    rotatedByUser: UserCreateNestedOneWithoutPasswordRotationsInput
+    rotatedByUser?: UserCreateNestedOneWithoutPasswordRotationsInput
   }
 
   export type PasswordRotationUncheckedCreateWithoutPasswordInput = {
@@ -78250,7 +79626,7 @@ export namespace Prisma {
     oldPassword?: string | null
     newPassword: string
     rotatedAt?: Date | string
-    rotatedBy: string
+    rotatedBy?: string | null
     scheduledFor?: Date | string | null
     completedAt?: Date | string | null
     status?: string
@@ -78279,6 +79655,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     owner: UserCreateNestedOneWithoutRotationPoliciesInput
+    company?: CompanyCreateNestedOneWithoutRotationPoliciesInput
     rotations?: PasswordRotationCreateNestedManyWithoutPolicyInput
   }
 
@@ -78292,6 +79669,7 @@ export namespace Prisma {
     requireApproval?: boolean
     isActive?: boolean
     ownerId: string
+    companyId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     rotations?: PasswordRotationUncheckedCreateNestedManyWithoutPolicyInput
@@ -78452,7 +79830,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     parent?: FolderUpdateOneWithoutChildrenNestedInput
     children?: FolderUpdateManyWithoutParentNestedInput
-    company?: CompanyUpdateOneWithoutFoldersNestedInput
+    company?: CompanyUpdateOneRequiredWithoutFoldersNestedInput
   }
 
   export type FolderUncheckedUpdateWithoutPasswordsInput = {
@@ -78462,10 +79840,81 @@ export namespace Prisma {
     icon?: NullableStringFieldUpdateOperationsInput | string | null
     color?: NullableStringFieldUpdateOperationsInput | string | null
     parentId?: NullableStringFieldUpdateOperationsInput | string | null
-    companyId?: NullableStringFieldUpdateOperationsInput | string | null
+    companyId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     children?: FolderUncheckedUpdateManyWithoutParentNestedInput
+  }
+
+  export type CompanyUpsertWithoutPasswordsInput = {
+    update: XOR<CompanyUpdateWithoutPasswordsInput, CompanyUncheckedUpdateWithoutPasswordsInput>
+    create: XOR<CompanyCreateWithoutPasswordsInput, CompanyUncheckedCreateWithoutPasswordsInput>
+    where?: CompanyWhereInput
+  }
+
+  export type CompanyUpdateToOneWithWhereWithoutPasswordsInput = {
+    where?: CompanyWhereInput
+    data: XOR<CompanyUpdateWithoutPasswordsInput, CompanyUncheckedUpdateWithoutPasswordsInput>
+  }
+
+  export type CompanyUpdateWithoutPasswordsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    subdomain?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    users?: UserUpdateManyWithoutCompanyNestedInput
+    teams?: TeamUpdateManyWithoutCompanyNestedInput
+    templates?: PasswordTemplateUpdateManyWithoutCompanyNestedInput
+    ipWhitelists?: IpWhitelistUpdateManyWithoutCompanyNestedInput
+    geographicRestrictions?: GeographicRestrictionUpdateManyWithoutCompanyNestedInput
+    threatEvents?: ThreatEventUpdateManyWithoutCompanyNestedInput
+    rateLimits?: RateLimitUpdateManyWithoutCompanyNestedInput
+    passwordPolicy?: PasswordPolicyUpdateOneWithoutCompanyNestedInput
+    folders?: FolderUpdateManyWithoutCompanyNestedInput
+    dataRetentionPolicy?: DataRetentionPolicyUpdateOneWithoutCompanyNestedInput
+    dataExports?: DataExportUpdateManyWithoutCompanyNestedInput
+    dataDeletionRequests?: DataDeletionRequestUpdateManyWithoutCompanyNestedInput
+    auditLogArchives?: AuditLogArchiveUpdateManyWithoutCompanyNestedInput
+    auditLogSearches?: AuditLogSearchUpdateManyWithoutCompanyNestedInput
+    reports?: ReportUpdateManyWithoutCompanyNestedInput
+    reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
+    scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
+    tags?: TagUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUpdateManyWithoutCompanyNestedInput
+  }
+
+  export type CompanyUncheckedUpdateWithoutPasswordsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    subdomain?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    users?: UserUncheckedUpdateManyWithoutCompanyNestedInput
+    teams?: TeamUncheckedUpdateManyWithoutCompanyNestedInput
+    templates?: PasswordTemplateUncheckedUpdateManyWithoutCompanyNestedInput
+    ipWhitelists?: IpWhitelistUncheckedUpdateManyWithoutCompanyNestedInput
+    geographicRestrictions?: GeographicRestrictionUncheckedUpdateManyWithoutCompanyNestedInput
+    threatEvents?: ThreatEventUncheckedUpdateManyWithoutCompanyNestedInput
+    rateLimits?: RateLimitUncheckedUpdateManyWithoutCompanyNestedInput
+    passwordPolicy?: PasswordPolicyUncheckedUpdateOneWithoutCompanyNestedInput
+    folders?: FolderUncheckedUpdateManyWithoutCompanyNestedInput
+    dataRetentionPolicy?: DataRetentionPolicyUncheckedUpdateOneWithoutCompanyNestedInput
+    dataExports?: DataExportUncheckedUpdateManyWithoutCompanyNestedInput
+    dataDeletionRequests?: DataDeletionRequestUncheckedUpdateManyWithoutCompanyNestedInput
+    auditLogArchives?: AuditLogArchiveUncheckedUpdateManyWithoutCompanyNestedInput
+    auditLogSearches?: AuditLogSearchUncheckedUpdateManyWithoutCompanyNestedInput
+    reports?: ReportUncheckedUpdateManyWithoutCompanyNestedInput
+    reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
+    scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
+    tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUncheckedUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type PasswordShareUpsertWithWhereUniqueWithoutPasswordInput = {
@@ -78597,6 +80046,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     owner?: UserUpdateOneRequiredWithoutRotationPoliciesNestedInput
+    company?: CompanyUpdateOneWithoutRotationPoliciesNestedInput
     rotations?: PasswordRotationUpdateManyWithoutPolicyNestedInput
   }
 
@@ -78610,6 +80060,7 @@ export namespace Prisma {
     requireApproval?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     ownerId?: StringFieldUpdateOperationsInput | string
+    companyId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rotations?: PasswordRotationUncheckedUpdateManyWithoutPolicyNestedInput
@@ -78631,6 +80082,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     owner: UserCreateNestedOneWithoutOwnedPasswordsInput
     folder?: FolderCreateNestedOneWithoutPasswordsInput
+    company?: CompanyCreateNestedOneWithoutPasswordsInput
     sharedWith?: PasswordShareCreateNestedManyWithoutPasswordInput
     temporaryShares?: TemporaryPasswordShareCreateNestedManyWithoutPasswordInput
     tags?: PasswordTagCreateNestedManyWithoutPasswordInput
@@ -78647,6 +80099,7 @@ export namespace Prisma {
     url?: string | null
     notes?: string | null
     folderId?: string | null
+    companyId?: string | null
     strength?: $Enums.PasswordStrength
     hasTotp?: boolean
     totpSecret?: string | null
@@ -78818,6 +80271,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     owner?: UserUpdateOneRequiredWithoutOwnedPasswordsNestedInput
     folder?: FolderUpdateOneWithoutPasswordsNestedInput
+    company?: CompanyUpdateOneWithoutPasswordsNestedInput
     sharedWith?: PasswordShareUpdateManyWithoutPasswordNestedInput
     temporaryShares?: TemporaryPasswordShareUpdateManyWithoutPasswordNestedInput
     tags?: PasswordTagUpdateManyWithoutPasswordNestedInput
@@ -78834,6 +80288,7 @@ export namespace Prisma {
     url?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     folderId?: NullableStringFieldUpdateOperationsInput | string | null
+    companyId?: NullableStringFieldUpdateOperationsInput | string | null
     strength?: EnumPasswordStrengthFieldUpdateOperationsInput | $Enums.PasswordStrength
     hasTotp?: BoolFieldUpdateOperationsInput | boolean
     totpSecret?: NullableStringFieldUpdateOperationsInput | string | null
@@ -78995,6 +80450,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     owner: UserCreateNestedOneWithoutOwnedPasswordsInput
     folder?: FolderCreateNestedOneWithoutPasswordsInput
+    company?: CompanyCreateNestedOneWithoutPasswordsInput
     sharedWith?: PasswordShareCreateNestedManyWithoutPasswordInput
     temporaryShares?: TemporaryPasswordShareCreateNestedManyWithoutPasswordInput
     tags?: PasswordTagCreateNestedManyWithoutPasswordInput
@@ -79011,6 +80467,7 @@ export namespace Prisma {
     url?: string | null
     notes?: string | null
     folderId?: string | null
+    companyId?: string | null
     strength?: $Enums.PasswordStrength
     hasTotp?: boolean
     totpSecret?: string | null
@@ -79305,6 +80762,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     owner?: UserUpdateOneRequiredWithoutOwnedPasswordsNestedInput
     folder?: FolderUpdateOneWithoutPasswordsNestedInput
+    company?: CompanyUpdateOneWithoutPasswordsNestedInput
     sharedWith?: PasswordShareUpdateManyWithoutPasswordNestedInput
     temporaryShares?: TemporaryPasswordShareUpdateManyWithoutPasswordNestedInput
     tags?: PasswordTagUpdateManyWithoutPasswordNestedInput
@@ -79321,6 +80779,7 @@ export namespace Prisma {
     url?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     folderId?: NullableStringFieldUpdateOperationsInput | string | null
+    companyId?: NullableStringFieldUpdateOperationsInput | string | null
     strength?: EnumPasswordStrengthFieldUpdateOperationsInput | $Enums.PasswordStrength
     hasTotp?: BoolFieldUpdateOperationsInput | boolean
     totpSecret?: NullableStringFieldUpdateOperationsInput | string | null
@@ -79718,6 +81177,71 @@ export namespace Prisma {
     create: XOR<UserCreateWithoutRotationPoliciesInput, UserUncheckedCreateWithoutRotationPoliciesInput>
   }
 
+  export type CompanyCreateWithoutRotationPoliciesInput = {
+    id?: string
+    name: string
+    subdomain: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    users?: UserCreateNestedManyWithoutCompanyInput
+    teams?: TeamCreateNestedManyWithoutCompanyInput
+    templates?: PasswordTemplateCreateNestedManyWithoutCompanyInput
+    ipWhitelists?: IpWhitelistCreateNestedManyWithoutCompanyInput
+    geographicRestrictions?: GeographicRestrictionCreateNestedManyWithoutCompanyInput
+    threatEvents?: ThreatEventCreateNestedManyWithoutCompanyInput
+    rateLimits?: RateLimitCreateNestedManyWithoutCompanyInput
+    passwordPolicy?: PasswordPolicyCreateNestedOneWithoutCompanyInput
+    folders?: FolderCreateNestedManyWithoutCompanyInput
+    dataRetentionPolicy?: DataRetentionPolicyCreateNestedOneWithoutCompanyInput
+    dataExports?: DataExportCreateNestedManyWithoutCompanyInput
+    dataDeletionRequests?: DataDeletionRequestCreateNestedManyWithoutCompanyInput
+    auditLogArchives?: AuditLogArchiveCreateNestedManyWithoutCompanyInput
+    auditLogSearches?: AuditLogSearchCreateNestedManyWithoutCompanyInput
+    reports?: ReportCreateNestedManyWithoutCompanyInput
+    reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
+    scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
+    tags?: TagCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogCreateNestedManyWithoutCompanyInput
+    roles?: RoleCreateNestedManyWithoutCompanyInput
+    sessions?: SessionCreateNestedManyWithoutCompanyInput
+  }
+
+  export type CompanyUncheckedCreateWithoutRotationPoliciesInput = {
+    id?: string
+    name: string
+    subdomain: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    users?: UserUncheckedCreateNestedManyWithoutCompanyInput
+    teams?: TeamUncheckedCreateNestedManyWithoutCompanyInput
+    templates?: PasswordTemplateUncheckedCreateNestedManyWithoutCompanyInput
+    ipWhitelists?: IpWhitelistUncheckedCreateNestedManyWithoutCompanyInput
+    geographicRestrictions?: GeographicRestrictionUncheckedCreateNestedManyWithoutCompanyInput
+    threatEvents?: ThreatEventUncheckedCreateNestedManyWithoutCompanyInput
+    rateLimits?: RateLimitUncheckedCreateNestedManyWithoutCompanyInput
+    passwordPolicy?: PasswordPolicyUncheckedCreateNestedOneWithoutCompanyInput
+    folders?: FolderUncheckedCreateNestedManyWithoutCompanyInput
+    dataRetentionPolicy?: DataRetentionPolicyUncheckedCreateNestedOneWithoutCompanyInput
+    dataExports?: DataExportUncheckedCreateNestedManyWithoutCompanyInput
+    dataDeletionRequests?: DataDeletionRequestUncheckedCreateNestedManyWithoutCompanyInput
+    auditLogArchives?: AuditLogArchiveUncheckedCreateNestedManyWithoutCompanyInput
+    auditLogSearches?: AuditLogSearchUncheckedCreateNestedManyWithoutCompanyInput
+    reports?: ReportUncheckedCreateNestedManyWithoutCompanyInput
+    reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
+    scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
+    tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordUncheckedCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutCompanyInput
+    roles?: RoleUncheckedCreateNestedManyWithoutCompanyInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutCompanyInput
+  }
+
+  export type CompanyCreateOrConnectWithoutRotationPoliciesInput = {
+    where: CompanyWhereUniqueInput
+    create: XOR<CompanyCreateWithoutRotationPoliciesInput, CompanyUncheckedCreateWithoutRotationPoliciesInput>
+  }
+
   export type PasswordCreateWithoutRotationPolicyInput = {
     id?: string
     name: string
@@ -79734,6 +81258,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     owner: UserCreateNestedOneWithoutOwnedPasswordsInput
     folder?: FolderCreateNestedOneWithoutPasswordsInput
+    company?: CompanyCreateNestedOneWithoutPasswordsInput
     sharedWith?: PasswordShareCreateNestedManyWithoutPasswordInput
     temporaryShares?: TemporaryPasswordShareCreateNestedManyWithoutPasswordInput
     tags?: PasswordTagCreateNestedManyWithoutPasswordInput
@@ -79750,6 +81275,7 @@ export namespace Prisma {
     url?: string | null
     notes?: string | null
     folderId?: string | null
+    companyId?: string | null
     strength?: $Enums.PasswordStrength
     hasTotp?: boolean
     totpSecret?: string | null
@@ -79787,7 +81313,7 @@ export namespace Prisma {
     status?: string
     notes?: string | null
     password: PasswordCreateNestedOneWithoutRotationsInput
-    rotatedByUser: UserCreateNestedOneWithoutPasswordRotationsInput
+    rotatedByUser?: UserCreateNestedOneWithoutPasswordRotationsInput
   }
 
   export type PasswordRotationUncheckedCreateWithoutPolicyInput = {
@@ -79797,7 +81323,7 @@ export namespace Prisma {
     oldPassword?: string | null
     newPassword: string
     rotatedAt?: Date | string
-    rotatedBy: string
+    rotatedBy?: string | null
     scheduledFor?: Date | string | null
     completedAt?: Date | string | null
     status?: string
@@ -79943,6 +81469,77 @@ export namespace Prisma {
     createdGeographicRestrictions?: GeographicRestrictionUncheckedUpdateManyWithoutCreatorNestedInput
   }
 
+  export type CompanyUpsertWithoutRotationPoliciesInput = {
+    update: XOR<CompanyUpdateWithoutRotationPoliciesInput, CompanyUncheckedUpdateWithoutRotationPoliciesInput>
+    create: XOR<CompanyCreateWithoutRotationPoliciesInput, CompanyUncheckedCreateWithoutRotationPoliciesInput>
+    where?: CompanyWhereInput
+  }
+
+  export type CompanyUpdateToOneWithWhereWithoutRotationPoliciesInput = {
+    where?: CompanyWhereInput
+    data: XOR<CompanyUpdateWithoutRotationPoliciesInput, CompanyUncheckedUpdateWithoutRotationPoliciesInput>
+  }
+
+  export type CompanyUpdateWithoutRotationPoliciesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    subdomain?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    users?: UserUpdateManyWithoutCompanyNestedInput
+    teams?: TeamUpdateManyWithoutCompanyNestedInput
+    templates?: PasswordTemplateUpdateManyWithoutCompanyNestedInput
+    ipWhitelists?: IpWhitelistUpdateManyWithoutCompanyNestedInput
+    geographicRestrictions?: GeographicRestrictionUpdateManyWithoutCompanyNestedInput
+    threatEvents?: ThreatEventUpdateManyWithoutCompanyNestedInput
+    rateLimits?: RateLimitUpdateManyWithoutCompanyNestedInput
+    passwordPolicy?: PasswordPolicyUpdateOneWithoutCompanyNestedInput
+    folders?: FolderUpdateManyWithoutCompanyNestedInput
+    dataRetentionPolicy?: DataRetentionPolicyUpdateOneWithoutCompanyNestedInput
+    dataExports?: DataExportUpdateManyWithoutCompanyNestedInput
+    dataDeletionRequests?: DataDeletionRequestUpdateManyWithoutCompanyNestedInput
+    auditLogArchives?: AuditLogArchiveUpdateManyWithoutCompanyNestedInput
+    auditLogSearches?: AuditLogSearchUpdateManyWithoutCompanyNestedInput
+    reports?: ReportUpdateManyWithoutCompanyNestedInput
+    reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
+    scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
+    tags?: TagUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUpdateManyWithoutCompanyNestedInput
+  }
+
+  export type CompanyUncheckedUpdateWithoutRotationPoliciesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    subdomain?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    users?: UserUncheckedUpdateManyWithoutCompanyNestedInput
+    teams?: TeamUncheckedUpdateManyWithoutCompanyNestedInput
+    templates?: PasswordTemplateUncheckedUpdateManyWithoutCompanyNestedInput
+    ipWhitelists?: IpWhitelistUncheckedUpdateManyWithoutCompanyNestedInput
+    geographicRestrictions?: GeographicRestrictionUncheckedUpdateManyWithoutCompanyNestedInput
+    threatEvents?: ThreatEventUncheckedUpdateManyWithoutCompanyNestedInput
+    rateLimits?: RateLimitUncheckedUpdateManyWithoutCompanyNestedInput
+    passwordPolicy?: PasswordPolicyUncheckedUpdateOneWithoutCompanyNestedInput
+    folders?: FolderUncheckedUpdateManyWithoutCompanyNestedInput
+    dataRetentionPolicy?: DataRetentionPolicyUncheckedUpdateOneWithoutCompanyNestedInput
+    dataExports?: DataExportUncheckedUpdateManyWithoutCompanyNestedInput
+    dataDeletionRequests?: DataDeletionRequestUncheckedUpdateManyWithoutCompanyNestedInput
+    auditLogArchives?: AuditLogArchiveUncheckedUpdateManyWithoutCompanyNestedInput
+    auditLogSearches?: AuditLogSearchUncheckedUpdateManyWithoutCompanyNestedInput
+    reports?: ReportUncheckedUpdateManyWithoutCompanyNestedInput
+    reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
+    scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
+    tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUncheckedUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUncheckedUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutCompanyNestedInput
+  }
+
   export type PasswordUpsertWithWhereUniqueWithoutRotationPolicyInput = {
     where: PasswordWhereUniqueInput
     update: XOR<PasswordUpdateWithoutRotationPolicyInput, PasswordUncheckedUpdateWithoutRotationPolicyInput>
@@ -79991,6 +81588,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     owner: UserCreateNestedOneWithoutOwnedPasswordsInput
     folder?: FolderCreateNestedOneWithoutPasswordsInput
+    company?: CompanyCreateNestedOneWithoutPasswordsInput
     sharedWith?: PasswordShareCreateNestedManyWithoutPasswordInput
     temporaryShares?: TemporaryPasswordShareCreateNestedManyWithoutPasswordInput
     tags?: PasswordTagCreateNestedManyWithoutPasswordInput
@@ -80007,6 +81605,7 @@ export namespace Prisma {
     url?: string | null
     notes?: string | null
     folderId?: string | null
+    companyId?: string | null
     strength?: $Enums.PasswordStrength
     hasTotp?: boolean
     totpSecret?: string | null
@@ -80040,6 +81639,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     owner: UserCreateNestedOneWithoutRotationPoliciesInput
+    company?: CompanyCreateNestedOneWithoutRotationPoliciesInput
     passwords?: PasswordCreateNestedManyWithoutRotationPolicyInput
   }
 
@@ -80053,6 +81653,7 @@ export namespace Prisma {
     requireApproval?: boolean
     isActive?: boolean
     ownerId: string
+    companyId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     passwords?: PasswordUncheckedCreateNestedManyWithoutRotationPolicyInput
@@ -80213,6 +81814,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     owner?: UserUpdateOneRequiredWithoutOwnedPasswordsNestedInput
     folder?: FolderUpdateOneWithoutPasswordsNestedInput
+    company?: CompanyUpdateOneWithoutPasswordsNestedInput
     sharedWith?: PasswordShareUpdateManyWithoutPasswordNestedInput
     temporaryShares?: TemporaryPasswordShareUpdateManyWithoutPasswordNestedInput
     tags?: PasswordTagUpdateManyWithoutPasswordNestedInput
@@ -80229,6 +81831,7 @@ export namespace Prisma {
     url?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     folderId?: NullableStringFieldUpdateOperationsInput | string | null
+    companyId?: NullableStringFieldUpdateOperationsInput | string | null
     strength?: EnumPasswordStrengthFieldUpdateOperationsInput | $Enums.PasswordStrength
     hasTotp?: BoolFieldUpdateOperationsInput | boolean
     totpSecret?: NullableStringFieldUpdateOperationsInput | string | null
@@ -80268,6 +81871,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     owner?: UserUpdateOneRequiredWithoutRotationPoliciesNestedInput
+    company?: CompanyUpdateOneWithoutRotationPoliciesNestedInput
     passwords?: PasswordUpdateManyWithoutRotationPolicyNestedInput
   }
 
@@ -80281,6 +81885,7 @@ export namespace Prisma {
     requireApproval?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     ownerId?: StringFieldUpdateOperationsInput | string
+    companyId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     passwords?: PasswordUncheckedUpdateManyWithoutRotationPolicyNestedInput
@@ -80425,7 +82030,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     parent?: FolderCreateNestedOneWithoutChildrenInput
     passwords?: PasswordCreateNestedManyWithoutFolderInput
-    company?: CompanyCreateNestedOneWithoutFoldersInput
+    company: CompanyCreateNestedOneWithoutFoldersInput
   }
 
   export type FolderUncheckedCreateWithoutChildrenInput = {
@@ -80435,7 +82040,7 @@ export namespace Prisma {
     icon?: string | null
     color?: string | null
     parentId?: string | null
-    companyId?: string | null
+    companyId: string
     createdAt?: Date | string
     updatedAt?: Date | string
     passwords?: PasswordUncheckedCreateNestedManyWithoutFolderInput
@@ -80456,7 +82061,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     children?: FolderCreateNestedManyWithoutParentInput
     passwords?: PasswordCreateNestedManyWithoutFolderInput
-    company?: CompanyCreateNestedOneWithoutFoldersInput
+    company: CompanyCreateNestedOneWithoutFoldersInput
   }
 
   export type FolderUncheckedCreateWithoutParentInput = {
@@ -80465,7 +82070,7 @@ export namespace Prisma {
     description?: string | null
     icon?: string | null
     color?: string | null
-    companyId?: string | null
+    companyId: string
     createdAt?: Date | string
     updatedAt?: Date | string
     children?: FolderUncheckedCreateNestedManyWithoutParentInput
@@ -80497,6 +82102,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     owner: UserCreateNestedOneWithoutOwnedPasswordsInput
+    company?: CompanyCreateNestedOneWithoutPasswordsInput
     sharedWith?: PasswordShareCreateNestedManyWithoutPasswordInput
     temporaryShares?: TemporaryPasswordShareCreateNestedManyWithoutPasswordInput
     tags?: PasswordTagCreateNestedManyWithoutPasswordInput
@@ -80513,6 +82119,7 @@ export namespace Prisma {
     password: string
     url?: string | null
     notes?: string | null
+    companyId?: string | null
     strength?: $Enums.PasswordStrength
     hasTotp?: boolean
     totpSecret?: string | null
@@ -80563,6 +82170,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
     tags?: TagCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogCreateNestedManyWithoutCompanyInput
+    roles?: RoleCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyCreateNestedManyWithoutCompanyInput
+    sessions?: SessionCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutFoldersInput = {
@@ -80588,6 +82200,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
     tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordUncheckedCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutCompanyInput
+    roles?: RoleUncheckedCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedCreateNestedManyWithoutCompanyInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutFoldersInput = {
@@ -80616,7 +82233,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     parent?: FolderUpdateOneWithoutChildrenNestedInput
     passwords?: PasswordUpdateManyWithoutFolderNestedInput
-    company?: CompanyUpdateOneWithoutFoldersNestedInput
+    company?: CompanyUpdateOneRequiredWithoutFoldersNestedInput
   }
 
   export type FolderUncheckedUpdateWithoutChildrenInput = {
@@ -80626,7 +82243,7 @@ export namespace Prisma {
     icon?: NullableStringFieldUpdateOperationsInput | string | null
     color?: NullableStringFieldUpdateOperationsInput | string | null
     parentId?: NullableStringFieldUpdateOperationsInput | string | null
-    companyId?: NullableStringFieldUpdateOperationsInput | string | null
+    companyId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     passwords?: PasswordUncheckedUpdateManyWithoutFolderNestedInput
@@ -80698,6 +82315,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
     tags?: TagUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutFoldersInput = {
@@ -80723,6 +82345,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
     tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUncheckedUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUncheckedUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type PasswordCreateWithoutSharedWithInput = {
@@ -80741,6 +82368,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     owner: UserCreateNestedOneWithoutOwnedPasswordsInput
     folder?: FolderCreateNestedOneWithoutPasswordsInput
+    company?: CompanyCreateNestedOneWithoutPasswordsInput
     temporaryShares?: TemporaryPasswordShareCreateNestedManyWithoutPasswordInput
     tags?: PasswordTagCreateNestedManyWithoutPasswordInput
     history?: PasswordHistoryCreateNestedManyWithoutPasswordEntryInput
@@ -80757,6 +82385,7 @@ export namespace Prisma {
     url?: string | null
     notes?: string | null
     folderId?: string | null
+    companyId?: string | null
     strength?: $Enums.PasswordStrength
     hasTotp?: boolean
     totpSecret?: string | null
@@ -80953,6 +82582,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     owner?: UserUpdateOneRequiredWithoutOwnedPasswordsNestedInput
     folder?: FolderUpdateOneWithoutPasswordsNestedInput
+    company?: CompanyUpdateOneWithoutPasswordsNestedInput
     temporaryShares?: TemporaryPasswordShareUpdateManyWithoutPasswordNestedInput
     tags?: PasswordTagUpdateManyWithoutPasswordNestedInput
     history?: PasswordHistoryUpdateManyWithoutPasswordEntryNestedInput
@@ -80969,6 +82599,7 @@ export namespace Prisma {
     url?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     folderId?: NullableStringFieldUpdateOperationsInput | string | null
+    companyId?: NullableStringFieldUpdateOperationsInput | string | null
     strength?: EnumPasswordStrengthFieldUpdateOperationsInput | $Enums.PasswordStrength
     hasTotp?: BoolFieldUpdateOperationsInput | boolean
     totpSecret?: NullableStringFieldUpdateOperationsInput | string | null
@@ -81161,6 +82792,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     owner: UserCreateNestedOneWithoutOwnedPasswordsInput
     folder?: FolderCreateNestedOneWithoutPasswordsInput
+    company?: CompanyCreateNestedOneWithoutPasswordsInput
     sharedWith?: PasswordShareCreateNestedManyWithoutPasswordInput
     tags?: PasswordTagCreateNestedManyWithoutPasswordInput
     history?: PasswordHistoryCreateNestedManyWithoutPasswordEntryInput
@@ -81177,6 +82809,7 @@ export namespace Prisma {
     url?: string | null
     notes?: string | null
     folderId?: string | null
+    companyId?: string | null
     strength?: $Enums.PasswordStrength
     hasTotp?: boolean
     totpSecret?: string | null
@@ -81348,6 +82981,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     owner?: UserUpdateOneRequiredWithoutOwnedPasswordsNestedInput
     folder?: FolderUpdateOneWithoutPasswordsNestedInput
+    company?: CompanyUpdateOneWithoutPasswordsNestedInput
     sharedWith?: PasswordShareUpdateManyWithoutPasswordNestedInput
     tags?: PasswordTagUpdateManyWithoutPasswordNestedInput
     history?: PasswordHistoryUpdateManyWithoutPasswordEntryNestedInput
@@ -81364,6 +82998,7 @@ export namespace Prisma {
     url?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     folderId?: NullableStringFieldUpdateOperationsInput | string | null
+    companyId?: NullableStringFieldUpdateOperationsInput | string | null
     strength?: EnumPasswordStrengthFieldUpdateOperationsInput | $Enums.PasswordStrength
     hasTotp?: BoolFieldUpdateOperationsInput | boolean
     totpSecret?: NullableStringFieldUpdateOperationsInput | string | null
@@ -81532,6 +83167,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
     tags?: TagCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogCreateNestedManyWithoutCompanyInput
+    roles?: RoleCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyCreateNestedManyWithoutCompanyInput
+    sessions?: SessionCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutTeamsInput = {
@@ -81557,6 +83197,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
     tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordUncheckedCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutCompanyInput
+    roles?: RoleUncheckedCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedCreateNestedManyWithoutCompanyInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutTeamsInput = {
@@ -81650,6 +83295,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
     tags?: TagUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutTeamsInput = {
@@ -81675,6 +83325,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
     tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUncheckedUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUncheckedUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type TeamMemberUpsertWithWhereUniqueWithoutTeamInput = {
@@ -82040,6 +83695,11 @@ export namespace Prisma {
     reports?: ReportCreateNestedManyWithoutCompanyInput
     reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogCreateNestedManyWithoutCompanyInput
+    roles?: RoleCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyCreateNestedManyWithoutCompanyInput
+    sessions?: SessionCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutTagsInput = {
@@ -82065,6 +83725,11 @@ export namespace Prisma {
     reports?: ReportUncheckedCreateNestedManyWithoutCompanyInput
     reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordUncheckedCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutCompanyInput
+    roles?: RoleUncheckedCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedCreateNestedManyWithoutCompanyInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutTagsInput = {
@@ -82128,6 +83793,11 @@ export namespace Prisma {
     reports?: ReportUpdateManyWithoutCompanyNestedInput
     reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutTagsInput = {
@@ -82153,6 +83823,11 @@ export namespace Prisma {
     reports?: ReportUncheckedUpdateManyWithoutCompanyNestedInput
     reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUncheckedUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUncheckedUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type PasswordTagUpsertWithWhereUniqueWithoutTagInput = {
@@ -82187,6 +83862,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     owner: UserCreateNestedOneWithoutOwnedPasswordsInput
     folder?: FolderCreateNestedOneWithoutPasswordsInput
+    company?: CompanyCreateNestedOneWithoutPasswordsInput
     sharedWith?: PasswordShareCreateNestedManyWithoutPasswordInput
     temporaryShares?: TemporaryPasswordShareCreateNestedManyWithoutPasswordInput
     history?: PasswordHistoryCreateNestedManyWithoutPasswordEntryInput
@@ -82203,6 +83879,7 @@ export namespace Prisma {
     url?: string | null
     notes?: string | null
     folderId?: string | null
+    companyId?: string | null
     strength?: $Enums.PasswordStrength
     hasTotp?: boolean
     totpSecret?: string | null
@@ -82274,6 +83951,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     owner?: UserUpdateOneRequiredWithoutOwnedPasswordsNestedInput
     folder?: FolderUpdateOneWithoutPasswordsNestedInput
+    company?: CompanyUpdateOneWithoutPasswordsNestedInput
     sharedWith?: PasswordShareUpdateManyWithoutPasswordNestedInput
     temporaryShares?: TemporaryPasswordShareUpdateManyWithoutPasswordNestedInput
     history?: PasswordHistoryUpdateManyWithoutPasswordEntryNestedInput
@@ -82290,6 +83968,7 @@ export namespace Prisma {
     url?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     folderId?: NullableStringFieldUpdateOperationsInput | string | null
+    companyId?: NullableStringFieldUpdateOperationsInput | string | null
     strength?: EnumPasswordStrengthFieldUpdateOperationsInput | $Enums.PasswordStrength
     hasTotp?: BoolFieldUpdateOperationsInput | boolean
     totpSecret?: NullableStringFieldUpdateOperationsInput | string | null
@@ -82458,6 +84137,71 @@ export namespace Prisma {
     create: XOR<UserCreateWithoutAuditLogsInput, UserUncheckedCreateWithoutAuditLogsInput>
   }
 
+  export type CompanyCreateWithoutAuditLogsInput = {
+    id?: string
+    name: string
+    subdomain: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    users?: UserCreateNestedManyWithoutCompanyInput
+    teams?: TeamCreateNestedManyWithoutCompanyInput
+    templates?: PasswordTemplateCreateNestedManyWithoutCompanyInput
+    ipWhitelists?: IpWhitelistCreateNestedManyWithoutCompanyInput
+    geographicRestrictions?: GeographicRestrictionCreateNestedManyWithoutCompanyInput
+    threatEvents?: ThreatEventCreateNestedManyWithoutCompanyInput
+    rateLimits?: RateLimitCreateNestedManyWithoutCompanyInput
+    passwordPolicy?: PasswordPolicyCreateNestedOneWithoutCompanyInput
+    folders?: FolderCreateNestedManyWithoutCompanyInput
+    dataRetentionPolicy?: DataRetentionPolicyCreateNestedOneWithoutCompanyInput
+    dataExports?: DataExportCreateNestedManyWithoutCompanyInput
+    dataDeletionRequests?: DataDeletionRequestCreateNestedManyWithoutCompanyInput
+    auditLogArchives?: AuditLogArchiveCreateNestedManyWithoutCompanyInput
+    auditLogSearches?: AuditLogSearchCreateNestedManyWithoutCompanyInput
+    reports?: ReportCreateNestedManyWithoutCompanyInput
+    reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
+    scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
+    tags?: TagCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordCreateNestedManyWithoutCompanyInput
+    roles?: RoleCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyCreateNestedManyWithoutCompanyInput
+    sessions?: SessionCreateNestedManyWithoutCompanyInput
+  }
+
+  export type CompanyUncheckedCreateWithoutAuditLogsInput = {
+    id?: string
+    name: string
+    subdomain: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    users?: UserUncheckedCreateNestedManyWithoutCompanyInput
+    teams?: TeamUncheckedCreateNestedManyWithoutCompanyInput
+    templates?: PasswordTemplateUncheckedCreateNestedManyWithoutCompanyInput
+    ipWhitelists?: IpWhitelistUncheckedCreateNestedManyWithoutCompanyInput
+    geographicRestrictions?: GeographicRestrictionUncheckedCreateNestedManyWithoutCompanyInput
+    threatEvents?: ThreatEventUncheckedCreateNestedManyWithoutCompanyInput
+    rateLimits?: RateLimitUncheckedCreateNestedManyWithoutCompanyInput
+    passwordPolicy?: PasswordPolicyUncheckedCreateNestedOneWithoutCompanyInput
+    folders?: FolderUncheckedCreateNestedManyWithoutCompanyInput
+    dataRetentionPolicy?: DataRetentionPolicyUncheckedCreateNestedOneWithoutCompanyInput
+    dataExports?: DataExportUncheckedCreateNestedManyWithoutCompanyInput
+    dataDeletionRequests?: DataDeletionRequestUncheckedCreateNestedManyWithoutCompanyInput
+    auditLogArchives?: AuditLogArchiveUncheckedCreateNestedManyWithoutCompanyInput
+    auditLogSearches?: AuditLogSearchUncheckedCreateNestedManyWithoutCompanyInput
+    reports?: ReportUncheckedCreateNestedManyWithoutCompanyInput
+    reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
+    scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
+    tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordUncheckedCreateNestedManyWithoutCompanyInput
+    roles?: RoleUncheckedCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedCreateNestedManyWithoutCompanyInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutCompanyInput
+  }
+
+  export type CompanyCreateOrConnectWithoutAuditLogsInput = {
+    where: CompanyWhereUniqueInput
+    create: XOR<CompanyCreateWithoutAuditLogsInput, CompanyUncheckedCreateWithoutAuditLogsInput>
+  }
+
   export type UserUpsertWithoutAuditLogsInput = {
     update: XOR<UserUpdateWithoutAuditLogsInput, UserUncheckedUpdateWithoutAuditLogsInput>
     create: XOR<UserCreateWithoutAuditLogsInput, UserUncheckedCreateWithoutAuditLogsInput>
@@ -82587,6 +84331,77 @@ export namespace Prisma {
     createdGeographicRestrictions?: GeographicRestrictionUncheckedUpdateManyWithoutCreatorNestedInput
   }
 
+  export type CompanyUpsertWithoutAuditLogsInput = {
+    update: XOR<CompanyUpdateWithoutAuditLogsInput, CompanyUncheckedUpdateWithoutAuditLogsInput>
+    create: XOR<CompanyCreateWithoutAuditLogsInput, CompanyUncheckedCreateWithoutAuditLogsInput>
+    where?: CompanyWhereInput
+  }
+
+  export type CompanyUpdateToOneWithWhereWithoutAuditLogsInput = {
+    where?: CompanyWhereInput
+    data: XOR<CompanyUpdateWithoutAuditLogsInput, CompanyUncheckedUpdateWithoutAuditLogsInput>
+  }
+
+  export type CompanyUpdateWithoutAuditLogsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    subdomain?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    users?: UserUpdateManyWithoutCompanyNestedInput
+    teams?: TeamUpdateManyWithoutCompanyNestedInput
+    templates?: PasswordTemplateUpdateManyWithoutCompanyNestedInput
+    ipWhitelists?: IpWhitelistUpdateManyWithoutCompanyNestedInput
+    geographicRestrictions?: GeographicRestrictionUpdateManyWithoutCompanyNestedInput
+    threatEvents?: ThreatEventUpdateManyWithoutCompanyNestedInput
+    rateLimits?: RateLimitUpdateManyWithoutCompanyNestedInput
+    passwordPolicy?: PasswordPolicyUpdateOneWithoutCompanyNestedInput
+    folders?: FolderUpdateManyWithoutCompanyNestedInput
+    dataRetentionPolicy?: DataRetentionPolicyUpdateOneWithoutCompanyNestedInput
+    dataExports?: DataExportUpdateManyWithoutCompanyNestedInput
+    dataDeletionRequests?: DataDeletionRequestUpdateManyWithoutCompanyNestedInput
+    auditLogArchives?: AuditLogArchiveUpdateManyWithoutCompanyNestedInput
+    auditLogSearches?: AuditLogSearchUpdateManyWithoutCompanyNestedInput
+    reports?: ReportUpdateManyWithoutCompanyNestedInput
+    reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
+    scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
+    tags?: TagUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUpdateManyWithoutCompanyNestedInput
+  }
+
+  export type CompanyUncheckedUpdateWithoutAuditLogsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    subdomain?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    users?: UserUncheckedUpdateManyWithoutCompanyNestedInput
+    teams?: TeamUncheckedUpdateManyWithoutCompanyNestedInput
+    templates?: PasswordTemplateUncheckedUpdateManyWithoutCompanyNestedInput
+    ipWhitelists?: IpWhitelistUncheckedUpdateManyWithoutCompanyNestedInput
+    geographicRestrictions?: GeographicRestrictionUncheckedUpdateManyWithoutCompanyNestedInput
+    threatEvents?: ThreatEventUncheckedUpdateManyWithoutCompanyNestedInput
+    rateLimits?: RateLimitUncheckedUpdateManyWithoutCompanyNestedInput
+    passwordPolicy?: PasswordPolicyUncheckedUpdateOneWithoutCompanyNestedInput
+    folders?: FolderUncheckedUpdateManyWithoutCompanyNestedInput
+    dataRetentionPolicy?: DataRetentionPolicyUncheckedUpdateOneWithoutCompanyNestedInput
+    dataExports?: DataExportUncheckedUpdateManyWithoutCompanyNestedInput
+    dataDeletionRequests?: DataDeletionRequestUncheckedUpdateManyWithoutCompanyNestedInput
+    auditLogArchives?: AuditLogArchiveUncheckedUpdateManyWithoutCompanyNestedInput
+    auditLogSearches?: AuditLogSearchUncheckedUpdateManyWithoutCompanyNestedInput
+    reports?: ReportUncheckedUpdateManyWithoutCompanyNestedInput
+    reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
+    scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
+    tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUncheckedUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUncheckedUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutCompanyNestedInput
+  }
+
   export type CompanyCreateWithoutAuditLogArchivesInput = {
     id?: string
     name: string
@@ -82610,6 +84425,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
     tags?: TagCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogCreateNestedManyWithoutCompanyInput
+    roles?: RoleCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyCreateNestedManyWithoutCompanyInput
+    sessions?: SessionCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutAuditLogArchivesInput = {
@@ -82635,6 +84455,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
     tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordUncheckedCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutCompanyInput
+    roles?: RoleUncheckedCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedCreateNestedManyWithoutCompanyInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutAuditLogArchivesInput = {
@@ -82799,6 +84624,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
     tags?: TagUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutAuditLogArchivesInput = {
@@ -82824,6 +84654,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
     tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUncheckedUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUncheckedUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type UserUpsertWithoutAuditLogArchivesInput = {
@@ -83101,6 +84936,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
     tags?: TagCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogCreateNestedManyWithoutCompanyInput
+    roles?: RoleCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyCreateNestedManyWithoutCompanyInput
+    sessions?: SessionCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutAuditLogSearchesInput = {
@@ -83126,6 +84966,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
     tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordUncheckedCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutCompanyInput
+    roles?: RoleUncheckedCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedCreateNestedManyWithoutCompanyInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutAuditLogSearchesInput = {
@@ -83296,6 +85141,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
     tags?: TagUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutAuditLogSearchesInput = {
@@ -83321,6 +85171,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
     tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUncheckedUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUncheckedUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type UserCreateWithoutThreatEventsInput = {
@@ -83469,6 +85324,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
     tags?: TagCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogCreateNestedManyWithoutCompanyInput
+    roles?: RoleCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyCreateNestedManyWithoutCompanyInput
+    sessions?: SessionCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutThreatEventsInput = {
@@ -83494,6 +85354,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
     tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordUncheckedCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutCompanyInput
+    roles?: RoleUncheckedCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedCreateNestedManyWithoutCompanyInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutThreatEventsInput = {
@@ -83664,6 +85529,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
     tags?: TagUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutThreatEventsInput = {
@@ -83689,6 +85559,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
     tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUncheckedUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUncheckedUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyCreateWithoutRateLimitsInput = {
@@ -83714,6 +85589,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
     tags?: TagCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogCreateNestedManyWithoutCompanyInput
+    roles?: RoleCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyCreateNestedManyWithoutCompanyInput
+    sessions?: SessionCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutRateLimitsInput = {
@@ -83739,6 +85619,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
     tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordUncheckedCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutCompanyInput
+    roles?: RoleUncheckedCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedCreateNestedManyWithoutCompanyInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutRateLimitsInput = {
@@ -83780,6 +85665,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
     tags?: TagUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutRateLimitsInput = {
@@ -83805,6 +85695,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
     tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUncheckedUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUncheckedUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type UserCreateWithoutCreatedRolesInput = {
@@ -83928,6 +85823,71 @@ export namespace Prisma {
   export type UserCreateOrConnectWithoutCreatedRolesInput = {
     where: UserWhereUniqueInput
     create: XOR<UserCreateWithoutCreatedRolesInput, UserUncheckedCreateWithoutCreatedRolesInput>
+  }
+
+  export type CompanyCreateWithoutRolesInput = {
+    id?: string
+    name: string
+    subdomain: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    users?: UserCreateNestedManyWithoutCompanyInput
+    teams?: TeamCreateNestedManyWithoutCompanyInput
+    templates?: PasswordTemplateCreateNestedManyWithoutCompanyInput
+    ipWhitelists?: IpWhitelistCreateNestedManyWithoutCompanyInput
+    geographicRestrictions?: GeographicRestrictionCreateNestedManyWithoutCompanyInput
+    threatEvents?: ThreatEventCreateNestedManyWithoutCompanyInput
+    rateLimits?: RateLimitCreateNestedManyWithoutCompanyInput
+    passwordPolicy?: PasswordPolicyCreateNestedOneWithoutCompanyInput
+    folders?: FolderCreateNestedManyWithoutCompanyInput
+    dataRetentionPolicy?: DataRetentionPolicyCreateNestedOneWithoutCompanyInput
+    dataExports?: DataExportCreateNestedManyWithoutCompanyInput
+    dataDeletionRequests?: DataDeletionRequestCreateNestedManyWithoutCompanyInput
+    auditLogArchives?: AuditLogArchiveCreateNestedManyWithoutCompanyInput
+    auditLogSearches?: AuditLogSearchCreateNestedManyWithoutCompanyInput
+    reports?: ReportCreateNestedManyWithoutCompanyInput
+    reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
+    scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
+    tags?: TagCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyCreateNestedManyWithoutCompanyInput
+    sessions?: SessionCreateNestedManyWithoutCompanyInput
+  }
+
+  export type CompanyUncheckedCreateWithoutRolesInput = {
+    id?: string
+    name: string
+    subdomain: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    users?: UserUncheckedCreateNestedManyWithoutCompanyInput
+    teams?: TeamUncheckedCreateNestedManyWithoutCompanyInput
+    templates?: PasswordTemplateUncheckedCreateNestedManyWithoutCompanyInput
+    ipWhitelists?: IpWhitelistUncheckedCreateNestedManyWithoutCompanyInput
+    geographicRestrictions?: GeographicRestrictionUncheckedCreateNestedManyWithoutCompanyInput
+    threatEvents?: ThreatEventUncheckedCreateNestedManyWithoutCompanyInput
+    rateLimits?: RateLimitUncheckedCreateNestedManyWithoutCompanyInput
+    passwordPolicy?: PasswordPolicyUncheckedCreateNestedOneWithoutCompanyInput
+    folders?: FolderUncheckedCreateNestedManyWithoutCompanyInput
+    dataRetentionPolicy?: DataRetentionPolicyUncheckedCreateNestedOneWithoutCompanyInput
+    dataExports?: DataExportUncheckedCreateNestedManyWithoutCompanyInput
+    dataDeletionRequests?: DataDeletionRequestUncheckedCreateNestedManyWithoutCompanyInput
+    auditLogArchives?: AuditLogArchiveUncheckedCreateNestedManyWithoutCompanyInput
+    auditLogSearches?: AuditLogSearchUncheckedCreateNestedManyWithoutCompanyInput
+    reports?: ReportUncheckedCreateNestedManyWithoutCompanyInput
+    reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
+    scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
+    tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordUncheckedCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedCreateNestedManyWithoutCompanyInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutCompanyInput
+  }
+
+  export type CompanyCreateOrConnectWithoutRolesInput = {
+    where: CompanyWhereUniqueInput
+    create: XOR<CompanyCreateWithoutRolesInput, CompanyUncheckedCreateWithoutRolesInput>
   }
 
   export type RolePermissionCreateWithoutRoleInput = {
@@ -84081,6 +86041,77 @@ export namespace Prisma {
     createdGeographicRestrictions?: GeographicRestrictionUncheckedUpdateManyWithoutCreatorNestedInput
   }
 
+  export type CompanyUpsertWithoutRolesInput = {
+    update: XOR<CompanyUpdateWithoutRolesInput, CompanyUncheckedUpdateWithoutRolesInput>
+    create: XOR<CompanyCreateWithoutRolesInput, CompanyUncheckedCreateWithoutRolesInput>
+    where?: CompanyWhereInput
+  }
+
+  export type CompanyUpdateToOneWithWhereWithoutRolesInput = {
+    where?: CompanyWhereInput
+    data: XOR<CompanyUpdateWithoutRolesInput, CompanyUncheckedUpdateWithoutRolesInput>
+  }
+
+  export type CompanyUpdateWithoutRolesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    subdomain?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    users?: UserUpdateManyWithoutCompanyNestedInput
+    teams?: TeamUpdateManyWithoutCompanyNestedInput
+    templates?: PasswordTemplateUpdateManyWithoutCompanyNestedInput
+    ipWhitelists?: IpWhitelistUpdateManyWithoutCompanyNestedInput
+    geographicRestrictions?: GeographicRestrictionUpdateManyWithoutCompanyNestedInput
+    threatEvents?: ThreatEventUpdateManyWithoutCompanyNestedInput
+    rateLimits?: RateLimitUpdateManyWithoutCompanyNestedInput
+    passwordPolicy?: PasswordPolicyUpdateOneWithoutCompanyNestedInput
+    folders?: FolderUpdateManyWithoutCompanyNestedInput
+    dataRetentionPolicy?: DataRetentionPolicyUpdateOneWithoutCompanyNestedInput
+    dataExports?: DataExportUpdateManyWithoutCompanyNestedInput
+    dataDeletionRequests?: DataDeletionRequestUpdateManyWithoutCompanyNestedInput
+    auditLogArchives?: AuditLogArchiveUpdateManyWithoutCompanyNestedInput
+    auditLogSearches?: AuditLogSearchUpdateManyWithoutCompanyNestedInput
+    reports?: ReportUpdateManyWithoutCompanyNestedInput
+    reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
+    scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
+    tags?: TagUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUpdateManyWithoutCompanyNestedInput
+  }
+
+  export type CompanyUncheckedUpdateWithoutRolesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    subdomain?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    users?: UserUncheckedUpdateManyWithoutCompanyNestedInput
+    teams?: TeamUncheckedUpdateManyWithoutCompanyNestedInput
+    templates?: PasswordTemplateUncheckedUpdateManyWithoutCompanyNestedInput
+    ipWhitelists?: IpWhitelistUncheckedUpdateManyWithoutCompanyNestedInput
+    geographicRestrictions?: GeographicRestrictionUncheckedUpdateManyWithoutCompanyNestedInput
+    threatEvents?: ThreatEventUncheckedUpdateManyWithoutCompanyNestedInput
+    rateLimits?: RateLimitUncheckedUpdateManyWithoutCompanyNestedInput
+    passwordPolicy?: PasswordPolicyUncheckedUpdateOneWithoutCompanyNestedInput
+    folders?: FolderUncheckedUpdateManyWithoutCompanyNestedInput
+    dataRetentionPolicy?: DataRetentionPolicyUncheckedUpdateOneWithoutCompanyNestedInput
+    dataExports?: DataExportUncheckedUpdateManyWithoutCompanyNestedInput
+    dataDeletionRequests?: DataDeletionRequestUncheckedUpdateManyWithoutCompanyNestedInput
+    auditLogArchives?: AuditLogArchiveUncheckedUpdateManyWithoutCompanyNestedInput
+    auditLogSearches?: AuditLogSearchUncheckedUpdateManyWithoutCompanyNestedInput
+    reports?: ReportUncheckedUpdateManyWithoutCompanyNestedInput
+    reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
+    scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
+    tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUncheckedUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutCompanyNestedInput
+  }
+
   export type RolePermissionUpsertWithWhereUniqueWithoutRoleInput = {
     where: RolePermissionWhereUniqueInput
     update: XOR<RolePermissionUpdateWithoutRoleInput, RolePermissionUncheckedUpdateWithoutRoleInput>
@@ -84153,6 +86184,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdBy?: UserCreateNestedOneWithoutCreatedRolesInput
+    company?: CompanyCreateNestedOneWithoutRolesInput
   }
 
   export type RoleUncheckedCreateWithoutPermissionsInput = {
@@ -84160,6 +86192,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     isSystem?: boolean
+    companyId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     createdById?: string | null
@@ -84214,6 +86247,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: UserUpdateOneWithoutCreatedRolesNestedInput
+    company?: CompanyUpdateOneWithoutRolesNestedInput
   }
 
   export type RoleUncheckedUpdateWithoutPermissionsInput = {
@@ -84221,6 +86255,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     isSystem?: BoolFieldUpdateOperationsInput | boolean
+    companyId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdById?: NullableStringFieldUpdateOperationsInput | string | null
@@ -85663,6 +87698,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
     tags?: TagCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogCreateNestedManyWithoutCompanyInput
+    roles?: RoleCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyCreateNestedManyWithoutCompanyInput
+    sessions?: SessionCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutTemplatesInput = {
@@ -85688,6 +87728,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
     tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordUncheckedCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutCompanyInput
+    roles?: RoleUncheckedCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedCreateNestedManyWithoutCompanyInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutTemplatesInput = {
@@ -85858,6 +87903,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
     tags?: TagUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutTemplatesInput = {
@@ -85883,6 +87933,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
     tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUncheckedUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUncheckedUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type UserCreateWithoutEmailVerificationTokensInput = {
@@ -86787,6 +88842,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
     tags?: TagCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogCreateNestedManyWithoutCompanyInput
+    roles?: RoleCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyCreateNestedManyWithoutCompanyInput
+    sessions?: SessionCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutIpWhitelistsInput = {
@@ -86812,6 +88872,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
     tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordUncheckedCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutCompanyInput
+    roles?: RoleUncheckedCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedCreateNestedManyWithoutCompanyInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutIpWhitelistsInput = {
@@ -87105,6 +89170,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
     tags?: TagUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutIpWhitelistsInput = {
@@ -87130,6 +89200,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
     tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUncheckedUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUncheckedUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type UserUpsertWithoutCreatedIpWhitelistsInput = {
@@ -87407,6 +89482,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
     tags?: TagCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogCreateNestedManyWithoutCompanyInput
+    roles?: RoleCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyCreateNestedManyWithoutCompanyInput
+    sessions?: SessionCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutGeographicRestrictionsInput = {
@@ -87432,6 +89512,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
     tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordUncheckedCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutCompanyInput
+    roles?: RoleUncheckedCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedCreateNestedManyWithoutCompanyInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutGeographicRestrictionsInput = {
@@ -87725,6 +89810,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
     tags?: TagUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutGeographicRestrictionsInput = {
@@ -87750,6 +89840,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
     tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUncheckedUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUncheckedUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type UserUpsertWithoutCreatedGeographicRestrictionsInput = {
@@ -87904,6 +89999,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
     tags?: TagCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogCreateNestedManyWithoutCompanyInput
+    roles?: RoleCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyCreateNestedManyWithoutCompanyInput
+    sessions?: SessionCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutPasswordPolicyInput = {
@@ -87929,6 +90029,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
     tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordUncheckedCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutCompanyInput
+    roles?: RoleUncheckedCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedCreateNestedManyWithoutCompanyInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutPasswordPolicyInput = {
@@ -87970,6 +90075,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
     tags?: TagUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutPasswordPolicyInput = {
@@ -87995,6 +90105,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
     tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUncheckedUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUncheckedUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyCreateWithoutDataRetentionPolicyInput = {
@@ -88020,6 +90135,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
     tags?: TagCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogCreateNestedManyWithoutCompanyInput
+    roles?: RoleCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyCreateNestedManyWithoutCompanyInput
+    sessions?: SessionCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutDataRetentionPolicyInput = {
@@ -88045,6 +90165,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
     tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordUncheckedCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutCompanyInput
+    roles?: RoleUncheckedCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedCreateNestedManyWithoutCompanyInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutDataRetentionPolicyInput = {
@@ -88086,6 +90211,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
     tags?: TagUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutDataRetentionPolicyInput = {
@@ -88111,6 +90241,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
     tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUncheckedUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUncheckedUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type UserCreateWithoutDataExportsInput = {
@@ -88259,6 +90394,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
     tags?: TagCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogCreateNestedManyWithoutCompanyInput
+    roles?: RoleCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyCreateNestedManyWithoutCompanyInput
+    sessions?: SessionCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutDataExportsInput = {
@@ -88284,6 +90424,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
     tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordUncheckedCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutCompanyInput
+    roles?: RoleUncheckedCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedCreateNestedManyWithoutCompanyInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutDataExportsInput = {
@@ -88454,6 +90599,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
     tags?: TagUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutDataExportsInput = {
@@ -88479,6 +90629,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
     tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUncheckedUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUncheckedUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type UserCreateWithoutDataDeletionRequestsInput = {
@@ -88627,6 +90782,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
     tags?: TagCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogCreateNestedManyWithoutCompanyInput
+    roles?: RoleCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyCreateNestedManyWithoutCompanyInput
+    sessions?: SessionCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutDataDeletionRequestsInput = {
@@ -88652,6 +90812,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
     tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordUncheckedCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutCompanyInput
+    roles?: RoleUncheckedCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedCreateNestedManyWithoutCompanyInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutDataDeletionRequestsInput = {
@@ -88945,6 +91110,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
     tags?: TagUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutDataDeletionRequestsInput = {
@@ -88970,6 +91140,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
     tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUncheckedUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUncheckedUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type UserUpsertWithoutProcessedDeletionsInput = {
@@ -89247,6 +91422,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
     tags?: TagCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogCreateNestedManyWithoutCompanyInput
+    roles?: RoleCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyCreateNestedManyWithoutCompanyInput
+    sessions?: SessionCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutReportsInput = {
@@ -89272,6 +91452,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
     tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordUncheckedCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutCompanyInput
+    roles?: RoleUncheckedCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedCreateNestedManyWithoutCompanyInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutReportsInput = {
@@ -89481,6 +91666,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
     tags?: TagUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutReportsInput = {
@@ -89506,6 +91696,11 @@ export namespace Prisma {
     reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
     tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUncheckedUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUncheckedUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type ReportTemplateUpsertWithoutReportsInput = {
@@ -89699,6 +91894,11 @@ export namespace Prisma {
     reports?: ReportCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportCreateNestedManyWithoutCompanyInput
     tags?: TagCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogCreateNestedManyWithoutCompanyInput
+    roles?: RoleCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyCreateNestedManyWithoutCompanyInput
+    sessions?: SessionCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutReportTemplatesInput = {
@@ -89724,6 +91924,11 @@ export namespace Prisma {
     reports?: ReportUncheckedCreateNestedManyWithoutCompanyInput
     scheduledReports?: ScheduledReportUncheckedCreateNestedManyWithoutCompanyInput
     tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordUncheckedCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutCompanyInput
+    roles?: RoleUncheckedCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedCreateNestedManyWithoutCompanyInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutReportTemplatesInput = {
@@ -89988,6 +92193,11 @@ export namespace Prisma {
     reports?: ReportUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUpdateManyWithoutCompanyNestedInput
     tags?: TagUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutReportTemplatesInput = {
@@ -90013,6 +92223,11 @@ export namespace Prisma {
     reports?: ReportUncheckedUpdateManyWithoutCompanyNestedInput
     scheduledReports?: ScheduledReportUncheckedUpdateManyWithoutCompanyNestedInput
     tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUncheckedUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUncheckedUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type ReportUpsertWithWhereUniqueWithoutTemplateInput = {
@@ -90193,6 +92408,11 @@ export namespace Prisma {
     reports?: ReportCreateNestedManyWithoutCompanyInput
     reportTemplates?: ReportTemplateCreateNestedManyWithoutCompanyInput
     tags?: TagCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogCreateNestedManyWithoutCompanyInput
+    roles?: RoleCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyCreateNestedManyWithoutCompanyInput
+    sessions?: SessionCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutScheduledReportsInput = {
@@ -90218,6 +92438,11 @@ export namespace Prisma {
     reports?: ReportUncheckedCreateNestedManyWithoutCompanyInput
     reportTemplates?: ReportTemplateUncheckedCreateNestedManyWithoutCompanyInput
     tags?: TagUncheckedCreateNestedManyWithoutCompanyInput
+    passwords?: PasswordUncheckedCreateNestedManyWithoutCompanyInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutCompanyInput
+    roles?: RoleUncheckedCreateNestedManyWithoutCompanyInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedCreateNestedManyWithoutCompanyInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutScheduledReportsInput = {
@@ -90427,6 +92652,11 @@ export namespace Prisma {
     reports?: ReportUpdateManyWithoutCompanyNestedInput
     reportTemplates?: ReportTemplateUpdateManyWithoutCompanyNestedInput
     tags?: TagUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutScheduledReportsInput = {
@@ -90452,6 +92682,11 @@ export namespace Prisma {
     reports?: ReportUncheckedUpdateManyWithoutCompanyNestedInput
     reportTemplates?: ReportTemplateUncheckedUpdateManyWithoutCompanyNestedInput
     tags?: TagUncheckedUpdateManyWithoutCompanyNestedInput
+    passwords?: PasswordUncheckedUpdateManyWithoutCompanyNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutCompanyNestedInput
+    roles?: RoleUncheckedUpdateManyWithoutCompanyNestedInput
+    rotationPolicies?: PasswordRotationPolicyUncheckedUpdateManyWithoutCompanyNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type ReportTemplateUpsertWithoutScheduledReportsInput = {
@@ -90712,6 +92947,78 @@ export namespace Prisma {
     name: string
     color?: string | null
     icon?: string | null
+    createdAt?: Date | string
+  }
+
+  export type PasswordCreateManyCompanyInput = {
+    id?: string
+    name: string
+    username: string
+    password: string
+    url?: string | null
+    notes?: string | null
+    folderId?: string | null
+    strength?: $Enums.PasswordStrength
+    hasTotp?: boolean
+    totpSecret?: string | null
+    expiresAt?: Date | string | null
+    isFavorite?: boolean
+    ownerId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    rotationPolicyId?: string | null
+  }
+
+  export type AuditLogCreateManyCompanyInput = {
+    id?: string
+    userId?: string | null
+    action: string
+    resource: string
+    resourceId?: string | null
+    details?: NullableJsonNullValueInput | InputJsonValue
+    ipAddress?: string | null
+    userAgent?: string | null
+    status?: $Enums.AuditStatus
+    createdAt?: Date | string
+  }
+
+  export type RoleCreateManyCompanyInput = {
+    id?: string
+    name: string
+    description?: string | null
+    isSystem?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdById?: string | null
+  }
+
+  export type PasswordRotationPolicyCreateManyCompanyInput = {
+    id?: string
+    name: string
+    description?: string | null
+    rotationDays: number
+    reminderDays: number
+    autoRotate?: boolean
+    requireApproval?: boolean
+    isActive?: boolean
+    ownerId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SessionCreateManyCompanyInput = {
+    id?: string
+    sessionToken: string
+    userId: string
+    expires: Date | string
+    ipAddress?: string | null
+    userAgent?: string | null
+    deviceName?: string | null
+    deviceType?: string | null
+    deviceFingerprint?: string | null
+    isTrusted?: boolean
+    requireMfa?: boolean
+    lastActiveAt?: Date | string
     createdAt?: Date | string
   }
 
@@ -91449,6 +93756,240 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type PasswordUpdateWithoutCompanyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    username?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    url?: NullableStringFieldUpdateOperationsInput | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    strength?: EnumPasswordStrengthFieldUpdateOperationsInput | $Enums.PasswordStrength
+    hasTotp?: BoolFieldUpdateOperationsInput | boolean
+    totpSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isFavorite?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    owner?: UserUpdateOneRequiredWithoutOwnedPasswordsNestedInput
+    folder?: FolderUpdateOneWithoutPasswordsNestedInput
+    sharedWith?: PasswordShareUpdateManyWithoutPasswordNestedInput
+    temporaryShares?: TemporaryPasswordShareUpdateManyWithoutPasswordNestedInput
+    tags?: PasswordTagUpdateManyWithoutPasswordNestedInput
+    history?: PasswordHistoryUpdateManyWithoutPasswordEntryNestedInput
+    breaches?: PasswordBreachUpdateManyWithoutPasswordNestedInput
+    rotations?: PasswordRotationUpdateManyWithoutPasswordNestedInput
+    rotationPolicy?: PasswordRotationPolicyUpdateOneWithoutPasswordsNestedInput
+  }
+
+  export type PasswordUncheckedUpdateWithoutCompanyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    username?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    url?: NullableStringFieldUpdateOperationsInput | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    folderId?: NullableStringFieldUpdateOperationsInput | string | null
+    strength?: EnumPasswordStrengthFieldUpdateOperationsInput | $Enums.PasswordStrength
+    hasTotp?: BoolFieldUpdateOperationsInput | boolean
+    totpSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isFavorite?: BoolFieldUpdateOperationsInput | boolean
+    ownerId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    rotationPolicyId?: NullableStringFieldUpdateOperationsInput | string | null
+    sharedWith?: PasswordShareUncheckedUpdateManyWithoutPasswordNestedInput
+    temporaryShares?: TemporaryPasswordShareUncheckedUpdateManyWithoutPasswordNestedInput
+    tags?: PasswordTagUncheckedUpdateManyWithoutPasswordNestedInput
+    history?: PasswordHistoryUncheckedUpdateManyWithoutPasswordEntryNestedInput
+    breaches?: PasswordBreachUncheckedUpdateManyWithoutPasswordNestedInput
+    rotations?: PasswordRotationUncheckedUpdateManyWithoutPasswordNestedInput
+  }
+
+  export type PasswordUncheckedUpdateManyWithoutCompanyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    username?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    url?: NullableStringFieldUpdateOperationsInput | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    folderId?: NullableStringFieldUpdateOperationsInput | string | null
+    strength?: EnumPasswordStrengthFieldUpdateOperationsInput | $Enums.PasswordStrength
+    hasTotp?: BoolFieldUpdateOperationsInput | boolean
+    totpSecret?: NullableStringFieldUpdateOperationsInput | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isFavorite?: BoolFieldUpdateOperationsInput | boolean
+    ownerId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    rotationPolicyId?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type AuditLogUpdateWithoutCompanyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    action?: StringFieldUpdateOperationsInput | string
+    resource?: StringFieldUpdateOperationsInput | string
+    resourceId?: NullableStringFieldUpdateOperationsInput | string | null
+    details?: NullableJsonNullValueInput | InputJsonValue
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumAuditStatusFieldUpdateOperationsInput | $Enums.AuditStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneWithoutAuditLogsNestedInput
+  }
+
+  export type AuditLogUncheckedUpdateWithoutCompanyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    action?: StringFieldUpdateOperationsInput | string
+    resource?: StringFieldUpdateOperationsInput | string
+    resourceId?: NullableStringFieldUpdateOperationsInput | string | null
+    details?: NullableJsonNullValueInput | InputJsonValue
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumAuditStatusFieldUpdateOperationsInput | $Enums.AuditStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AuditLogUncheckedUpdateManyWithoutCompanyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    action?: StringFieldUpdateOperationsInput | string
+    resource?: StringFieldUpdateOperationsInput | string
+    resourceId?: NullableStringFieldUpdateOperationsInput | string | null
+    details?: NullableJsonNullValueInput | InputJsonValue
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumAuditStatusFieldUpdateOperationsInput | $Enums.AuditStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type RoleUpdateWithoutCompanyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    isSystem?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: UserUpdateOneWithoutCreatedRolesNestedInput
+    permissions?: RolePermissionUpdateManyWithoutRoleNestedInput
+  }
+
+  export type RoleUncheckedUpdateWithoutCompanyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    isSystem?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdById?: NullableStringFieldUpdateOperationsInput | string | null
+    permissions?: RolePermissionUncheckedUpdateManyWithoutRoleNestedInput
+  }
+
+  export type RoleUncheckedUpdateManyWithoutCompanyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    isSystem?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdById?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type PasswordRotationPolicyUpdateWithoutCompanyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    rotationDays?: IntFieldUpdateOperationsInput | number
+    reminderDays?: IntFieldUpdateOperationsInput | number
+    autoRotate?: BoolFieldUpdateOperationsInput | boolean
+    requireApproval?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    owner?: UserUpdateOneRequiredWithoutRotationPoliciesNestedInput
+    passwords?: PasswordUpdateManyWithoutRotationPolicyNestedInput
+    rotations?: PasswordRotationUpdateManyWithoutPolicyNestedInput
+  }
+
+  export type PasswordRotationPolicyUncheckedUpdateWithoutCompanyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    rotationDays?: IntFieldUpdateOperationsInput | number
+    reminderDays?: IntFieldUpdateOperationsInput | number
+    autoRotate?: BoolFieldUpdateOperationsInput | boolean
+    requireApproval?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    ownerId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    passwords?: PasswordUncheckedUpdateManyWithoutRotationPolicyNestedInput
+    rotations?: PasswordRotationUncheckedUpdateManyWithoutPolicyNestedInput
+  }
+
+  export type PasswordRotationPolicyUncheckedUpdateManyWithoutCompanyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    rotationDays?: IntFieldUpdateOperationsInput | number
+    reminderDays?: IntFieldUpdateOperationsInput | number
+    autoRotate?: BoolFieldUpdateOperationsInput | boolean
+    requireApproval?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    ownerId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SessionUpdateWithoutCompanyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    sessionToken?: StringFieldUpdateOperationsInput | string
+    expires?: DateTimeFieldUpdateOperationsInput | Date | string
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceName?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceType?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceFingerprint?: NullableStringFieldUpdateOperationsInput | string | null
+    isTrusted?: BoolFieldUpdateOperationsInput | boolean
+    requireMfa?: BoolFieldUpdateOperationsInput | boolean
+    lastActiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutSessionsNestedInput
+  }
+
+  export type SessionUncheckedUpdateWithoutCompanyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    sessionToken?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    expires?: DateTimeFieldUpdateOperationsInput | Date | string
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceName?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceType?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceFingerprint?: NullableStringFieldUpdateOperationsInput | string | null
+    isTrusted?: BoolFieldUpdateOperationsInput | boolean
+    requireMfa?: BoolFieldUpdateOperationsInput | boolean
+    lastActiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SessionUncheckedUpdateManyWithoutCompanyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    sessionToken?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    expires?: DateTimeFieldUpdateOperationsInput | Date | string
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceName?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceType?: NullableStringFieldUpdateOperationsInput | string | null
+    deviceFingerprint?: NullableStringFieldUpdateOperationsInput | string | null
+    isTrusted?: BoolFieldUpdateOperationsInput | boolean
+    requireMfa?: BoolFieldUpdateOperationsInput | boolean
+    lastActiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type PasswordCreateManyOwnerInput = {
     id?: string
     name: string
@@ -91457,6 +93998,7 @@ export namespace Prisma {
     url?: string | null
     notes?: string | null
     folderId?: string | null
+    companyId?: string | null
     strength?: $Enums.PasswordStrength
     hasTotp?: boolean
     totpSecret?: string | null
@@ -91485,6 +94027,7 @@ export namespace Prisma {
 
   export type AuditLogCreateManyUserInput = {
     id?: string
+    companyId?: string | null
     action: string
     resource: string
     resourceId?: string | null
@@ -91512,6 +94055,7 @@ export namespace Prisma {
   export type SessionCreateManyUserInput = {
     id?: string
     sessionToken: string
+    companyId?: string | null
     expires: Date | string
     ipAddress?: string | null
     userAgent?: string | null
@@ -91607,7 +94151,7 @@ export namespace Prisma {
     breachCount?: number
     hashPrefix: string
     checkedAt?: Date | string
-    checkedBy: string
+    checkedBy?: string | null
     resolved?: boolean
     resolvedAt?: Date | string | null
   }
@@ -91621,6 +94165,7 @@ export namespace Prisma {
     autoRotate?: boolean
     requireApproval?: boolean
     isActive?: boolean
+    companyId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -91773,6 +94318,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     isSystem?: boolean
+    companyId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -91926,6 +94472,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     folder?: FolderUpdateOneWithoutPasswordsNestedInput
+    company?: CompanyUpdateOneWithoutPasswordsNestedInput
     sharedWith?: PasswordShareUpdateManyWithoutPasswordNestedInput
     temporaryShares?: TemporaryPasswordShareUpdateManyWithoutPasswordNestedInput
     tags?: PasswordTagUpdateManyWithoutPasswordNestedInput
@@ -91943,6 +94490,7 @@ export namespace Prisma {
     url?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     folderId?: NullableStringFieldUpdateOperationsInput | string | null
+    companyId?: NullableStringFieldUpdateOperationsInput | string | null
     strength?: EnumPasswordStrengthFieldUpdateOperationsInput | $Enums.PasswordStrength
     hasTotp?: BoolFieldUpdateOperationsInput | boolean
     totpSecret?: NullableStringFieldUpdateOperationsInput | string | null
@@ -91967,6 +94515,7 @@ export namespace Prisma {
     url?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     folderId?: NullableStringFieldUpdateOperationsInput | string | null
+    companyId?: NullableStringFieldUpdateOperationsInput | string | null
     strength?: EnumPasswordStrengthFieldUpdateOperationsInput | $Enums.PasswordStrength
     hasTotp?: BoolFieldUpdateOperationsInput | boolean
     totpSecret?: NullableStringFieldUpdateOperationsInput | string | null
@@ -92035,10 +94584,12 @@ export namespace Prisma {
     userAgent?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumAuditStatusFieldUpdateOperationsInput | $Enums.AuditStatus
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    company?: CompanyUpdateOneWithoutAuditLogsNestedInput
   }
 
   export type AuditLogUncheckedUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
+    companyId?: NullableStringFieldUpdateOperationsInput | string | null
     action?: StringFieldUpdateOperationsInput | string
     resource?: StringFieldUpdateOperationsInput | string
     resourceId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -92051,6 +94602,7 @@ export namespace Prisma {
 
   export type AuditLogUncheckedUpdateManyWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
+    companyId?: NullableStringFieldUpdateOperationsInput | string | null
     action?: StringFieldUpdateOperationsInput | string
     resource?: StringFieldUpdateOperationsInput | string
     resourceId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -92116,11 +94668,13 @@ export namespace Prisma {
     requireMfa?: BoolFieldUpdateOperationsInput | boolean
     lastActiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    company?: CompanyUpdateOneWithoutSessionsNestedInput
   }
 
   export type SessionUncheckedUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     sessionToken?: StringFieldUpdateOperationsInput | string
+    companyId?: NullableStringFieldUpdateOperationsInput | string | null
     expires?: DateTimeFieldUpdateOperationsInput | Date | string
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
     userAgent?: NullableStringFieldUpdateOperationsInput | string | null
@@ -92136,6 +94690,7 @@ export namespace Prisma {
   export type SessionUncheckedUpdateManyWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     sessionToken?: StringFieldUpdateOperationsInput | string
+    companyId?: NullableStringFieldUpdateOperationsInput | string | null
     expires?: DateTimeFieldUpdateOperationsInput | Date | string
     ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
     userAgent?: NullableStringFieldUpdateOperationsInput | string | null
@@ -92385,7 +94940,7 @@ export namespace Prisma {
     resolved?: BoolFieldUpdateOperationsInput | boolean
     resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     password?: PasswordUpdateOneRequiredWithoutBreachesNestedInput
-    checkedByUser?: UserUpdateOneRequiredWithoutPasswordBreachesCheckedNestedInput
+    checkedByUser?: UserUpdateOneWithoutPasswordBreachesCheckedNestedInput
   }
 
   export type PasswordBreachUncheckedUpdateWithoutResolvedByUserInput = {
@@ -92395,7 +94950,7 @@ export namespace Prisma {
     breachCount?: IntFieldUpdateOperationsInput | number
     hashPrefix?: StringFieldUpdateOperationsInput | string
     checkedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    checkedBy?: StringFieldUpdateOperationsInput | string
+    checkedBy?: NullableStringFieldUpdateOperationsInput | string | null
     resolved?: BoolFieldUpdateOperationsInput | boolean
     resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
@@ -92407,7 +94962,7 @@ export namespace Prisma {
     breachCount?: IntFieldUpdateOperationsInput | number
     hashPrefix?: StringFieldUpdateOperationsInput | string
     checkedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    checkedBy?: StringFieldUpdateOperationsInput | string
+    checkedBy?: NullableStringFieldUpdateOperationsInput | string | null
     resolved?: BoolFieldUpdateOperationsInput | boolean
     resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
@@ -92423,6 +94978,7 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    company?: CompanyUpdateOneWithoutRotationPoliciesNestedInput
     passwords?: PasswordUpdateManyWithoutRotationPolicyNestedInput
     rotations?: PasswordRotationUpdateManyWithoutPolicyNestedInput
   }
@@ -92436,6 +94992,7 @@ export namespace Prisma {
     autoRotate?: BoolFieldUpdateOperationsInput | boolean
     requireApproval?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    companyId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     passwords?: PasswordUncheckedUpdateManyWithoutRotationPolicyNestedInput
@@ -92451,6 +95008,7 @@ export namespace Prisma {
     autoRotate?: BoolFieldUpdateOperationsInput | boolean
     requireApproval?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    companyId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -92967,6 +95525,7 @@ export namespace Prisma {
     isSystem?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    company?: CompanyUpdateOneWithoutRolesNestedInput
     permissions?: RolePermissionUpdateManyWithoutRoleNestedInput
   }
 
@@ -92975,6 +95534,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     isSystem?: BoolFieldUpdateOperationsInput | boolean
+    companyId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     permissions?: RolePermissionUncheckedUpdateManyWithoutRoleNestedInput
@@ -92985,6 +95545,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     isSystem?: BoolFieldUpdateOperationsInput | boolean
+    companyId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -93432,7 +95993,7 @@ export namespace Prisma {
     hasTotp: boolean
     totpSecret?: string | null
     expiresAt?: Date | string | null
-    changedBy: string
+    changedBy?: string | null
     changeType?: string
     createdAt?: Date | string
   }
@@ -93443,7 +96004,7 @@ export namespace Prisma {
     breachCount?: number
     hashPrefix: string
     checkedAt?: Date | string
-    checkedBy: string
+    checkedBy?: string | null
     resolved?: boolean
     resolvedAt?: Date | string | null
     resolvedBy?: string | null
@@ -93456,7 +96017,7 @@ export namespace Prisma {
     oldPassword?: string | null
     newPassword: string
     rotatedAt?: Date | string
-    rotatedBy: string
+    rotatedBy?: string | null
     scheduledFor?: Date | string | null
     completedAt?: Date | string | null
     status?: string
@@ -93564,7 +96125,7 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     changeType?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    changedByUser?: UserUpdateOneRequiredWithoutPasswordHistoryNestedInput
+    changedByUser?: UserUpdateOneWithoutPasswordHistoryNestedInput
   }
 
   export type PasswordHistoryUncheckedUpdateWithoutPasswordEntryInput = {
@@ -93579,7 +96140,7 @@ export namespace Prisma {
     hasTotp?: BoolFieldUpdateOperationsInput | boolean
     totpSecret?: NullableStringFieldUpdateOperationsInput | string | null
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    changedBy?: StringFieldUpdateOperationsInput | string
+    changedBy?: NullableStringFieldUpdateOperationsInput | string | null
     changeType?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -93596,7 +96157,7 @@ export namespace Prisma {
     hasTotp?: BoolFieldUpdateOperationsInput | boolean
     totpSecret?: NullableStringFieldUpdateOperationsInput | string | null
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    changedBy?: StringFieldUpdateOperationsInput | string
+    changedBy?: NullableStringFieldUpdateOperationsInput | string | null
     changeType?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -93609,7 +96170,7 @@ export namespace Prisma {
     checkedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     resolved?: BoolFieldUpdateOperationsInput | boolean
     resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    checkedByUser?: UserUpdateOneRequiredWithoutPasswordBreachesCheckedNestedInput
+    checkedByUser?: UserUpdateOneWithoutPasswordBreachesCheckedNestedInput
     resolvedByUser?: UserUpdateOneWithoutPasswordBreachesResolvedNestedInput
   }
 
@@ -93619,7 +96180,7 @@ export namespace Prisma {
     breachCount?: IntFieldUpdateOperationsInput | number
     hashPrefix?: StringFieldUpdateOperationsInput | string
     checkedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    checkedBy?: StringFieldUpdateOperationsInput | string
+    checkedBy?: NullableStringFieldUpdateOperationsInput | string | null
     resolved?: BoolFieldUpdateOperationsInput | boolean
     resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     resolvedBy?: NullableStringFieldUpdateOperationsInput | string | null
@@ -93631,7 +96192,7 @@ export namespace Prisma {
     breachCount?: IntFieldUpdateOperationsInput | number
     hashPrefix?: StringFieldUpdateOperationsInput | string
     checkedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    checkedBy?: StringFieldUpdateOperationsInput | string
+    checkedBy?: NullableStringFieldUpdateOperationsInput | string | null
     resolved?: BoolFieldUpdateOperationsInput | boolean
     resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     resolvedBy?: NullableStringFieldUpdateOperationsInput | string | null
@@ -93648,7 +96209,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     policy?: PasswordRotationPolicyUpdateOneWithoutRotationsNestedInput
-    rotatedByUser?: UserUpdateOneRequiredWithoutPasswordRotationsNestedInput
+    rotatedByUser?: UserUpdateOneWithoutPasswordRotationsNestedInput
   }
 
   export type PasswordRotationUncheckedUpdateWithoutPasswordInput = {
@@ -93658,7 +96219,7 @@ export namespace Prisma {
     oldPassword?: NullableStringFieldUpdateOperationsInput | string | null
     newPassword?: StringFieldUpdateOperationsInput | string
     rotatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    rotatedBy?: StringFieldUpdateOperationsInput | string
+    rotatedBy?: NullableStringFieldUpdateOperationsInput | string | null
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: StringFieldUpdateOperationsInput | string
@@ -93672,7 +96233,7 @@ export namespace Prisma {
     oldPassword?: NullableStringFieldUpdateOperationsInput | string | null
     newPassword?: StringFieldUpdateOperationsInput | string
     rotatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    rotatedBy?: StringFieldUpdateOperationsInput | string
+    rotatedBy?: NullableStringFieldUpdateOperationsInput | string | null
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: StringFieldUpdateOperationsInput | string
@@ -93687,6 +96248,7 @@ export namespace Prisma {
     url?: string | null
     notes?: string | null
     folderId?: string | null
+    companyId?: string | null
     strength?: $Enums.PasswordStrength
     hasTotp?: boolean
     totpSecret?: string | null
@@ -93704,7 +96266,7 @@ export namespace Prisma {
     oldPassword?: string | null
     newPassword: string
     rotatedAt?: Date | string
-    rotatedBy: string
+    rotatedBy?: string | null
     scheduledFor?: Date | string | null
     completedAt?: Date | string | null
     status?: string
@@ -93727,6 +96289,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     owner?: UserUpdateOneRequiredWithoutOwnedPasswordsNestedInput
     folder?: FolderUpdateOneWithoutPasswordsNestedInput
+    company?: CompanyUpdateOneWithoutPasswordsNestedInput
     sharedWith?: PasswordShareUpdateManyWithoutPasswordNestedInput
     temporaryShares?: TemporaryPasswordShareUpdateManyWithoutPasswordNestedInput
     tags?: PasswordTagUpdateManyWithoutPasswordNestedInput
@@ -93743,6 +96306,7 @@ export namespace Prisma {
     url?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     folderId?: NullableStringFieldUpdateOperationsInput | string | null
+    companyId?: NullableStringFieldUpdateOperationsInput | string | null
     strength?: EnumPasswordStrengthFieldUpdateOperationsInput | $Enums.PasswordStrength
     hasTotp?: BoolFieldUpdateOperationsInput | boolean
     totpSecret?: NullableStringFieldUpdateOperationsInput | string | null
@@ -93767,6 +96331,7 @@ export namespace Prisma {
     url?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     folderId?: NullableStringFieldUpdateOperationsInput | string | null
+    companyId?: NullableStringFieldUpdateOperationsInput | string | null
     strength?: EnumPasswordStrengthFieldUpdateOperationsInput | $Enums.PasswordStrength
     hasTotp?: BoolFieldUpdateOperationsInput | boolean
     totpSecret?: NullableStringFieldUpdateOperationsInput | string | null
@@ -93788,7 +96353,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     password?: PasswordUpdateOneRequiredWithoutRotationsNestedInput
-    rotatedByUser?: UserUpdateOneRequiredWithoutPasswordRotationsNestedInput
+    rotatedByUser?: UserUpdateOneWithoutPasswordRotationsNestedInput
   }
 
   export type PasswordRotationUncheckedUpdateWithoutPolicyInput = {
@@ -93798,7 +96363,7 @@ export namespace Prisma {
     oldPassword?: NullableStringFieldUpdateOperationsInput | string | null
     newPassword?: StringFieldUpdateOperationsInput | string
     rotatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    rotatedBy?: StringFieldUpdateOperationsInput | string
+    rotatedBy?: NullableStringFieldUpdateOperationsInput | string | null
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: StringFieldUpdateOperationsInput | string
@@ -93812,7 +96377,7 @@ export namespace Prisma {
     oldPassword?: NullableStringFieldUpdateOperationsInput | string | null
     newPassword?: StringFieldUpdateOperationsInput | string
     rotatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    rotatedBy?: StringFieldUpdateOperationsInput | string
+    rotatedBy?: NullableStringFieldUpdateOperationsInput | string | null
     scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: StringFieldUpdateOperationsInput | string
@@ -93825,7 +96390,7 @@ export namespace Prisma {
     description?: string | null
     icon?: string | null
     color?: string | null
-    companyId?: string | null
+    companyId: string
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -93837,6 +96402,7 @@ export namespace Prisma {
     password: string
     url?: string | null
     notes?: string | null
+    companyId?: string | null
     strength?: $Enums.PasswordStrength
     hasTotp?: boolean
     totpSecret?: string | null
@@ -93858,7 +96424,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     children?: FolderUpdateManyWithoutParentNestedInput
     passwords?: PasswordUpdateManyWithoutFolderNestedInput
-    company?: CompanyUpdateOneWithoutFoldersNestedInput
+    company?: CompanyUpdateOneRequiredWithoutFoldersNestedInput
   }
 
   export type FolderUncheckedUpdateWithoutParentInput = {
@@ -93867,7 +96433,7 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     icon?: NullableStringFieldUpdateOperationsInput | string | null
     color?: NullableStringFieldUpdateOperationsInput | string | null
-    companyId?: NullableStringFieldUpdateOperationsInput | string | null
+    companyId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     children?: FolderUncheckedUpdateManyWithoutParentNestedInput
@@ -93880,7 +96446,7 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     icon?: NullableStringFieldUpdateOperationsInput | string | null
     color?: NullableStringFieldUpdateOperationsInput | string | null
-    companyId?: NullableStringFieldUpdateOperationsInput | string | null
+    companyId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -93900,6 +96466,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     owner?: UserUpdateOneRequiredWithoutOwnedPasswordsNestedInput
+    company?: CompanyUpdateOneWithoutPasswordsNestedInput
     sharedWith?: PasswordShareUpdateManyWithoutPasswordNestedInput
     temporaryShares?: TemporaryPasswordShareUpdateManyWithoutPasswordNestedInput
     tags?: PasswordTagUpdateManyWithoutPasswordNestedInput
@@ -93916,6 +96483,7 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     url?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    companyId?: NullableStringFieldUpdateOperationsInput | string | null
     strength?: EnumPasswordStrengthFieldUpdateOperationsInput | $Enums.PasswordStrength
     hasTotp?: BoolFieldUpdateOperationsInput | boolean
     totpSecret?: NullableStringFieldUpdateOperationsInput | string | null
@@ -93940,6 +96508,7 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     url?: NullableStringFieldUpdateOperationsInput | string | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    companyId?: NullableStringFieldUpdateOperationsInput | string | null
     strength?: EnumPasswordStrengthFieldUpdateOperationsInput | $Enums.PasswordStrength
     hasTotp?: BoolFieldUpdateOperationsInput | boolean
     totpSecret?: NullableStringFieldUpdateOperationsInput | string | null

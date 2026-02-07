@@ -17,10 +17,10 @@ export const rolesRouter = createTRPCRouter({
       const companyId = ctx.companyId
 
       // Check if role already exists (system roles are global, custom roles are company-scoped)
-      const existingRoleWhere: Prisma.RoleWhereInput = { name: input.name }
-      // System roles are unique globally, custom roles are unique per company
-      // For now, we'll check if any role with this name exists (system or custom)
-      // This prevents conflicts between system and custom roles
+      const existingRoleWhere: Prisma.RoleWhereInput = companyId
+        ? { name: input.name, OR: [{ isSystem: true }, { companyId }] }
+        : { name: input.name, isSystem: true }
+
       const existingRole = await prisma.role.findFirst({
         where: existingRoleWhere,
       })
@@ -35,13 +35,14 @@ export const rolesRouter = createTRPCRouter({
       // Get current userId from context
       const createdById = ctx.userId
 
-      // Create role
+      // Create role with company scope
       const role = await prisma.role.create({
         data: {
           name: input.name,
           description: input.description || null,
           isSystem: false,
           createdById,
+          companyId: companyId || null,
         },
         select: {
           id: true,
@@ -79,17 +80,18 @@ export const rolesRouter = createTRPCRouter({
       if (companyId) {
         roleWhere.OR = [
           { isSystem: true },
-          {
-            isSystem: false,
-            createdBy: {
-              companyId: companyId,
-            },
-          },
+          { isSystem: false, companyId: companyId },
         ]
       }
 
       const existingRole = await prisma.role.findFirst({
         where: roleWhere,
+        select: {
+          id: true,
+          name: true,
+          isSystem: true,
+          companyId: true,
+        },
       })
 
       if (!existingRole) {
@@ -108,17 +110,11 @@ export const rolesRouter = createTRPCRouter({
       }
 
       // Verify custom role belongs to same company
-      if (companyId && existingRole.createdById) {
-        const creator = await prisma.user.findUnique({
-          where: { id: existingRole.createdById },
-          select: { companyId: true },
+      if (companyId && existingRole.companyId !== companyId) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You can only edit roles from your own company",
         })
-        if (creator?.companyId !== companyId) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "You can only edit roles from your own company",
-          })
-        }
       }
 
       // If name is being updated, check for conflicts (system roles are global, custom roles are company-scoped)
@@ -412,19 +408,18 @@ export const rolesRouter = createTRPCRouter({
       // Use companyId from context (already fetched, no extra query needed)
       const companyId = ctx.companyId
 
-      // Build where clause - filter roles by company through createdBy user
+      // Build where clause - show system roles (global) and company-specific roles
       const where: Prisma.RoleWhereInput = {
         OR: [
-          { isSystem: true },
+          { isSystem: true }, // System roles are global
         ],
       }
       
       if (companyId) {
+        // Show custom roles for this company
         where.OR.push({
           isSystem: false,
-          createdBy: {
-            companyId: companyId,
-          },
+          companyId: companyId,
         })
       } else {
         // If no company, only show system roles and roles created by current user

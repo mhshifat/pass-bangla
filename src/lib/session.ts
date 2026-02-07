@@ -60,6 +60,13 @@ export async function createSession(
   // Check if this device is already trusted
   const deviceIsTrusted = await isDeviceTrusted(deviceFingerprint, userId)
 
+  // Get user's companyId for multi-tenant session isolation
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { companyId: true },
+  })
+  const companyId = user?.companyId || null
+
   // Check if device-specific MFA is required for untrusted devices
   // If mfaRequired was explicitly passed as true, use it; otherwise calculate based on device trust
   let finalMfaRequired = mfaRequired
@@ -96,6 +103,7 @@ export async function createSession(
       data: {
         sessionToken: token,
         userId,
+        companyId,
         expires,
         ipAddress: ipAddress || null,
         userAgent: userAgent || null,

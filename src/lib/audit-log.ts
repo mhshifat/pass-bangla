@@ -8,6 +8,7 @@ interface CreateAuditLogParams {
   details?: Record<string, unknown> | string
   status?: "SUCCESS" | "FAILED" | "WARNING" | "BLOCKED"
   userId?: string | null
+  companyId?: string | null
   ipAddress?: string | null
   userAgent?: string | null
 }
@@ -15,10 +16,12 @@ interface CreateAuditLogParams {
 /**
  * Create an audit log entry
  * If userId is not provided, it will try to get it from the current session
+ * If companyId is not provided, it will try to get it from the user
  */
 export async function createAuditLog(params: CreateAuditLogParams): Promise<void> {
   try {
     let userId = params.userId
+    let companyId = params.companyId
 
     // If userId is not provided, try to get it from session
     if (!userId) {
@@ -26,14 +29,24 @@ export async function createAuditLog(params: CreateAuditLogParams): Promise<void
       userId = session?.userId || null
     }
 
+    // If companyId is not provided and we have a userId, get it from the user
+    if (!companyId && userId) {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { companyId: true },
+      })
+      companyId = user?.companyId || null
+    }
+
     // Always log in development to help debug
     if (process.env.NODE_ENV === "development") {
-      console.log(`[Audit Log] Attempting to create: ${params.action} for ${params.resource}${params.resourceId ? ` (${params.resourceId})` : ""} by user ${userId || "unknown"}`)
+      console.log(`[Audit Log] Attempting to create: ${params.action} for ${params.resource}${params.resourceId ? ` (${params.resourceId})` : ""} by user ${userId || "unknown"} (company: ${companyId || "none"})`)
     }
 
     const auditLog = await prisma.auditLog.create({
       data: {
         userId: userId || null,
+        companyId: companyId || null,
         action: params.action,
         resource: params.resource,
         resourceId: params.resourceId || null,
