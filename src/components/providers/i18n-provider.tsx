@@ -4,10 +4,16 @@ import { useEffect } from "react"
 import { I18nextProvider } from "react-i18next"
 import i18n from "@/lib/i18n"
 
+/**
+ * I18nProvider
+ * 
+ * Manages i18n initialization on the client.
+ * Default language is English. Language selection is only available after login.
+ */
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-    // Priority: cookie/localStorage > HTML lang attribute
-    // Cookie/localStorage is the user's explicit preference and should always win
+    // Only use cookie for language preference (set by user after login)
+    // No automatic detection - always default to English
     if (typeof window !== "undefined") {
       const getCookieValue = (name: string) => {
         const value = `; ${document.cookie}`
@@ -17,37 +23,27 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
       }
       
       const cookieLanguage = getCookieValue("i18nextLng")
-      const localStorageLanguage = localStorage.getItem("i18nextLng")
-      const htmlLang = document.documentElement.lang
       
-      // Priority 1: Cookie (user's explicit preference)
-      // Priority 2: localStorage (user's explicit preference)
-      // Priority 3: HTML lang (server-set, might be wrong after redirect)
+      // Use cookie if it exists (user's explicit choice after login), otherwise default to English
       const preferredLanguage = (cookieLanguage && (cookieLanguage === 'en' || cookieLanguage === 'bn')) 
         ? cookieLanguage
-        : (localStorageLanguage && (localStorageLanguage === 'en' || localStorageLanguage === 'bn'))
-        ? localStorageLanguage
-        : (htmlLang && (htmlLang === 'en' || htmlLang === 'bn'))
-        ? htmlLang
         : 'en'
       
-      // Sync localStorage with cookie if needed
-      if (cookieLanguage && !localStorageLanguage) {
-        localStorage.setItem("i18nextLng", cookieLanguage)
-      } else if (localStorageLanguage && !cookieLanguage) {
-        // Set cookie from localStorage if cookie is missing
-        const expires = new Date()
-        expires.setFullYear(expires.getFullYear() + 1)
-        document.cookie = `i18nextLng=${localStorageLanguage}; path=/; expires=${expires.toUTCString()}; SameSite=Lax`
+      // Sync localStorage with cookie for consistency
+      try {
+        if (cookieLanguage) {
+          localStorage.setItem("i18nextLng", cookieLanguage)
+        }
+      } catch {
+        // Ignore localStorage errors
       }
       
       // Only change language if it doesn't match the preferred language
-      // This ensures user preference (cookie/localStorage) always wins over HTML lang
-      if (i18n.language !== preferredLanguage && (preferredLanguage === 'en' || preferredLanguage === 'bn')) {
+      if (i18n.language !== preferredLanguage) {
         i18n.changeLanguage(preferredLanguage).catch(() => {
           // Silent fail
         })
-        // Update HTML lang to match preferred language
+        // Update HTML lang to match
         document.documentElement.lang = preferredLanguage
       }
     }

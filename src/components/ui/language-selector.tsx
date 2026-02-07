@@ -14,6 +14,18 @@ import { Languages } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { setLanguageCookie } from "@/lib/i18n-client"
 
+/**
+ * LanguageSelector Component
+ * 
+ * Allows authenticated users to change their language preference.
+ * This component should only be used in authenticated areas:
+ * - Sidebar (after login)
+ * - Profile/Settings page (after login)
+ * 
+ * Default language is English for all users. Language preference
+ * is stored in cookies and user preferences when changed.
+ */
+
 const languages = [
   { code: "en", name: "English", nativeName: "English" },
   { code: "bn", name: "Bangla", nativeName: "বাংলা" },

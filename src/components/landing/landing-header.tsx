@@ -2,7 +2,6 @@
 
 import Link from "next/link"
 import { Logo } from "@/components/shared/logo"
-import { LanguageSelector } from "@/components/ui/language-selector"
 import { Button } from "@/components/ui/button"
 import { useTranslation } from "@/hooks/use-translation"
 
@@ -19,11 +18,8 @@ export function LandingHeader() {
             <span className="text-xl font-bold">PassBangla</span>
           </Link>
 
-          {/* Right side - Language selector and auth buttons */}
+          {/* Right side - Auth buttons */}
           <div className="flex items-center gap-3">
-            {/* Language Selector */}
-            <LanguageSelector variant="ghost" size="sm" />
-
             {/* Auth Buttons */}
             <div className="hidden sm:flex items-center gap-2">
               <Button asChild variant="ghost" size="sm">
