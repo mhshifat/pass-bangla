@@ -64,7 +64,7 @@ function EditPasswordDialogWrapper({
       onOpenChange(false)
       router.refresh()
     } else if (updateState?.error) {
-      toast.error(updateState.error)
+      showErrorFromException(updateState.error, "Failed to update password")
     }
   }, [updateState, router, onOpenChange])
 
@@ -207,7 +207,7 @@ export function PasswordsListClient({ passwords, pagination }: PasswordsListClie
         setPasswordToDelete(null)
         router.refresh()
       } else if (result.error) {
-        toast.error(result.error)
+        showErrorFromException(result.error, "Failed to delete password")
       }
     } catch (error) { showErrorFromException(error, "Failed to delete password") }
   }

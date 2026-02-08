@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 import { toast } from "sonner"
+import { showErrorFromException } from "@/lib/error-toast"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -70,7 +71,7 @@ export function TeamsActionsClient({ teams, pagination }: TeamsActionsClientProp
       setIsCreateDialogOpen(false)
       router.refresh()
     } else if (createState?.error) {
-      toast.error(createState.error)
+      showErrorFromException(createState.error, t("teams.createError"))
     }
   }, [createState, router, t])
 
@@ -81,7 +82,7 @@ export function TeamsActionsClient({ teams, pagination }: TeamsActionsClientProp
       setTeamToEdit(null)
       router.refresh()
     } else if (updateState?.error) {
-      toast.error(updateState.error)
+      showErrorFromException(updateState.error, t("teams.updateError"))
     }
   }, [updateState, router, t])
 
@@ -116,10 +117,10 @@ export function TeamsActionsClient({ teams, pagination }: TeamsActionsClientProp
         setTeamToDelete(null)
         router.refresh()
       } else if (result.error) {
-        toast.error(result.error)
+        showErrorFromException(result.error, t("teams.teamDeleteFailed"))
       }
-    } catch {
-      toast.error(t("teams.teamDeleteFailed"))
+    } catch (error) {
+      showErrorFromException(error, t("teams.teamDeleteFailed"))
     }
   }
 

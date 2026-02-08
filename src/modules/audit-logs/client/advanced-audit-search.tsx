@@ -41,6 +41,7 @@ import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 import { trpc } from "@/trpc/client"
 import { toast } from "sonner"
+import { showErrorFromException } from "@/lib/error-toast"
 import { useState } from "react"
 import { showErrorFromException } from "@/lib/error-toast"
 
@@ -83,8 +84,9 @@ export function AdvancedAuditSearch({
       setIsOpen(false)
     },
     onError: (error) => {
-      toast.error(
-        t("audit.advancedSearch.saveFailed", { error: error.message })
+      showErrorFromException(
+        error,
+        t("audit.advancedSearch.saveFailed")
       )
     },
   })

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Plus, Upload, Download } from "lucide-react"
 import { PasswordFormDialog, ImportPasswordDialog, ExportPasswordDialog } from "@/modules/passwords/client"
 import { toast } from "sonner"
+import { showErrorFromException } from "@/lib/error-toast"
 import { useRouter } from "next/navigation"
 import { createPasswordAction } from "./actions"
 import { usePermissions } from "@/hooks/use-permissions"
@@ -30,7 +31,7 @@ export function PasswordsContent() {
       }, 0)
       return () => clearTimeout(timer)
     } else if (state?.error) {
-      toast.error(state.error)
+      showErrorFromException(state.error, t("passwords.createError"))
     }
   }, [state, router, t])
 

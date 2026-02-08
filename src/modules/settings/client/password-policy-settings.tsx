@@ -23,8 +23,7 @@ import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import { usePermissions } from "@/hooks/use-permissions"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Info } from "lucide-react"
+import { FormErrorDisplay } from "@/components/shared/form-error-display"
 import { showErrorFromException } from "@/lib/error-toast"
 
 const passwordPolicySchema = z.object({
@@ -122,9 +121,7 @@ export function PasswordPolicySettings() {
           <CardDescription>{t("settings.security.passwordPolicy.description")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <Alert variant="destructive">
-            <AlertDescription>{error.message || t("common.error")}</AlertDescription>
-          </Alert>
+          <FormErrorDisplay error={error.message || t("common.error")} />
         </CardContent>
       </Card>
     )

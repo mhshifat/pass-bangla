@@ -15,6 +15,7 @@ import {
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
+import { showErrorFromException } from "@/lib/error-toast"
 import { updateRolePermissionsAction } from "@/app/admin/roles/permissions-actions"
 import { trpc } from "@/trpc/client"
 
@@ -76,7 +77,7 @@ export function PermissionsDialog({ open, onOpenChange, role, permissions }: Per
       onOpenChange(false)
       router.refresh()
     } else if (saveState?.error) {
-      toast.error(saveState.error)
+      showErrorFromException(saveState.error, "Failed to update permissions")
     }
   }, [saveState, router, onOpenChange])
 

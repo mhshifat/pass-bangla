@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { trpc } from "@/trpc/client"
+import { showErrorFromException } from "@/lib/error-toast"
 import { toast } from "sonner"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -87,10 +88,10 @@ export function TagsPageClient() {
           await utils.passwords.getExportFilters.invalidate()
           await utils.passwords.tagAnalytics.invalidate()
         } else {
-          toast.error(result.error || t("passwords.tags.tagDeleteError"))
+          showErrorFromException(result.error, t("passwords.tags.tagDeleteError"))
         }
-      } catch {
-        toast.error(t("passwords.tags.tagDeleteError"))
+      } catch (error) {
+        showErrorFromException(error, t("passwords.tags.tagDeleteError"))
       }
     })
   }

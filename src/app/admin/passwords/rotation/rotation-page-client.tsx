@@ -93,7 +93,7 @@ export function RotationPageClient() {
           await utils.passwordRotation.getReminders.invalidate()
           await utils.passwordRotation.getRotationHistory.invalidate()
         } else {
-          toast.error(result.error || t("passwords.rotation.policyDeleteError"))
+          showErrorFromException(result.error, t("passwords.rotation.policyDeleteError"))
         }
       } catch (error) { showErrorFromException(error, t("passwords.rotation.policyDeleteError")) }
     })
@@ -120,11 +120,11 @@ export function RotationPageClient() {
           await utils.passwordRotation.getRotationHistory.invalidate()
           await utils.passwords.list.invalidate()
         } else {
-          toast.error(result.error || t("passwords.rotation.autoRotateError"))
+          showErrorFromException(result.error, t("passwords.rotation.autoRotateError"))
           setRotatingPasswordId(null)
         }
       } catch (error) {
-        toast.error(t("passwords.rotation.autoRotateError"))
+        showErrorFromException(error, t("passwords.rotation.autoRotateError"))
         setRotatingPasswordId(null)
       }
     })

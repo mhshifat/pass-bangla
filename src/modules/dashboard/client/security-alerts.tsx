@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { AlertTriangle, X, Info, AlertCircle } from "lucide-react"
 import { trpc } from "@/trpc/client"
 import { toast } from "sonner"
+import { showErrorFromException } from "@/lib/error-toast"
 
 interface Alert {
   id: string
@@ -65,7 +66,7 @@ export function SecurityAlerts({ alerts: initialAlerts }: SecurityAlertsProps) {
       utils.dashboard.securityAlerts.invalidate()
     },
     onError: (error) => {
-      toast.error(t("dashboard.alertDismissFailed", { error: error.message }))
+      showErrorFromException(error, t("dashboard.alertDismissFailed"))
     },
   })
 

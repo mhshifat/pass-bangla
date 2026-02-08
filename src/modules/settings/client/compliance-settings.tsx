@@ -75,7 +75,8 @@ export function ComplianceSettings() {
       utils.settings.getComplianceReport.invalidate()
     },
     onError: (error) => {
-      toast.error(
+      showErrorFromException(
+        error,
         t("settings.compliance.dataRetentionPolicy.saveFailed", {
           error: error.message,
         })
@@ -102,7 +103,8 @@ export function ComplianceSettings() {
       utils.settings.getComplianceReport.invalidate()
     },
     onError: (error) => {
-      toast.error(
+      showErrorFromException(
+        error,
         t("settings.compliance.dataExport.failed", {
           error: error.message,
         })
@@ -119,7 +121,8 @@ export function ComplianceSettings() {
       utils.settings.getComplianceReport.invalidate()
     },
     onError: (error) => {
-      toast.error(
+      showErrorFromException(
+        error,
         t("settings.compliance.dataDeletion.requestFailed", {
           error: error.message,
         })
@@ -135,7 +138,8 @@ export function ComplianceSettings() {
       utils.settings.getComplianceReport.invalidate()
     },
     onError: (error) => {
-      toast.error(
+      showErrorFromException(
+        error,
         t("settings.compliance.dataDeletion.confirmFailed", {
           error: error.message,
         })
@@ -153,7 +157,8 @@ export function ComplianceSettings() {
       utils.settings.getComplianceReport.invalidate()
     },
     onError: (error) => {
-      toast.error(
+      showErrorFromException(
+        error,
         t("settings.compliance.cleanup.failed", {
           error: error.message,
         })

@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
+import { showErrorFromException } from "@/lib/error-toast"
+import { FormErrorDisplay } from "@/components/shared/form-error-display"
 import { updateEmailConfigAction, testEmailConfigAction } from "@/app/admin/settings/email-actions"
 import { useRouter } from "next/navigation"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -76,7 +78,7 @@ export function EmailSettings({ config }: EmailSettingsProps) {
       toast.success(t("settings.emailSettingsSaved"))
       router.refresh()
     } else if (state?.error) {
-      toast.error(state.error)
+      showErrorFromException(state.error, t("settings.emailSettingsError"))
     }
   }, [state, router, t])
 
@@ -91,10 +93,10 @@ export function EmailSettings({ config }: EmailSettingsProps) {
       if (result.success) {
         toast.success(t("settings.testEmailSent", { email: testEmail }))
       } else {
-        toast.error(result.error || t("settings.testEmailFailed"))
+        showErrorFromException(result.error, t("settings.testEmailFailed"))
       }
-    } catch {
-      toast.error(t("settings.testEmailFailed"))
+    } catch (error) {
+      showErrorFromException(error, t("settings.testEmailFailed"))
     } finally {
       setIsTesting(false)
     }
@@ -136,10 +138,7 @@ export function EmailSettings({ config }: EmailSettingsProps) {
               )}
 
               {state?.error && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{state.error}</AlertDescription>
-                </Alert>
+                <FormErrorDisplay error={state.error} />
               )}
 
               <FormField

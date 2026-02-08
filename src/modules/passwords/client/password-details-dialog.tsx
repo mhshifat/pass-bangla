@@ -190,7 +190,7 @@ export function PasswordDetailsDialog({
         await utils.passwordRotation.getReminders.invalidate()
         router.refresh()
       } else {
-        toast.error(result.error || t("passwords.rotation.policyAssignError"))
+        showErrorFromException(result.error, t("passwords.rotation.policyAssignError"))
       }
     } catch (error) { showErrorFromException(error, t("passwords.rotation.policyAssignError")) } finally {
       setIsUpdatingPolicy(false)
@@ -214,7 +214,7 @@ export function PasswordDetailsDialog({
         await utils.passwords.getFavorites.invalidate()
         router.refresh()
       } else {
-        toast.error(result.error || t("passwords.favorites.toggleError"))
+        showErrorFromException(result.error, t("passwords.favorites.toggleError"))
       }
     } catch (error) { showErrorFromException(error, t("passwords.favorites.toggleError")) } finally {
       setIsTogglingFavorite(false)
@@ -316,7 +316,7 @@ export function PasswordDetailsDialog({
         
         router.refresh()
       } else if (result.error) {
-        toast.error(result.error)
+        showErrorFromException(result.error, "Failed to remove password share")
       }
     } catch (error) { showErrorFromException(error, "Failed to remove password share") } finally {
       setIsRemoving(false)

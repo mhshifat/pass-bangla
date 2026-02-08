@@ -22,8 +22,8 @@ import {
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { bulkSharePasswordsAction, bulkUnsharePasswordsAction } from "@/app/admin/passwords/bulk-actions"
+import { FormErrorDisplay } from "@/components/shared/form-error-display"
 import { toast } from "sonner"
 import { trpc } from "@/trpc/client"
 
@@ -164,11 +164,7 @@ export function BulkShareDialog({
             </div>
           )}
 
-          {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+          <FormErrorDisplay error={error} />
         </div>
 
         <DialogFooter>

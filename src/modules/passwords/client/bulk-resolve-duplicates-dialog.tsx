@@ -13,8 +13,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { bulkResolveDuplicatesAction } from "@/app/admin/passwords/duplicate-actions"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { FormErrorDisplay } from "@/components/shared/form-error-display"
 import { toast } from "sonner"
 
 interface BulkResolveDuplicatesDialogProps {
@@ -111,11 +112,7 @@ export function BulkResolveDuplicatesDialog({
             </AlertDescription>
           </Alert>
 
-          {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+          <FormErrorDisplay error={error} />
         </div>
 
         <DialogFooter>

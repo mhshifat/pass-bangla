@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog"
 import { createRotationPolicyAction, updateRotationPolicyAction } from "@/app/admin/passwords/rotation-actions"
 import { toast } from "sonner"
+import { showErrorFromException } from "@/lib/error-toast"
 
 interface RotationPolicyDialogProps {
   open: boolean
@@ -136,7 +137,7 @@ export function RotationPolicyDialog({
         hasCalledSuccess.current = false
       }, 100)
     } else if (createState?.error) {
-      toast.error(createState.error)
+      showErrorFromException(createState.error, t("passwords.rotation.policyCreateError"))
       hasCalledSuccess.current = false
     }
   }, [createState, t, onSuccess, onOpenChange])
@@ -152,7 +153,7 @@ export function RotationPolicyDialog({
         hasCalledSuccess.current = false
       }, 100)
     } else if (updateState?.error) {
-      toast.error(updateState.error)
+      showErrorFromException(updateState.error, t("passwords.rotation.policyUpdateError"))
       hasCalledSuccess.current = false
     }
   }, [updateState, t, onSuccess, onOpenChange])

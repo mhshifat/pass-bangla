@@ -97,7 +97,7 @@ export function AuditLogsContent() {
       )
     },
     onError: (error) => {
-      toast.error(t("audit.export.failed", { error: error.message }))
+      showErrorFromException(error, t("audit.export.failed"))
     },
   })
 

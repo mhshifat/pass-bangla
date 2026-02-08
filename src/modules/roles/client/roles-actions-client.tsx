@@ -76,7 +76,7 @@ export function RolesActionsClient({ roles, permissions }: RolesActionsClientPro
       setIsCreateDialogOpen(false)
       router.refresh()
     } else if (createState?.error) {
-      toast.error(createState.error)
+      showErrorFromException(createState.error, t("roles.createError"))
     }
   }, [createState, router, t])
 
@@ -87,7 +87,7 @@ export function RolesActionsClient({ roles, permissions }: RolesActionsClientPro
       setRoleToEdit(null)
       router.refresh()
     } else if (updateState?.error) {
-      toast.error(updateState.error)
+      showErrorFromException(updateState.error, t("roles.updateError"))
     }
   }, [updateState, router, t])
 
@@ -110,7 +110,7 @@ export function RolesActionsClient({ roles, permissions }: RolesActionsClientPro
     if (roleToDelete) {
       const result = await deleteRoleAction(roleToDelete)
       if (result.error) {
-        toast.error(result.error)
+        showErrorFromException(result.error, t("roles.deleteError"))
       } else {
         toast.success(t("roles.roleDeletedSuccess"))
         router.refresh()
@@ -125,7 +125,7 @@ export function RolesActionsClient({ roles, permissions }: RolesActionsClientPro
     try {
       const result = await syncPermissionsAction()
       if (result.error) {
-        toast.error(result.error)
+        showErrorFromException(result.error, "Failed to sync permissions")
       } else {
         toast.success("Permissions and roles synced successfully")
         // Refresh the page to refetch permissions from server

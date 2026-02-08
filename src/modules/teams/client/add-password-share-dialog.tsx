@@ -30,6 +30,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { FolderKey, Search, Plus, AlertCircle } from "lucide-react"
 import { trpc } from "@/trpc/client"
 import { toast } from "sonner"
+import { showErrorFromException } from "@/lib/error-toast"
+import { FormErrorDisplay } from "@/components/shared/form-error-display"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { PasswordFormDialog } from "@/modules/passwords/client"
 import {
@@ -100,7 +102,7 @@ export function AddPasswordShareDialog({
       // Use setTimeout to avoid cascading renders
       setTimeout(handleSuccess, 0)
     } else if (shareState?.error) {
-      toast.error(shareState.error)
+      showErrorFromException(shareState.error, "Failed to share password")
     }
   }, [shareState, form, refetchPasswords, onOpenChange, onSuccess])
 
@@ -117,7 +119,7 @@ export function AddPasswordShareDialog({
       // Use setTimeout to avoid cascading renders
       setTimeout(handleSuccess, 0)
     } else if (createState?.error) {
-      toast.error(createState.error)
+      showErrorFromException(createState.error, "Failed to create password")
     }
   }, [createState, refetchPasswords, onOpenChange, onSuccess])
 
@@ -163,12 +165,7 @@ export function AddPasswordShareDialog({
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-              {shareState?.error && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{shareState.error}</AlertDescription>
-                </Alert>
-              )}
+              <FormErrorDisplay error={shareState?.error} />
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <FormLabel>Search Passwords</FormLabel>

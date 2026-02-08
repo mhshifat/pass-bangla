@@ -27,6 +27,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { AlertCircle } from "lucide-react"
+import { FormErrorDisplay } from "@/components/shared/form-error-display"
 
 type RoleFormValues = {
   name: string
@@ -134,12 +135,7 @@ export function RoleFormDialog({
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {form.formState.errors.root && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{form.formState.errors.root.message}</AlertDescription>
-              </Alert>
-            )}
+            <FormErrorDisplay error={form.formState.errors.root?.message} />
             <FormField
               control={form.control}
               name="name"

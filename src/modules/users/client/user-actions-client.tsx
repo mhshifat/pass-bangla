@@ -143,7 +143,7 @@ export function UserActionsClient({ users, currentUserId, isSuperAdmin = false, 
     if (userToDelete) {
       const result = await deleteUserAction(userToDelete)
       if (result.error) {
-        toast.error(result.error)
+        showErrorFromException(result.error, t("users.deleteError"))
       } else {
         toast.success(t("users.userDeletedSuccess"))
         router.refresh()

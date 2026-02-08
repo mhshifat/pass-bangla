@@ -28,6 +28,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Search, AlertCircle, Users, Link2 } from "lucide-react"
 import { trpc } from "@/trpc/client"
 import { toast } from "sonner"
+import { showErrorFromException } from "@/lib/error-toast"
+import { FormErrorDisplay } from "@/components/shared/form-error-display"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { sharePasswordWithTeamAction } from "@/app/admin/passwords/share-actions"
 import { TemporaryShareDialog } from "./temporary-share-dialog"
@@ -98,7 +100,7 @@ export function SharePasswordDialog({
       }
       setTimeout(handleSuccess, 0)
     } else if (shareState?.error) {
-      toast.error(shareState.error)
+      showErrorFromException(shareState.error, "Failed to share password")
     }
   }, [shareState, form, onOpenChange, onSuccess])
 
@@ -156,12 +158,7 @@ export function SharePasswordDialog({
             <TabsContent value="team" className="mt-4">
               <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-            {shareState?.error && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{shareState.error}</AlertDescription>
-              </Alert>
-            )}
+            <FormErrorDisplay error={shareState?.error} />
 
             <FormField
               control={form.control}

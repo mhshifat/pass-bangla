@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { FormErrorDisplay } from "@/components/shared/form-error-display"
 import { Copy, Check, Eye, EyeOff, ExternalLink, AlertCircle, Lock } from "lucide-react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
@@ -257,12 +258,7 @@ export function TemporaryPasswordShareView({ token }: TemporaryPasswordShareView
 
           <div className="space-y-2">
             <label className="text-sm font-medium">{t("common.password")}</label>
-            {decryptionError && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{decryptionError}</AlertDescription>
-              </Alert>
-            )}
+            <FormErrorDisplay error={decryptionError} />
             <div className="flex items-center gap-2">
               <div className="flex-1 rounded-md border bg-background px-3 py-2 text-sm font-mono min-h-[2.5rem] flex items-center">
                 {isDecrypting ? (

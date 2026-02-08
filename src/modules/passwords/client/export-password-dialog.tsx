@@ -24,6 +24,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { FormErrorDisplay } from "@/components/shared/form-error-display"
 import { Card, CardContent } from "@/components/ui/card"
 import {
   Select,
@@ -326,12 +327,7 @@ export function ExportPasswordDialog({
           </Card>
 
           {/* Error Display */}
-          {error && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+          <FormErrorDisplay error={error} />
         </div>
 
         <DialogFooter className="border-t pt-4">

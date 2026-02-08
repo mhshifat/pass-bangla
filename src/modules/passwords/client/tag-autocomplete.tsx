@@ -159,7 +159,7 @@ export function TagAutocomplete({
           onTagsChange([...selectedTagIds, result.tag.id])
           setQuery("")
         } else {
-          toast.error(result.error || t("passwords.tags.tagError"))
+          showErrorFromException(result.error, t("passwords.tags.tagError"))
         }
       } catch (error) { showErrorFromException(error, t("passwords.tags.tagError")) }
     })

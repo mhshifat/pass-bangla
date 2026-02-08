@@ -21,8 +21,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { bulkUpdateStrengthAction } from "@/app/admin/passwords/bulk-actions"
+import { FormErrorDisplay } from "@/components/shared/form-error-display"
 import { toast } from "sonner"
 
 interface BulkStrengthDialogProps {
@@ -104,11 +104,7 @@ export function BulkStrengthDialog({
             </Select>
           </div>
 
-          {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+          <FormErrorDisplay error={error} />
         </div>
 
         <DialogFooter>

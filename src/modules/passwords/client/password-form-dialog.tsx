@@ -39,6 +39,7 @@ import { trpc } from "@/trpc/client"
 import { CreateFolderDialog } from "@/modules/folders/client"
 import { TagAutocomplete, TemplateSelector } from "@/modules/passwords/client"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { FormErrorDisplay } from "@/components/shared/form-error-display"
 import { useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { usePasswordDecryption } from "@/hooks/use-password-decryption"
@@ -306,12 +307,7 @@ export function PasswordFormDialog({
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={handleSubmit} className="space-y-4">
-              {form.formState.errors.root && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{form.formState.errors.root.message}</AlertDescription>
-                </Alert>
-              )}
+              <FormErrorDisplay error={form.formState.errors.root?.message} />
               {mode === "edit" && password?.passwordDecryptionError && (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />

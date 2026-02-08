@@ -14,8 +14,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle } from "lucide-react"
+import { FormErrorDisplay } from "@/components/shared/form-error-display"
 
 interface SendEmailDialogProps {
   open: boolean
@@ -84,12 +83,7 @@ export function SendEmailDialog({
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          {error && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+          <FormErrorDisplay error={error} />
 
           <div className="space-y-2">
             <Label htmlFor="to">{t("users.emailTo")}</Label>

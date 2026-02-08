@@ -416,7 +416,7 @@ export function PasswordsTable({
         await utils.passwords.getFavorites.invalidate()
         router.refresh()
       } else {
-        toast.error(result.error || t("passwords.favorites.toggleError"))
+        showErrorFromException(result.error, t("passwords.favorites.toggleError"))
       }
     } catch (error) { showErrorFromException(error, t("passwords.favorites.toggleError")) } finally {
       setTogglingFavoriteId(null)

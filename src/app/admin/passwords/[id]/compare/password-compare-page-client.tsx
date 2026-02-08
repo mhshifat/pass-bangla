@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { FormErrorDisplay } from "@/components/shared/form-error-display"
 import { Separator } from "@/components/ui/separator"
 import { trpc } from "@/trpc/client"
 import { formatDistanceToNow } from "date-fns"
@@ -102,10 +103,7 @@ export function PasswordComparePageClient({
   if (!data) {
     return (
       <div className="p-6">
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{t("common.error")}</AlertDescription>
-        </Alert>
+        <FormErrorDisplay error={t("common.error")} />
       </div>
     )
   }

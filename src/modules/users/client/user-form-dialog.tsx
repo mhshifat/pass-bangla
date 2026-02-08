@@ -36,6 +36,7 @@ import {
 import { Switch } from "@/components/ui/switch"
 import { AlertCircle } from "lucide-react"
 import { trpc } from "@/trpc/client"
+import { FormErrorDisplay } from "@/components/shared/form-error-display"
 import { useTranslation } from "react-i18next"
 
 interface User {
@@ -171,12 +172,7 @@ export function UserFormDialog({
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {form.formState.errors.root && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{form.formState.errors.root.message}</AlertDescription>
-              </Alert>
-            )}
+            <FormErrorDisplay error={form.formState.errors.root?.message} />
             <FormField
               control={form.control}
               name="name"

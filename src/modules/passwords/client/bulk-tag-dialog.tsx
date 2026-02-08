@@ -21,6 +21,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { bulkAssignTagsAction, bulkRemoveTagsAction } from "@/app/admin/passwords/bulk-actions"
 import { toast } from "sonner"
 import { trpc } from "@/trpc/client"
+import { FormErrorDisplay } from "@/components/shared/form-error-display"
 
 interface BulkTagDialogProps {
   open: boolean
@@ -171,9 +172,7 @@ export function BulkTagDialog({
           )}
 
           {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
+            <FormErrorDisplay error={error} />
           )}
         </div>
 

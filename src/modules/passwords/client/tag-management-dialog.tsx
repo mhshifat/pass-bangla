@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/form"
 import { trpc } from "@/trpc/client"
 import { toast } from "sonner"
+import { showErrorFromException } from "@/lib/error-toast"
 import { cn } from "@/lib/utils"
 import { createTagAction, updateTagAction } from "@/app/admin/passwords/tag-actions"
 import { useTransition } from "react"
@@ -151,10 +152,10 @@ export function TagManagementDialog({
           onSuccess?.()
           onOpenChange(false)
         } else {
-          toast.error(result.error || t("passwords.tags.tagError"))
+          showErrorFromException(result.error, t("passwords.tags.tagError"))
         }
-      } catch {
-        toast.error(t("passwords.tags.tagError"))
+      } catch (error) {
+        showErrorFromException(error, t("passwords.tags.tagError"))
       }
     })
   }

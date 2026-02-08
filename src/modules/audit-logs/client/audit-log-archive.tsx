@@ -26,6 +26,7 @@ import {
 import { Archive, Loader2, Download } from "lucide-react"
 import { trpc } from "@/trpc/client"
 import { toast } from "sonner"
+import { showErrorFromException } from "@/lib/error-toast"
 import { format } from "date-fns"
 import { Badge } from "@/components/ui/badge"
 import { showErrorFromException } from "@/lib/error-toast"
@@ -47,7 +48,7 @@ export function AuditLogArchive() {
       utils.auditLogs.getArchives.invalidate()
     },
     onError: (error) => {
-      toast.error(t("audit.archive.failed", { error: error.message }))
+      showErrorFromException(error, t("audit.archive.failed"))
     },
   })
 
