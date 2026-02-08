@@ -6,8 +6,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle, Loader2 } from "lucide-react"
+import { FormErrorDisplay } from "@/components/shared/form-error-display"
+import { Loader2 } from "lucide-react"
 import { findCompanySubdomain } from "./find-company-action"
 
 interface CompanyLoginDialogProps {
@@ -90,12 +90,7 @@ export function CompanyLoginDialog({ open, onOpenChange }: CompanyLoginDialogPro
             />
           </div>
           
-          {error && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+          <FormErrorDisplay error={error} />
 
           <div className="flex justify-end gap-2">
             <Button

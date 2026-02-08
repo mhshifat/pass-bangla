@@ -5,11 +5,11 @@ import { useTranslation } from "react-i18next"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form"
+import { FormErrorDisplay } from "@/components/shared/form-error-display"
 import { Input } from "@/components/ui/input"
 import { PasswordInput, generateStrongPassword } from "@/components/ui/password-input"
-import { Lock, Mail, User, AlertCircle } from "lucide-react"
+import { Lock, Mail, User } from "lucide-react"
 
 export function createRegisterSchema(t: (key: string) => string) {
   return z.object({
@@ -69,14 +69,7 @@ export function RegisterFormFields({ formAction, isPending, state }: RegisterFor
   return (
     <Form {...form}>
       <form action={formAction} id="register-form">
-        {form.formState.errors.root && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              {form.formState.errors.root.message}
-            </AlertDescription>
-          </Alert>
-        )}
+        <FormErrorDisplay error={form.formState.errors.root?.message} className="mb-4" />
 
         <div className="space-y-4">
           <FormField
