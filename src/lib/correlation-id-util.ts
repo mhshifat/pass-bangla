@@ -68,7 +68,6 @@ export function logError(correlationId: string, error: unknown, context?: Record
   const logData = {
     correlationId,
     message: errorMessage,
-    stackTrace,
     timestamp: new Date().toISOString(),
     ...context,
   }
@@ -76,8 +75,12 @@ export function logError(correlationId: string, error: unknown, context?: Record
   // In production, this would go to a logging service like Sentry
   if (process.env.NODE_ENV === "production") {
     // TODO: Send to Sentry or other logging service
+    // Log structured data + stack trace separately for readability
     console.error("[ERROR]", JSON.stringify(logData))
+    if (stackTrace) {
+      console.error("[STACK]", correlationId, "\n" + stackTrace)
+    }
   } else {
-    console.error("[ERROR]", logData)
+    console.error("[ERROR]", { ...logData, stackTrace })
   }
 }
