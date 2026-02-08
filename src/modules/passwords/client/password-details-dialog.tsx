@@ -89,7 +89,7 @@ export function PasswordDetailsDialog({
   const { hasPermission } = usePermissions()
   const { copy: copyToClipboard } = useClipboard()
   const [showPassword, setShowPassword] = React.useState(false)
-  const [totpCode, setTotpCode] = React.useState("123456")
+  const [totpCode, setTotpCode] = React.useState("")
   const [totpTimeLeft, setTotpTimeLeft] = React.useState(30)
   const [copyingField, setCopyingField] = React.useState<string | null>(null)
   const [isRemoveShareDialogOpen, setIsRemoveShareDialogOpen] = React.useState(false)
@@ -250,6 +250,10 @@ export function PasswordDetailsDialog({
   }
 
   const handleCopyTotp = async () => {
+    if (!totpCode) {
+      toast.error(t("clipboard.totpNotReady"))
+      return
+    }
     setCopyingField("totp")
     try {
       await navigator.clipboard.writeText(totpCode)
@@ -330,23 +334,65 @@ export function PasswordDetailsDialog({
     }
   }, [open, password?.id])
 
-  // Simulate TOTP code generation and countdown
+  // State for TOTP error
+  const [totpError, setTotpError] = React.useState<string | null>(null)
+  const totpIntervalRef = React.useRef<NodeJS.Timeout | null>(null)
+  
+  // Generate real TOTP code from decrypted secret
   React.useEffect(() => {
-    if (!password?.hasTotp) return
+    if (!password?.hasTotp || !decryptedTotpSecret) return
 
-    const interval = setInterval(() => {
-      setTotpTimeLeft((prev) => {
-        if (prev <= 1) {
-          // Generate new TOTP code
-          setTotpCode(Math.floor(100000 + Math.random() * 900000).toString())
-          return 30
-        }
-        return prev - 1
-      })
+    let lastPeriod = -1
+    
+    const generateTotpCode = async () => {
+      try {
+        // Normalize TOTP secret: remove spaces and convert to uppercase (handles Google format)
+        const normalizedSecret = decryptedTotpSecret.replace(/\s+/g, "").toUpperCase().trim()
+        const { authenticator } = await import("otplib")
+        const code = authenticator.generate(normalizedSecret)
+        setTotpCode(code)
+        setTotpError(null)
+      } catch (error) {
+        console.error("Failed to generate TOTP code:", error)
+        setTotpError("Failed to generate TOTP code")
+        setTotpCode("")
+      }
+    }
+    
+    // Calculate time remaining until next TOTP period (30 seconds)
+    const updateCountdown = () => {
+      const now = Date.now()
+      const currentPeriod = Math.floor(now / 30000) // 30 seconds in milliseconds
+      const nextPeriod = (currentPeriod + 1) * 30000
+      const timeUntilNext = Math.ceil((nextPeriod - now) / 1000)
+      
+      setTotpTimeLeft(timeUntilNext)
+      
+      // Regenerate TOTP code when period changes (new 30-second window starts)
+      if (lastPeriod !== -1 && currentPeriod !== lastPeriod) {
+        generateTotpCode()
+      }
+      lastPeriod = currentPeriod
+    }
+    
+    // Generate initial code
+    generateTotpCode()
+    
+    // Initial countdown calculation
+    updateCountdown()
+    
+    // Update countdown every second
+    totpIntervalRef.current = setInterval(() => {
+      updateCountdown()
     }, 1000)
-
-    return () => clearInterval(interval)
-  }, [password?.hasTotp])
+    
+    return () => {
+      if (totpIntervalRef.current) {
+        clearInterval(totpIntervalRef.current)
+        totpIntervalRef.current = null
+      }
+    }
+  }, [password?.hasTotp, decryptedTotpSecret])
 
   const getStrengthBadge = (strength: string) => {
     switch (strength) {
@@ -847,16 +893,32 @@ export function PasswordDetailsDialog({
                   </div>
 
                   <div className="p-4 rounded-lg border bg-muted/50">
+                    {totpError ? (
+                      <Alert variant="destructive" className="mb-3">
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertDescription className="text-sm">{totpError}</AlertDescription>
+                      </Alert>
+                    ) : null}
                     <div className="flex items-center justify-between mb-3">
                       <div>
-                        <div className="text-3xl font-mono font-bold tracking-wider">{totpCode}</div>
+                        <div className={cn(
+                          "text-3xl font-mono font-bold tracking-wider",
+                          (!totpCode || isDecryptingPassword) && "text-muted-foreground"
+                        )}>
+                          {isDecryptingPassword ? (
+                            <span className="flex items-center gap-2">
+                              <Loader2 className="h-5 w-5 animate-spin" />
+                              <span className="text-lg">Decrypting...</span>
+                            </span>
+                          ) : totpCode || "------"}
+                        </div>
                         <p className="text-xs text-muted-foreground mt-1">One-Time Password</p>
                       </div>
                       <Button
                         variant="outline"
                         size="icon"
                         onClick={handleCopyTotp}
-                        disabled={copyingField === "totp"}
+                        disabled={copyingField === "totp" || !totpCode || isDecryptingPassword}
                       >
                         {copyingField === "totp" ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
