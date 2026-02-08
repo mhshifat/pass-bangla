@@ -14,7 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Eye, EyeOff, Copy, Clock, X, Users, History, Shield, AlertTriangle, CheckCircle2, RotateCw, Star, Tag as TagIcon } from "lucide-react"
+import { Eye, EyeOff, Copy, Clock, X, Users, History, Shield, AlertTriangle, CheckCircle2, RotateCw, Star, Tag as TagIcon, Loader2 } from "lucide-react"
 import { trpc } from "@/trpc/client"
 import { toast } from "sonner"
 import { usePermissions } from "@/hooks/use-permissions"
@@ -86,10 +86,11 @@ export function PasswordDetailsDialog({
   const { t } = useTranslation()
   const router = useRouter()
   const { hasPermission } = usePermissions()
-  const { copy: copyToClipboard, isCopying } = useClipboard()
+  const { copy: copyToClipboard } = useClipboard()
   const [showPassword, setShowPassword] = React.useState(false)
   const [totpCode, setTotpCode] = React.useState("123456")
   const [totpTimeLeft, setTotpTimeLeft] = React.useState(30)
+  const [copyingField, setCopyingField] = React.useState<string | null>(null)
   const [isRemoveShareDialogOpen, setIsRemoveShareDialogOpen] = React.useState(false)
   const [shareToRemove, setShareToRemove] = React.useState<{ shareId: string; teamName: string } | null>(null)
   const [isRemoving, setIsRemoving] = React.useState(false)
@@ -194,6 +195,63 @@ export function PasswordDetailsDialog({
       }
     } catch (error) { showErrorFromException(error, t("passwords.rotation.policyAssignError")) } finally {
       setIsUpdatingPolicy(false)
+    }
+  }
+
+  // Copy handlers with individual loading states
+  const handleCopyUsername = async () => {
+    setCopyingField("username")
+    try {
+      await copyToClipboard(displayPassword.username, {
+        resourceId: password?.id || "",
+        resourceType: "password",
+        actionType: "copy_username",
+        successMessage: t("clipboard.usernameCopied"),
+      })
+    } finally {
+      setCopyingField(null)
+    }
+  }
+
+  const handleCopyPassword = async () => {
+    if (!finalDecryptedPassword) return
+    setCopyingField("password")
+    try {
+      await copyToClipboard(finalDecryptedPassword, {
+        resourceId: password?.id || "",
+        resourceType: "password",
+        actionType: "copy_password",
+        successMessage: t("clipboard.passwordCopied"),
+      })
+    } finally {
+      setCopyingField(null)
+    }
+  }
+
+  const handleCopyUrl = async () => {
+    if (!displayPassword.url) return
+    setCopyingField("url")
+    try {
+      await copyToClipboard(displayPassword.url, {
+        resourceId: password?.id || "",
+        resourceType: "password",
+        actionType: "copy_url",
+        successMessage: t("clipboard.urlCopied"),
+      })
+    } finally {
+      setCopyingField(null)
+    }
+  }
+
+  const handleCopyTotp = async () => {
+    setCopyingField("totp")
+    try {
+      await navigator.clipboard.writeText(totpCode)
+      toast.success(t("clipboard.totpCopied"))
+    } catch (error) {
+      showErrorFromException(error, t("clipboard.copyFailed"))
+    } finally {
+      setCopyingField(null)
     }
   }
 
@@ -395,18 +453,15 @@ export function PasswordDetailsDialog({
                   <Button
                     variant="outline"
                     size="icon"
-                    onClick={() =>
-                      copyToClipboard(displayPassword.username, {
-                        resourceId: password?.id || "",
-                        resourceType: "password",
-                        actionType: "copy_username",
-                        successMessage: t("clipboard.usernameCopied"),
-                      })
-                    }
-                    disabled={isCopying}
+                    onClick={handleCopyUsername}
+                    disabled={copyingField === "username"}
                     title={t("clipboard.copyUsername")}
                   >
-                    <Copy className="h-4 w-4" />
+                    {copyingField === "username" ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
                   </Button>
                 )}
               </div>
@@ -440,20 +495,15 @@ export function PasswordDetailsDialog({
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={() => {
-                        if (finalDecryptedPassword) {
-                          copyToClipboard(finalDecryptedPassword, {
-                            resourceId: password?.id || "",
-                            resourceType: "password",
-                            actionType: "copy_password",
-                            successMessage: t("clipboard.passwordCopied"),
-                          })
-                        }
-                      }}
-                      disabled={isLoading || isDecryptingPassword || !finalDecryptedPassword || isCopying}
+                      onClick={handleCopyPassword}
+                      disabled={isLoading || isDecryptingPassword || !finalDecryptedPassword || copyingField === "password"}
                       title={t("clipboard.copyPassword")}
                     >
-                      <Copy className="h-4 w-4" />
+                      {copyingField === "password" ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
                     </Button>
                   </>
                 )}
@@ -476,18 +526,15 @@ export function PasswordDetailsDialog({
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={() =>
-                        copyToClipboard(displayPassword.url || "", {
-                          resourceId: password?.id || "",
-                          resourceType: "password",
-                          actionType: "copy_url",
-                          successMessage: t("clipboard.urlCopied"),
-                        })
-                      }
-                      disabled={isCopying}
+                      onClick={handleCopyUrl}
+                      disabled={copyingField === "url"}
                       title={t("clipboard.copyUrl")}
                     >
-                      <Copy className="h-4 w-4" />
+                      {copyingField === "url" ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
                     </Button>
                   )}
                 </div>
@@ -795,9 +842,14 @@ export function PasswordDetailsDialog({
                       <Button
                         variant="outline"
                         size="icon"
-                        onClick={() => navigator.clipboard.writeText(totpCode)}
+                        onClick={handleCopyTotp}
+                        disabled={copyingField === "totp"}
                       >
-                        <Copy className="h-4 w-4" />
+                        {copyingField === "totp" ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Copy className="h-4 w-4" />
+                        )}
                       </Button>
                     </div>
 

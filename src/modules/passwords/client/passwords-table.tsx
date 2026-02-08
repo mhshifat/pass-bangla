@@ -32,13 +32,12 @@ import {
   Share2,
   FolderKey,
   Clock,
-  CheckSquare,
-  Square,
   RotateCw,
   AlertCircle,
   Star,
   X,
   Bookmark,
+  Loader2,
 } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -167,7 +166,11 @@ function PasswordCell({ passwordId }: { passwordId: string }) {
         disabled={isCopying}
         title={t("clipboard.copyPassword")}
       >
-        <Copy className="h-3.5 w-3.5" />
+        {isCopying ? (
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        ) : (
+          <Copy className="h-3.5 w-3.5" />
+        )}
       </Button>
     </div>
   )
@@ -225,7 +228,11 @@ function TotpCell({ passwordId }: { passwordId: string }) {
         disabled={isCopying}
         title={t("passwords.copyTotpCode")}
       >
-        <Copy className="h-3 w-3" />
+        {isCopying ? (
+          <Loader2 className="h-3 w-3 animate-spin" />
+        ) : (
+          <Copy className="h-3 w-3" />
+        )}
       </Button>
     </div>
   )
@@ -248,9 +255,10 @@ export function PasswordsTable({
   const { user } = useCurrentUser()
   const isMobile = useIsMobile()
   const [searchQuery, setSearchQuery] = React.useState(searchParams.get("search") || "")
-  const { copy: copyToClipboard, isCopying: isCopyingClipboard } = useClipboard()
+  const { copy: copyToClipboard } = useClipboard()
   const [copyingPasswordId, setCopyingPasswordId] = React.useState<string | null>(null)
   const [copyingTotpId, setCopyingTotpId] = React.useState<string | null>(null)
+  const [copyingUsernameId, setCopyingUsernameId] = React.useState<string | null>(null)
   const [togglingFavoriteId, setTogglingFavoriteId] = React.useState<string | null>(null)
   const [isAdvancedSearchOpen, setIsAdvancedSearchOpen] = React.useState(false)
   const [isSearchHistoryOpen, setIsSearchHistoryOpen] = React.useState(false)
@@ -290,7 +298,6 @@ export function PasswordsTable({
   }
 
   const allSelected = passwords.length > 0 && selectedIds.length === passwords.length
-  const someSelected = selectedIds.length > 0 && selectedIds.length < passwords.length
 
   React.useEffect(() => {
     setSearchQuery(searchParams.get("search") || "")
@@ -402,11 +409,27 @@ export function PasswordsTable({
     }
   }
 
-  const handleToggleFavorite = async (passwordId: string, currentFavorite: boolean) => {
+  const handleCopyUsername = async (passwordId: string, username: string) => {
+    try {
+      setCopyingUsernameId(passwordId)
+      await copyToClipboard(username, {
+        resourceId: passwordId,
+        resourceType: "password",
+        actionType: "copy_username",
+        successMessage: t("clipboard.usernameCopied"),
+      })
+    } catch (error) {
+      showErrorFromException(error, t("clipboard.copyFailed"))
+    } finally {
+      setCopyingUsernameId(null)
+    }
+  }
+
+  const handleToggleFavorite = async (passwordId: string) => {
     try {
       setTogglingFavoriteId(passwordId)
       const result = await toggleFavoriteAction(passwordId)
-      if (result.success) {
+      if (result.success && "isFavorite" in result) {
         toast.success(
           result.isFavorite
             ? t("passwords.favorites.added")
@@ -415,7 +438,7 @@ export function PasswordsTable({
         await utils.passwords.list.invalidate()
         await utils.passwords.getFavorites.invalidate()
         router.refresh()
-      } else {
+      } else if (!result.success && "error" in result) {
         showErrorFromException(result.error, t("passwords.favorites.toggleError"))
       }
     } catch (error) { showErrorFromException(error, t("passwords.favorites.toggleError")) } finally {
@@ -667,7 +690,7 @@ export function PasswordsTable({
                             <DropdownMenuSeparator />
                             {pwd.isOwner && hasPermission("password.edit") && (
                               <DropdownMenuItem
-                                onClick={() => handleToggleFavorite(pwd.id, pwd.isFavorite || false)}
+                                onClick={() => handleToggleFavorite(pwd.id)}
                                 disabled={togglingFavoriteId === pwd.id}
                               >
                                 <Star
@@ -742,17 +765,14 @@ export function PasswordsTable({
                                 variant="ghost"
                                 size="icon"
                                 className="h-6 w-6"
-                                onClick={() =>
-                                  copyToClipboard(pwd.username, {
-                                    resourceId: pwd.id,
-                                    resourceType: "password",
-                                    actionType: "copy_username",
-                                    successMessage: t("clipboard.usernameCopied"),
-                                  })
-                                }
-                                disabled={isCopyingClipboard}
+                                onClick={() => handleCopyUsername(pwd.id, pwd.username)}
+                                disabled={copyingUsernameId === pwd.id}
                               >
-                                <Copy className="h-3 w-3" />
+                                {copyingUsernameId === pwd.id ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <Copy className="h-3 w-3" />
+                                )}
                               </Button>
                             )}
                           </div>
@@ -881,18 +901,15 @@ export function PasswordsTable({
                         variant="ghost"
                         size="icon"
                         className="h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() =>
-                          copyToClipboard(pwd.username, {
-                            resourceId: pwd.id,
-                            resourceType: "password",
-                            actionType: "copy_username",
-                            successMessage: t("clipboard.usernameCopied"),
-                          })
-                        }
-                        disabled={isCopyingClipboard}
+                        onClick={() => handleCopyUsername(pwd.id, pwd.username)}
+                        disabled={copyingUsernameId === pwd.id}
                         title={t("clipboard.copyUsername")}
                       >
-                        <Copy className="h-3.5 w-3.5" />
+                        {copyingUsernameId === pwd.id ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Copy className="h-3.5 w-3.5" />
+                        )}
                       </Button>
                     )}
                   </div>
@@ -934,7 +951,7 @@ export function PasswordsTable({
                       <DropdownMenuSeparator />
                       {pwd.isOwner && hasPermission("password.edit") && (
                         <DropdownMenuItem
-                          onClick={() => handleToggleFavorite(pwd.id, pwd.isFavorite || false)}
+                          onClick={() => handleToggleFavorite(pwd.id)}
                           disabled={togglingFavoriteId === pwd.id}
                         >
                           <Star
@@ -1008,7 +1025,7 @@ export function PasswordsTable({
       <AdvancedSearchDialog
         open={isAdvancedSearchOpen}
         onOpenChange={setIsAdvancedSearchOpen}
-        onSearch={(params) => {
+        onSearch={() => {
           // Search is handled by the dialog via router.push
         }}
       />

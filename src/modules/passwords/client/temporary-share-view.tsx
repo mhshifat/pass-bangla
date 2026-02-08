@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { FormErrorDisplay } from "@/components/shared/form-error-display"
-import { Copy, Check, Eye, EyeOff, ExternalLink, AlertCircle, Lock } from "lucide-react"
+import { Copy, Check, Eye, EyeOff, ExternalLink, AlertCircle, Lock, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
@@ -23,6 +23,7 @@ export function TemporaryPasswordShareView({ token }: TemporaryPasswordShareView
   const { t } = useTranslation()
   const [showPassword, setShowPassword] = React.useState(false)
   const [copied, setCopied] = React.useState<string | null>(null)
+  const [isCopying, setIsCopying] = React.useState<string | null>(null)
   const [decryptedPassword, setDecryptedPassword] = React.useState<string | null>(null)
   const [decryptedTotpSecret, setDecryptedTotpSecret] = React.useState<string | null>(null)
   const [currentTotpCode, setCurrentTotpCode] = React.useState<string | null>(null)
@@ -157,11 +158,16 @@ export function TemporaryPasswordShareView({ token }: TemporaryPasswordShareView
 
   const handleCopy = async (text: string, type: string) => {
     try {
+      setIsCopying(type)
       await navigator.clipboard.writeText(text)
       toast.success(t("clipboard.copied"))
       setCopied(type)
       setTimeout(() => setCopied(null), 2000)
-    } catch (error) { showErrorFromException(error, t("clipboard.copyFailed")) }
+    } catch (error) {
+      showErrorFromException(error, t("clipboard.copyFailed"))
+    } finally {
+      setIsCopying(null)
+    }
   }
 
   if (isLoading) {
@@ -246,8 +252,11 @@ export function TemporaryPasswordShareView({ token }: TemporaryPasswordShareView
                 variant="outline"
                 size="icon"
                 onClick={() => handleCopy(password.username, "username")}
+                disabled={isCopying === "username"}
               >
-                {copied === "username" ? (
+                {isCopying === "username" ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : copied === "username" ? (
                   <Check className="h-4 w-4 text-green-600" />
                 ) : (
                   <Copy className="h-4 w-4" />
@@ -289,9 +298,11 @@ export function TemporaryPasswordShareView({ token }: TemporaryPasswordShareView
                 variant="outline"
                 size="icon"
                 onClick={() => decryptedPassword && handleCopy(decryptedPassword, "password")}
-                disabled={isDecrypting || !decryptedPassword}
+                disabled={isDecrypting || !decryptedPassword || isCopying === "password"}
               >
-                {copied === "password" ? (
+                {isCopying === "password" ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : copied === "password" ? (
                   <Check className="h-4 w-4 text-green-600" />
                 ) : (
                   <Copy className="h-4 w-4" />
@@ -364,9 +375,11 @@ export function TemporaryPasswordShareView({ token }: TemporaryPasswordShareView
                   variant="outline"
                   size="icon"
                   onClick={() => currentTotpCode && handleCopy(currentTotpCode, "totp")}
-                  disabled={isDecrypting || !currentTotpCode}
+                  disabled={isDecrypting || !currentTotpCode || isCopying === "totp"}
                 >
-                  {copied === "totp" ? (
+                  {isCopying === "totp" ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : copied === "totp" ? (
                     <Check className="h-4 w-4 text-green-600" />
                   ) : (
                     <Copy className="h-4 w-4" />
