@@ -17,6 +17,11 @@ interface FormErrorDisplayProps {
 export function FormErrorDisplay({ error, className, correlationId }: FormErrorDisplayProps) {
   const errorDetails = useCorrelationIdError(error);
 
+  // Don't show anything if there's no actual error and no correlation ID
+  if ((!error || (typeof error === "string" && !error.trim())) && !correlationId) {
+    return null;
+  }
+
   if (!errorDetails.message && !correlationId) {
     return null;
   }

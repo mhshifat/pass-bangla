@@ -24,6 +24,11 @@ export const ErrorWithCorrelationId: React.FC<ErrorWithCorrelationIdProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
   
+  // Don't render if there's no message and no correlation ID
+  if (!message && !correlationId) {
+    return null;
+  }
+
   const handleCopy = async () => {
     if (correlationId) {
       try {

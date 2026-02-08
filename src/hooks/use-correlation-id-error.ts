@@ -18,7 +18,7 @@ export function useCorrelationIdError(error: unknown): {
   correlationId?: string;
 } {
   return useMemo(() => {
-    if (!error) return { message: "An unexpected error occurred" };
+    if (!error) return { message: "" };
     
     // Handle string errors
     if (typeof error === "string") {
