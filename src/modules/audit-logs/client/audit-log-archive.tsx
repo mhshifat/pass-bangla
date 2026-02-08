@@ -29,7 +29,6 @@ import { toast } from "sonner"
 import { showErrorFromException } from "@/lib/error-toast"
 import { format } from "date-fns"
 import { Badge } from "@/components/ui/badge"
-import { showErrorFromException } from "@/lib/error-toast"
 
 export function AuditLogArchive() {
   const { t } = useTranslation()

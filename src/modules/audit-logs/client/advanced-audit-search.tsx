@@ -1,6 +1,5 @@
 "use client"
 
-import * as React from "react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -43,7 +42,6 @@ import { trpc } from "@/trpc/client"
 import { toast } from "sonner"
 import { showErrorFromException } from "@/lib/error-toast"
 import { useState } from "react"
-import { showErrorFromException } from "@/lib/error-toast"
 
 interface AdvancedAuditSearchProps {
   onSearch: (filters: {
