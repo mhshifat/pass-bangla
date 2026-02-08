@@ -36,8 +36,13 @@ export function TagFilter() {
     return tagsParam ? tagsParam.split(",").filter(Boolean) : []
   }, [searchParams])
 
-  // Fetch all tags
-  const { data: tagsData } = trpc.passwords.getExportFilters.useQuery()
+  // Fetch all tags (uses SSR prefetch when available)
+  const { data: tagsData } = trpc.passwords.getExportFilters.useQuery(undefined, {
+    staleTime: 60_000, // 1 minute - use SSR prefetched data
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  })
 
   const tags = tagsData?.tags || []
 

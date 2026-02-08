@@ -256,10 +256,16 @@ export function PasswordsTable({
   const [isSearchHistoryOpen, setIsSearchHistoryOpen] = React.useState(false)
   const [isSavedSearchesOpen, setIsSavedSearchesOpen] = React.useState(false)
 
-  // Fetch rotation reminders to show indicators
+  // Fetch rotation reminders to show indicators (uses SSR prefetch when available)
   const { data: reminders } = trpc.passwordRotation.getReminders.useQuery(
     { daysAhead: 365 },
-    { enabled: hasPermission("password.view") }
+    { 
+      enabled: hasPermission("password.view"),
+      staleTime: 60_000, // 1 minute - use SSR prefetched data
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+    }
   )
 
   const getPasswordReminder = (passwordId: string) => {

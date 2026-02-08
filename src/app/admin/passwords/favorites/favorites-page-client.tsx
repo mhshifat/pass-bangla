@@ -14,6 +14,7 @@ import { PasswordDetailsDialog } from "@/modules/passwords/client"
 import { usePermissions } from "@/hooks/use-permissions"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Star } from "lucide-react"
+import type { RouterOutputs } from "@/trpc/client"
 
 interface PasswordItem {
   id: string
@@ -27,7 +28,20 @@ interface PasswordItem {
   [key: string]: unknown
 }
 
-export function FavoritesPageClient() {
+// Types for SSR data
+type FavoritesData = RouterOutputs["passwords"]["getFavorites"]
+
+interface FavoritesPageClientProps {
+  initialData: FavoritesData
+  initialPage: number
+  initialSearch?: string
+}
+
+export function FavoritesPageClient({
+  initialData,
+  initialPage,
+  initialSearch,
+}: FavoritesPageClientProps) {
   const { t } = useTranslation()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -35,25 +49,26 @@ export function FavoritesPageClient() {
   const searchQuery = searchParams.get("search") || ""
   const currentPage = Number(searchParams.get("page")) || 1
 
-  const { data, isLoading, refetch } = trpc.passwords.getFavorites.useQuery(
+  // Check if params changed from initial (need to refetch)
+  const paramsChanged = currentPage !== initialPage || searchQuery !== (initialSearch || "")
+
+  // Use SSR data as initial, only fetch client-side when params change
+  const { data: queryData, isLoading } = trpc.passwords.getFavorites.useQuery(
+    { page: currentPage, pageSize: 20, search: searchQuery || undefined },
     {
-      page: currentPage,
-      pageSize: 20,
-      search: searchQuery || undefined,
-    },
-    {
-      enabled: hasPermission("password.view"),
-      // Refetch when search params change (from PasswordsTable search)
-      refetchOnMount: true,
+      enabled: hasPermission("password.view") && paramsChanged,
+      staleTime: 60_000, // 1 minute
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
     }
   )
 
-  // Refetch when search params change
-  React.useEffect(() => {
-    if (hasPermission("password.view")) {
-      refetch()
-    }
-  }, [searchParams, hasPermission, refetch])
+  // Use initial data when not fetching, query data when fetching
+  const data = paramsChanged ? queryData : initialData
+
+  // Note: React Query automatically refetches when query input (page, search) changes
+  // No need for manual useEffect refetch
 
   const handlePageChange = (page: number) => {
     const params = new URLSearchParams(searchParams)

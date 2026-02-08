@@ -1,9 +1,8 @@
 import { Suspense } from "react"
-import { HydrationBoundary } from "@tanstack/react-query"
 import { FavoritesPageClient } from "./favorites-page-client"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { prefetchFavoritesData } from "@/modules/passwords/server/prefetch"
+import { serverTrpc } from "@/trpc/server-caller"
 
 interface FavoritesPageProps {
   searchParams: Promise<{
@@ -17,21 +16,20 @@ export default async function FavoritesPage({ searchParams }: FavoritesPageProps
   const currentPage = Number(params.page) || 1
   const search = params.search || undefined
 
-  // Prefetch favorites data on the server to avoid exposing sensitive data in client API calls
-  const dehydratedState = await prefetchFavoritesData({
-    page: currentPage,
-    pageSize: 20,
-    search,
-  })
+  // Fetch data on the server to avoid client-side API calls
+  const trpc = await serverTrpc()
+  const favoritesData = await trpc.passwords.getFavorites({ page: currentPage, pageSize: 20, search })
 
   return (
-    <HydrationBoundary state={dehydratedState}>
-      <div className="p-6 space-y-6">
-        <Suspense fallback={<FavoritesPageSkeleton />}>
-          <FavoritesPageClient />
-        </Suspense>
-      </div>
-    </HydrationBoundary>
+    <div className="p-6 space-y-6">
+      <Suspense fallback={<FavoritesPageSkeleton />}>
+        <FavoritesPageClient 
+          initialData={favoritesData}
+          initialPage={currentPage}
+          initialSearch={search}
+        />
+      </Suspense>
+    </div>
   )
 }
 

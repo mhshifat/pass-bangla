@@ -94,21 +94,46 @@ export async function prefetchFavoritesData(input: PrefetchFavoritesInput = {}) 
   const trpc = await serverTrpc();
   
   const { page = 1, pageSize = 20, search } = input;
-  const favoritesInput = { page, pageSize, search: search || undefined };
+  // tRPC serializes undefined as null in JSON, so we need to match that for cache key
+  const favoritesInput = { page, pageSize, search: search || null };
   
   try {
-    // Prefetch favorites, onboarding status, and accessibility preferences in parallel
-    const [favorites, onboardingStatus, accessibilityPrefs] = await Promise.allSettled([
+    // Prefetch favorites, export filters, rotation reminders, and user preferences in parallel
+    // These are all queries made by FavoritesPageClient and its child components (PasswordsTable)
+    const [
+      favorites,
+      exportFilters,
+      reminders365,
+      onboardingStatus,
+      accessibilityPrefs
+    ] = await Promise.allSettled([
       trpc.passwords.getFavorites(favoritesInput),
+      trpc.passwords.getExportFilters(),
+      trpc.passwordRotation.getReminders({ daysAhead: 365 }),
       trpc.users.getOnboardingStatus(),
       trpc.users.getAccessibilityPreferences(),
     ]);
 
     // Set each query data in the cache with the correct tRPC query key format
+    // The input in the cache key must match EXACTLY what the client query will use
     if (favorites.status === 'fulfilled') {
       queryClient.setQueryData(
         [['passwords', 'getFavorites'], { input: favoritesInput, type: 'query' }],
         favorites.value
+      );
+    }
+
+    if (exportFilters.status === 'fulfilled') {
+      queryClient.setQueryData(
+        [['passwords', 'getExportFilters'], { input: undefined, type: 'query' }],
+        exportFilters.value
+      );
+    }
+
+    if (reminders365.status === 'fulfilled') {
+      queryClient.setQueryData(
+        [['passwordRotation', 'getReminders'], { input: { daysAhead: 365 }, type: 'query' }],
+        reminders365.value
       );
     }
 

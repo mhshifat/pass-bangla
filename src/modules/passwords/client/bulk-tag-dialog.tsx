@@ -43,9 +43,10 @@ export function BulkTagDialog({
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
-  // Fetch tags
+  // Fetch tags (uses SSR prefetch when available)
   const { data: filtersData } = trpc.passwords.getExportFilters.useQuery(undefined, {
     enabled: open,
+    staleTime: 30_000, // 30 seconds - use SSR prefetched data
   })
 
   const tags = filtersData?.tags || []
