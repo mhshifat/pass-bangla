@@ -68,7 +68,7 @@ export function extractErrorDetails(error: unknown): {
   fieldErrors?: Record<string, string>;
 } {
   if (!error) {
-    return { message: "An unexpected error occurred" };
+    return { message: "" };
   }
 
   if (typeof error === "string") {
