@@ -15,6 +15,8 @@ export interface ExportPassword {
   tags?: string[]
   strength?: string
   hasTotp?: boolean
+  totpSecret?: string | null
+  totpBackupCodes?: string[] | null
   expiresAt?: string | null
   createdAt?: string
   updatedAt?: string
@@ -32,7 +34,7 @@ export function exportToCSV(
   // Add headers
   if (includeHeaders) {
     rows.push(
-      "Name,Username,Password,URL,Notes,Folder,Tags,Strength,Has TOTP,Expires At,Created At,Updated At"
+      "Name,Username,Password,URL,Notes,Folder,Tags,Strength,Has TOTP,TOTP Secret,TOTP Backup Codes,Expires At,Created At,Updated At"
     )
   }
 
@@ -48,6 +50,8 @@ export function exportToCSV(
       escapeCSVField((pwd.tags || []).join("; ")),
       escapeCSVField(pwd.strength || ""),
       escapeCSVField(pwd.hasTotp ? "Yes" : "No"),
+      escapeCSVField(pwd.totpSecret || ""),
+      escapeCSVField((pwd.totpBackupCodes || []).join(" | ")),
       escapeCSVField(pwd.expiresAt || ""),
       escapeCSVField(pwd.createdAt || ""),
       escapeCSVField(pwd.updatedAt || ""),
@@ -92,7 +96,7 @@ export function exportToBitwardenJSON(
     login: {
       username: pwd.username,
       password: pwd.password,
-      totp: null,
+      totp: pwd.totpSecret || null,
       uris: pwd.url
         ? [
             {
@@ -125,11 +129,20 @@ export function exportToLastPassCSV(
   rows.push("url,username,password,extra,name,grouping,fav") // LastPass CSV header
 
   for (const pwd of passwords) {
+    // Include TOTP secret and backup codes in the extra/notes field
+    let extra = pwd.notes || ""
+    if (pwd.totpSecret) {
+      extra += (extra ? "\n\n" : "") + `TOTP Secret: ${pwd.totpSecret}`
+    }
+    if (pwd.totpBackupCodes && pwd.totpBackupCodes.length > 0) {
+      extra += (extra ? "\n\n" : "") + `TOTP Backup Codes:\n${pwd.totpBackupCodes.join("\n")}`
+    }
+    
     const row = [
       escapeCSVField(pwd.url || ""),
       escapeCSVField(pwd.username),
       escapeCSVField(pwd.password),
-      escapeCSVField(pwd.notes || ""),
+      escapeCSVField(extra),
       escapeCSVField(pwd.name),
       escapeCSVField(pwd.folder || ""),
       "0", // fav

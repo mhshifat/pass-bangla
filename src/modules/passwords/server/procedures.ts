@@ -1558,7 +1558,7 @@ export const passwordsRouter = createTRPCRouter({
         }
       }
 
-      // Fetch passwords with related data
+      // Fetch passwords with related data (include totpSecret for export)
       const passwords = await prisma.password.findMany({
         where: passwordWhere,
         include: {
@@ -1594,6 +1594,51 @@ export const passwordsRouter = createTRPCRouter({
             // Fallback to old server-side encryption
             decryptedPassword = decryptPassword(pwd.password)
           }
+
+          // Decrypt TOTP secret if present and generate backup codes
+          let decryptedTotpSecret: string | null = null
+          let totpBackupCodes: string[] = []
+          
+          if (pwd.hasTotp && pwd.totpSecret) {
+            try {
+              // Try new user-specific encryption first
+              decryptedTotpSecret = decryptPasswordWithUserKey(pwd.totpSecret, pwd.ownerId)
+            } catch {
+              // Fallback to old server-side encryption
+              try {
+                decryptedTotpSecret = decryptPassword(pwd.totpSecret)
+              } catch {
+                // If decryption fails, leave as null
+                decryptedTotpSecret = null
+              }
+            }
+
+            // Generate 50 backup TOTP codes using HOTP (same algorithm, different counters)
+            // TOTP is just HOTP with time-based counter: counter = floor(time / step)
+            if (decryptedTotpSecret) {
+              const { hotp } = await import("otplib")
+              const now = Math.floor(Date.now() / 1000)
+              const step = 30 // TOTP default step is 30 seconds
+              const currentCounter = Math.floor(now / step)
+              
+              for (let i = 0; i < 50; i++) {
+                const counter = currentCounter + i
+                try {
+                  const backupCode = hotp.generate(decryptedTotpSecret, counter)
+                  const validInSeconds = i * step
+                  const validInMinutes = Math.floor(validInSeconds / 60)
+                  const remainingSeconds = validInSeconds % 60
+                  const timeLabel = validInMinutes > 0 
+                    ? `+${validInMinutes}m${remainingSeconds > 0 ? ` ${remainingSeconds}s` : ''}`
+                    : `+${validInSeconds}s`
+                  totpBackupCodes.push(`${String(i + 1).padStart(2, '0')}. ${backupCode} (${timeLabel})`)
+                } catch {
+                  // If HOTP fails, skip this code
+                  continue
+                }
+              }
+            }
+          }
           
           return {
             name: pwd.name,
@@ -1605,6 +1650,8 @@ export const passwordsRouter = createTRPCRouter({
             tags: pwd.tags.map((pt) => pt.tag.name),
             strength: pwd.strength,
             hasTotp: pwd.hasTotp,
+            totpSecret: decryptedTotpSecret,
+            totpBackupCodes: totpBackupCodes.length > 0 ? totpBackupCodes : null,
             expiresAt: pwd.expiresAt?.toISOString() || null,
             createdAt: pwd.createdAt.toISOString(),
             updatedAt: pwd.updatedAt.toISOString(),
