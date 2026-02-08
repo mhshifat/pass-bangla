@@ -46,6 +46,7 @@ import { useTranslation } from "react-i18next"
 import { useClipboard } from "@/hooks/use-clipboard"
 import { usePasswordDecryption } from "@/hooks/use-password-decryption"
 import { showErrorFromException } from "@/lib/error-toast"
+import { cn } from "@/lib/utils"
 
 interface PasswordShare {
   shareId: string
@@ -147,6 +148,11 @@ export function PasswordDetailsDialog({
   } = usePasswordDecryption(encryptedPassword, encryptedTotpSecret)
 
   // For backward compatibility: if password is not encrypted, use it directly
+  // Also handle the case where decryption is still pending
+  const isPasswordReady = passwordData?.passwordEncrypted 
+    ? (decryptedPassword.length > 0 && !isDecryptingPassword)
+    : !!passwordData?.password
+  
   const finalDecryptedPassword = passwordData?.passwordEncrypted 
     ? decryptedPassword 
     : (passwordData?.password || "")
@@ -214,7 +220,7 @@ export function PasswordDetailsDialog({
   }
 
   const handleCopyPassword = async () => {
-    if (!finalDecryptedPassword) return
+    if (!isPasswordReady || !finalDecryptedPassword) return
     setCopyingField("password")
     try {
       await copyToClipboard(finalDecryptedPassword, {
@@ -469,43 +475,50 @@ export function PasswordDetailsDialog({
 
             <div className="grid grid-cols-3 items-center gap-4">
               <span className="text-sm font-medium">Password:</span>
-              <div className="col-span-2 flex items-center gap-2">
-                <Input
-                  type={showPassword ? "text" : "password"}
-                  value={
-                    isLoading || isDecryptingPassword
-                      ? "Loading..."
-                      : showPassword
-                      ? finalDecryptedPassword
-                      : "••••••••••••"
-                  }
-                  readOnly
-                  className="font-mono"
-                />
-                {hasPermission("password.view") && (
-                  <>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setShowPassword(!showPassword)}
-                      disabled={isLoading || isDecryptingPassword}
-                    >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={handleCopyPassword}
-                      disabled={isLoading || isDecryptingPassword || !finalDecryptedPassword || copyingField === "password"}
-                      title={t("clipboard.copyPassword")}
-                    >
-                      {copyingField === "password" ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Copy className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </>
+              <div className="col-span-2 flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    value={
+                      isLoading || isDecryptingPassword
+                        ? "Loading..."
+                        : decryptionError
+                        ? "Decryption failed"
+                        : showPassword
+                        ? finalDecryptedPassword
+                        : "••••••••••••"
+                    }
+                    readOnly
+                    className={cn("font-mono", decryptionError && "text-destructive")}
+                  />
+                  {hasPermission("password.view") && (
+                    <>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setShowPassword(!showPassword)}
+                        disabled={isLoading || isDecryptingPassword || !!decryptionError}
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={handleCopyPassword}
+                        disabled={isLoading || isDecryptingPassword || !isPasswordReady || copyingField === "password"}
+                        title={t("clipboard.copyPassword")}
+                      >
+                        {copyingField === "password" ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Copy className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </>
+                  )}
+                </div>
+                {decryptionError && (
+                  <p className="text-xs text-destructive">{decryptionError}</p>
                 )}
               </div>
             </div>
