@@ -1,4 +1,5 @@
 import { decryptPassword } from "@/lib/crypto"
+import { decryptPasswordWithUserKey } from "@/lib/server-crypto-migration"
 import prisma from "@/lib/prisma"
 import { createTRPCRouter, protectedProcedure, baseProcedure } from "@/trpc/init"
 import z from "zod"
@@ -1582,9 +1583,17 @@ export const passwordsRouter = createTRPCRouter({
       })
 
       // Decrypt passwords and format for export
+      // Use user-specific key decryption (passwords are encrypted per-user)
       const exportPasswords = await Promise.all(
         passwords.map(async (pwd) => {
-          const decryptedPassword = decryptPassword(pwd.password)
+          // Try new user-specific encryption first, fallback to old method
+          let decryptedPassword: string
+          try {
+            decryptedPassword = decryptPasswordWithUserKey(pwd.password, pwd.ownerId)
+          } catch {
+            // Fallback to old server-side encryption
+            decryptedPassword = decryptPassword(pwd.password)
+          }
           
           return {
             name: pwd.name,
@@ -2516,7 +2525,14 @@ export const passwordsRouter = createTRPCRouter({
 
       for (const pwd of passwords) {
         try {
-          const decrypted = decryptPassword(pwd.password)
+          // Try new user-specific encryption first
+          let decrypted: string
+          try {
+            decrypted = decryptPasswordWithUserKey(pwd.password, pwd.ownerId)
+          } catch {
+            // Fallback to old server-side encryption
+            decrypted = decryptPassword(pwd.password)
+          }
           // Normalize whitespace for comparison
           const normalized = decrypted.trim()
           if (!passwordGroups.has(normalized)) {
@@ -2597,7 +2613,14 @@ export const passwordsRouter = createTRPCRouter({
 
       for (const pwd of passwords) {
         try {
-          const decrypted = decryptPassword(pwd.password)
+          // Try new user-specific encryption first
+          let decrypted: string
+          try {
+            decrypted = decryptPasswordWithUserKey(pwd.password, pwd.ownerId)
+          } catch {
+            // Fallback to old server-side encryption
+            decrypted = decryptPassword(pwd.password)
+          }
           if (!passwordMap.has(decrypted)) {
             passwordMap.set(decrypted, [])
           }
@@ -2681,9 +2704,17 @@ export const passwordsRouter = createTRPCRouter({
       const decryptedPasswords = passwords
         .map((pwd) => {
           try {
+            // Try new user-specific encryption first
+            let decrypted: string
+            try {
+              decrypted = decryptPasswordWithUserKey(pwd.password, pwd.ownerId)
+            } catch {
+              // Fallback to old server-side encryption
+              decrypted = decryptPassword(pwd.password)
+            }
             return {
               ...pwd,
-              decryptedPassword: decryptPassword(pwd.password),
+              decryptedPassword: decrypted,
             }
           } catch {
             return null
