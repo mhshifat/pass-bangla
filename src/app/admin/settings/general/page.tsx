@@ -1,19 +1,13 @@
-"use client"
+import { HydrationBoundary } from "@tanstack/react-query"
+import { prefetchGeneralSettingsData } from "@/modules/settings/server/prefetch"
+import { GeneralSettingsPageContent } from "./general-settings-content"
 
-import { useTranslation } from "react-i18next"
-import { GeneralSettings } from "@/modules/settings/client"
-
-export default function GeneralSettingsPage() {
-  const { t } = useTranslation()
+export default async function GeneralSettingsPage() {
+  const dehydratedState = await prefetchGeneralSettingsData()
   
   return (
-    <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">{t("settings.generalSettings")}</h1>
-        <p className="text-muted-foreground mt-1">{t("settings.generalSettingsDescription")}</p>
-      </div>
-
-      <GeneralSettings />
-    </div>
+    <HydrationBoundary state={dehydratedState}>
+      <GeneralSettingsPageContent />
+    </HydrationBoundary>
   )
 }

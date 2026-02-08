@@ -1,15 +1,21 @@
 import { Suspense } from "react"
+import { HydrationBoundary } from "@tanstack/react-query"
 import { DuplicatesPageClient } from "./duplicates-page-client"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { prefetchDuplicatesData } from "@/modules/passwords/server/prefetch"
 
-export default function DuplicatesPage() {
+export default async function DuplicatesPage() {
+  const dehydratedState = await prefetchDuplicatesData()
+
   return (
-    <div className="p-6 space-y-6">
-      <Suspense fallback={<DuplicatesPageSkeleton />}>
-        <DuplicatesPageClient />
-      </Suspense>
-    </div>
+    <HydrationBoundary state={dehydratedState}>
+      <div className="p-6 space-y-6">
+        <Suspense fallback={<DuplicatesPageSkeleton />}>
+          <DuplicatesPageClient />
+        </Suspense>
+      </div>
+    </HydrationBoundary>
   )
 }
 

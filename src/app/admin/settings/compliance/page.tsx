@@ -1,24 +1,14 @@
-"use client"
+import { HydrationBoundary } from "@tanstack/react-query"
+import { prefetchComplianceSettingsData } from "@/modules/settings/server/prefetch"
+import { ComplianceSettingsPageContent } from "./compliance-settings-content"
 
-import { ComplianceSettings } from "@/modules/settings/client"
-import { useTranslation } from "react-i18next"
-
-export default function ComplianceSettingsPage() {
-  const { t } = useTranslation()
+export default async function ComplianceSettingsPage() {
+  const dehydratedState = await prefetchComplianceSettingsData()
   
   return (
-    <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">
-          {t("settings.compliance.title")}
-        </h1>
-        <p className="text-muted-foreground mt-1">
-          {t("settings.compliance.description")}
-        </p>
-      </div>
-
-      <ComplianceSettings />
-    </div>
+    <HydrationBoundary state={dehydratedState}>
+      <ComplianceSettingsPageContent />
+    </HydrationBoundary>
   )
 }
 

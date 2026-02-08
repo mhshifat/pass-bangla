@@ -1,15 +1,21 @@
 import { Suspense } from "react"
+import { HydrationBoundary } from "@tanstack/react-query"
 import { TagsPageClient } from "./tags-page-client"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { prefetchTagsData } from "@/modules/passwords/server/prefetch"
 
-export default function TagsPage() {
+export default async function TagsPage() {
+  const dehydratedState = await prefetchTagsData()
+
   return (
-    <div className="p-6 space-y-6">
-      <Suspense fallback={<TagsPageSkeleton />}>
-        <TagsPageClient />
-      </Suspense>
-    </div>
+    <HydrationBoundary state={dehydratedState}>
+      <div className="p-6 space-y-6">
+        <Suspense fallback={<TagsPageSkeleton />}>
+          <TagsPageClient />
+        </Suspense>
+      </div>
+    </HydrationBoundary>
   )
 }
 

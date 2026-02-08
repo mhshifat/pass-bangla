@@ -1,15 +1,21 @@
 import { Suspense } from "react"
+import { HydrationBoundary } from "@tanstack/react-query"
 import { TemplatesPageClient } from "./templates-page-client"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { prefetchTemplatesData } from "@/modules/passwords/server/prefetch"
 
-export default function TemplatesPage() {
+export default async function TemplatesPage() {
+  const dehydratedState = await prefetchTemplatesData()
+
   return (
-    <div className="p-6 space-y-6">
-      <Suspense fallback={<TemplatesPageSkeleton />}>
-        <TemplatesPageClient />
-      </Suspense>
-    </div>
+    <HydrationBoundary state={dehydratedState}>
+      <div className="p-6 space-y-6">
+        <Suspense fallback={<TemplatesPageSkeleton />}>
+          <TemplatesPageClient />
+        </Suspense>
+      </div>
+    </HydrationBoundary>
   )
 }
 

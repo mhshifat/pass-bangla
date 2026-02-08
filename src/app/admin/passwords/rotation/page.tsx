@@ -1,15 +1,21 @@
 import { Suspense } from "react"
+import { HydrationBoundary } from "@tanstack/react-query"
 import { RotationPageClient } from "./rotation-page-client"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { prefetchRotationData } from "@/modules/passwords/server/prefetch"
 
-export default function RotationPage() {
+export default async function RotationPage() {
+  const dehydratedState = await prefetchRotationData()
+
   return (
-    <div className="p-6 space-y-6">
-      <Suspense fallback={<RotationPageSkeleton />}>
-        <RotationPageClient />
-      </Suspense>
-    </div>
+    <HydrationBoundary state={dehydratedState}>
+      <div className="p-6 space-y-6">
+        <Suspense fallback={<RotationPageSkeleton />}>
+          <RotationPageClient />
+        </Suspense>
+      </div>
+    </HydrationBoundary>
   )
 }
 

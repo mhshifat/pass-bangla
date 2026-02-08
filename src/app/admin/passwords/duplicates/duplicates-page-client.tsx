@@ -52,20 +52,22 @@ export function DuplicatesPageClient() {
   } | null>(null)
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
 
-  const { data: duplicatesData, isLoading: duplicatesLoading, refetch: refetchDuplicates } = trpc.passwords.findDuplicates.useQuery(
+  const { data: duplicatesData, isLoading: duplicatesLoading, isFetching: duplicatesFetching, refetch: refetchDuplicates } = trpc.passwords.findDuplicates.useQuery(
     {},
     { enabled: true }
   )
 
-  const { data: reusedData, isLoading: reusedLoading, refetch: refetchReused } = trpc.passwords.findReused.useQuery(
+  const { data: reusedData, isLoading: reusedLoading, isFetching: reusedFetching, refetch: refetchReused } = trpc.passwords.findReused.useQuery(
     {},
     { enabled: true }
   )
 
-  const { data: similarData, isLoading: similarLoading, refetch: refetchSimilar } = trpc.passwords.findSimilar.useQuery(
+  const { data: similarData, isLoading: similarLoading, isFetching: similarFetching, refetch: refetchSimilar } = trpc.passwords.findSimilar.useQuery(
     { threshold: 0.8 },
     { enabled: true }
   )
+
+  const isRefreshing = duplicatesFetching || reusedFetching || similarFetching
 
   const { user: currentUser } = useCurrentUser()
 
@@ -121,8 +123,9 @@ export function DuplicatesPageClient() {
               refetchReused()
               refetchSimilar()
             }}
+            disabled={isRefreshing}
           >
-            <RefreshCw className="h-4 w-4 mr-2" />
+            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
             {t("common.refresh")}
           </Button>
         </div>

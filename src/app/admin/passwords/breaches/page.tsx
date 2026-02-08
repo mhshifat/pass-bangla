@@ -1,15 +1,21 @@
 import { Suspense } from "react"
+import { HydrationBoundary } from "@tanstack/react-query"
 import { BreachesPageClient } from "./breaches-page-client"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { prefetchBreachesData } from "@/modules/passwords/server/prefetch"
 
-export default function BreachesPage() {
+export default async function BreachesPage() {
+  const dehydratedState = await prefetchBreachesData()
+
   return (
-    <div className="p-6 space-y-6">
-      <Suspense fallback={<BreachesPageSkeleton />}>
-        <BreachesPageClient />
-      </Suspense>
-    </div>
+    <HydrationBoundary state={dehydratedState}>
+      <div className="p-6 space-y-6">
+        <Suspense fallback={<BreachesPageSkeleton />}>
+          <BreachesPageClient />
+        </Suspense>
+      </div>
+    </HydrationBoundary>
   )
 }
 
