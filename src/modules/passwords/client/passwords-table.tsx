@@ -265,7 +265,7 @@ export function PasswordsTable({
   const [isAdvancedSearchOpen, setIsAdvancedSearchOpen] = React.useState(false)
   const [isSearchHistoryOpen, setIsSearchHistoryOpen] = React.useState(false)
   const [isSavedSearchesOpen, setIsSavedSearchesOpen] = React.useState(false)
-  const [qrDialogPassword, setQrDialogPassword] = React.useState<any>(null)
+  const [qrDialogPassword, setQrDialogPassword] = React.useState<string | null>(null)
   const [isQrDialogOpen, setIsQrDialogOpen] = React.useState(false)
 
   // Fetch rotation reminders to show indicators (uses SSR prefetch when available)
@@ -742,15 +742,17 @@ export function PasswordsTable({
                                 {t("passwords.sharePassword")}
                               </DropdownMenuItem>
                             )}
-                            <DropdownMenuItem
-                              onClick={() => {
-                                setQrDialogPassword(pwd)
-                                setIsQrDialogOpen(true)
-                              }}
-                            >
-                              <QrCode className="mr-2 h-4 w-4" />
-                              {t("qrCode.generateQrCode")}
-                            </DropdownMenuItem>
+                            {hasPermission("password.view") && (
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setQrDialogPassword(pwd.id)
+                                  setIsQrDialogOpen(true)
+                                }}
+                              >
+                                <QrCode className="mr-2 h-4 w-4" />
+                                {t("qrCode.generateQrCode")}
+                              </DropdownMenuItem>
+                            )}
                             {hasPermission("password.delete") && (
                               <>
                                 <DropdownMenuSeparator />
@@ -1012,6 +1014,17 @@ export function PasswordsTable({
                           {t("passwords.sharePassword")}
                         </DropdownMenuItem>
                       )}
+                      {hasPermission("password.view") && (
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setQrDialogPassword(pwd.id)
+                            setIsQrDialogOpen(true)
+                          }}
+                        >
+                          <QrCode className="mr-2 h-4 w-4" />
+                          {t("qrCode.generateQrCode")}
+                        </DropdownMenuItem>
+                      )}
                       {hasPermission("password.delete") && (
                         <>
                           <DropdownMenuSeparator />
@@ -1044,7 +1057,7 @@ export function PasswordsTable({
       />
 
       <PasswordQrDialog
-        password={qrDialogPassword}
+        passwordId={qrDialogPassword}
         open={isQrDialogOpen}
         onOpenChange={setIsQrDialogOpen}
       />

@@ -15,25 +15,25 @@ import { useClipboard } from "@/hooks/use-clipboard"
 import { useCurrentUser } from "@/hooks/use-current-user"
 import { toast } from "sonner"
 import QRCode from "react-qr-code"
+import { trpc } from "@/trpc/client"
 import { decryptPasswordClient } from "@/lib/client-crypto"
+import { authenticator } from "otplib"
 
 interface PasswordQrDialogProps {
-  password: {
-    id: string
-    name: string
-    username?: string
-    url?: string
-    encryptedPassword: string
-    encryptedTotpSecret?: string
-  } | null
+  passwordId: string | null
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
-export function PasswordQrDialog({ password, open, onOpenChange }: PasswordQrDialogProps) {
+export function PasswordQrDialog({ passwordId, open, onOpenChange }: PasswordQrDialogProps) {
   const { t } = useTranslation()
-  const { copyToClipboard } = useClipboard()
+  const { copy: copyToClipboard } = useClipboard()
   const { user } = useCurrentUser()
+
+  const { data: password } = trpc.passwords.getById.useQuery(
+    { id: passwordId! },
+    { enabled: !!passwordId && open }
+  )
 
   const [decryptedData, setDecryptedData] = React.useState<{
     username?: string
@@ -47,8 +47,8 @@ export function PasswordQrDialog({ password, open, onOpenChange }: PasswordQrDia
     if (password && open && user?.id) {
       setIsLoading(true)
       Promise.all([
-        decryptPasswordClient(password.encryptedPassword, user.id),
-        password.encryptedTotpSecret ? decryptPasswordClient(password.encryptedTotpSecret, user.id) : Promise.resolve(undefined)
+        decryptPasswordClient(password.password, user.id),
+        password.totpSecret ? decryptPasswordClient(password.totpSecret, user.id) : Promise.resolve(undefined)
       ]).then(([decryptedPassword, decryptedTotp]) => {
         setDecryptedData({
           username: password.username,
@@ -70,13 +70,24 @@ export function PasswordQrDialog({ password, open, onOpenChange }: PasswordQrDia
   const qrData = React.useMemo(() => {
     if (!decryptedData) return null
 
+    // Generate TOTP code if secret is available
+    let totpCode: string | undefined
+    if (decryptedData.totpSecret) {
+      try {
+        totpCode = authenticator.generate(decryptedData.totpSecret)
+      } catch (error) {
+        console.error("Failed to generate TOTP code:", error)
+        totpCode = undefined
+      }
+    }
+
     // Create a JSON object with the password data
     const data = {
       name: password?.name,
       username: decryptedData.username,
       url: decryptedData.url,
       password: decryptedData.password,
-      totpSecret: decryptedData.totpSecret
+      totpCode: totpCode
     }
 
     return JSON.stringify(data)
@@ -85,12 +96,23 @@ export function PasswordQrDialog({ password, open, onOpenChange }: PasswordQrDia
   const handleCopyData = async () => {
     if (!decryptedData) return
 
+    // Generate TOTP code if secret is available
+    let totpCode: string | undefined
+    if (decryptedData.totpSecret) {
+      try {
+        totpCode = authenticator.generate(decryptedData.totpSecret)
+      } catch (error) {
+        console.error("Failed to generate TOTP code:", error)
+        totpCode = undefined
+      }
+    }
+
     const text = [
       `Name: ${password?.name}`,
       decryptedData.username && `Username: ${decryptedData.username}`,
       decryptedData.url && `URL: ${decryptedData.url}`,
       decryptedData.password && `Password: ${decryptedData.password}`,
-      decryptedData.totpSecret && `TOTP Secret: ${decryptedData.totpSecret}`
+      totpCode && `TOTP Code: ${totpCode}`
     ].filter(Boolean).join('\n')
 
     await copyToClipboard(text)
