@@ -939,6 +939,15 @@
     "passwords": "Passwords",
     "created": "Created"
   },
+  "qrCode": {
+    "generateQrCode": "Generate QR Code",
+    "qrCodeTitle": "Password QR Code",
+    "qrCodeDescription": "Scan this QR code with your mobile device to copy the password details",
+    "qrCodeDecryptError": "Failed to decrypt password data for QR code",
+    "qrCodeError": "Failed to generate QR code",
+    "copyData": "Copy Data"
+  },
+  "qrCodeDataCopied": "Password data copied to clipboard",
   "roles": {
     "title": "Roles & Permissions",
     "description": "Define roles and manage access permissions",

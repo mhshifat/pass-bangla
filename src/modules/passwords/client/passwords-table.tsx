@@ -38,6 +38,7 @@ import {
   X,
   Bookmark,
   Loader2,
+  QrCode,
 } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -52,6 +53,7 @@ import { TagFilter } from "@/modules/passwords/client/tag-filter"
 import { AdvancedSearchDialog } from "./advanced-search-dialog"
 import { SearchHistory } from "./search-history"
 import { SavedSearches } from "./saved-searches"
+import { PasswordQrDialog } from "./password-qr-dialog"
 import {
   Popover,
   PopoverContent,
@@ -263,6 +265,8 @@ export function PasswordsTable({
   const [isAdvancedSearchOpen, setIsAdvancedSearchOpen] = React.useState(false)
   const [isSearchHistoryOpen, setIsSearchHistoryOpen] = React.useState(false)
   const [isSavedSearchesOpen, setIsSavedSearchesOpen] = React.useState(false)
+  const [qrDialogPassword, setQrDialogPassword] = React.useState<any>(null)
+  const [isQrDialogOpen, setIsQrDialogOpen] = React.useState(false)
 
   // Fetch rotation reminders to show indicators (uses SSR prefetch when available)
   const { data: reminders } = trpc.passwordRotation.getReminders.useQuery(
@@ -738,6 +742,15 @@ export function PasswordsTable({
                                 {t("passwords.sharePassword")}
                               </DropdownMenuItem>
                             )}
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setQrDialogPassword(pwd)
+                                setIsQrDialogOpen(true)
+                              }}
+                            >
+                              <QrCode className="mr-2 h-4 w-4" />
+                              {t("qrCode.generateQrCode")}
+                            </DropdownMenuItem>
                             {hasPermission("password.delete") && (
                               <>
                                 <DropdownMenuSeparator />
@@ -1028,6 +1041,12 @@ export function PasswordsTable({
         onSearch={() => {
           // Search is handled by the dialog via router.push
         }}
+      />
+
+      <PasswordQrDialog
+        password={qrDialogPassword}
+        open={isQrDialogOpen}
+        onOpenChange={setIsQrDialogOpen}
       />
     </Card>
   )
