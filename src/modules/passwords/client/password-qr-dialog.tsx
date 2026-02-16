@@ -30,7 +30,7 @@ export function PasswordQrDialog({ passwordId, open, onOpenChange }: PasswordQrD
   const { copy: copyToClipboard } = useClipboard()
   const { user } = useCurrentUser()
 
-  const { data: password } = trpc.passwords.getById.useQuery(
+  const { data: password, isLoading: isPasswordLoading } = trpc.passwords.getById.useQuery(
     { id: passwordId! },
     { enabled: !!passwordId && open }
   )
@@ -133,7 +133,7 @@ export function PasswordQrDialog({ passwordId, open, onOpenChange }: PasswordQrD
         </DialogHeader>
 
         <div className="flex flex-col items-center space-y-4">
-          {isLoading ? (
+          {isPasswordLoading || isLoading ? (
             <div className="flex items-center justify-center h-48 w-48 border rounded-lg">
               <div className="text-muted-foreground">{t("common.loading")}</div>
             </div>
@@ -149,7 +149,7 @@ export function PasswordQrDialog({ passwordId, open, onOpenChange }: PasswordQrD
 
           <Button
             onClick={handleCopyData}
-            disabled={!decryptedData}
+            disabled={!decryptedData || isPasswordLoading || isLoading}
             variant="outline"
             className="w-full"
           >
