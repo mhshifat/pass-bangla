@@ -353,6 +353,7 @@ export const passwordsRouter = createTRPCRouter({
         notes: z.string().optional().nullable(),
         totpSecret: z.string().optional().nullable(),
         tagIds: z.array(z.string()).optional(),
+        source: z.enum(["manual", "extension"]).optional().default("manual"),
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -362,17 +363,20 @@ export const passwordsRouter = createTRPCRouter({
         select: { companyId: true },
       })
 
-      // Validate password against policy
-      const validation = await validatePasswordAgainstPolicy(
-        input.password,
-        user?.companyId || null
-      )
+      // Only enforce password policy for manually created passwords (web app).
+      // Extension-captured credentials from external sites are stored as-is.
+      if (input.source !== "extension") {
+        const validation = await validatePasswordAgainstPolicy(
+          input.password,
+          user?.companyId || null
+        )
 
-      if (!validation.isValid) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: validation.errors.join(". "),
-        })
+        if (!validation.isValid) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: validation.errors.join(". "),
+          })
+        }
       }
 
       // CLIENT-SIDE ENCRYPTION: Encrypt using user-specific key (new method)
