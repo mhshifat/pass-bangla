@@ -347,6 +347,67 @@ export async function prefetchBreachesData() {
 }
 
 /**
+ * Prefetch shares page data on the server (team shares + temporary shares + stats).
+ */
+export async function prefetchSharesData() {
+  const queryClient = makeQueryClient();
+  const trpc = await serverTrpc();
+
+  const tempInput = { status: "all" as const, page: 1, pageSize: 20 };
+  const teamInput = { status: "all" as const, page: 1, pageSize: 20 };
+
+  try {
+    const [tempShares, teamShares, stats, onboardingStatus, accessibilityPrefs] =
+      await Promise.allSettled([
+        trpc.passwords.listTemporaryShares(tempInput),
+        trpc.passwords.listMyTeamPasswordShares(teamInput),
+        trpc.passwords.getShareStats(),
+        trpc.users.getOnboardingStatus(),
+        trpc.users.getAccessibilityPreferences(),
+      ]);
+
+    if (tempShares.status === "fulfilled") {
+      queryClient.setQueryData(
+        [["passwords", "listTemporaryShares"], { input: tempInput, type: "query" }],
+        tempShares.value
+      );
+    }
+
+    if (teamShares.status === "fulfilled") {
+      queryClient.setQueryData(
+        [["passwords", "listMyTeamPasswordShares"], { input: teamInput, type: "query" }],
+        teamShares.value
+      );
+    }
+
+    if (stats.status === "fulfilled") {
+      queryClient.setQueryData(
+        [["passwords", "getShareStats"], { input: undefined, type: "query" }],
+        stats.value
+      );
+    }
+
+    if (onboardingStatus.status === "fulfilled") {
+      queryClient.setQueryData(
+        [["users", "getOnboardingStatus"], { input: undefined, type: "query" }],
+        onboardingStatus.value
+      );
+    }
+
+    if (accessibilityPrefs.status === "fulfilled") {
+      queryClient.setQueryData(
+        [["users", "getAccessibilityPreferences"], { input: undefined, type: "query" }],
+        accessibilityPrefs.value
+      );
+    }
+  } catch (error) {
+    console.debug("Could not prefetch shares data:", error);
+  }
+
+  return dehydrate(queryClient);
+}
+
+/**
  * Prefetch rotation page data on the server
  */
 export async function prefetchRotationData() {

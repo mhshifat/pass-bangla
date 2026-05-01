@@ -26,7 +26,8 @@ import {
 } from "@/components/ui/form"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Copy, Check, Link2, Calendar, Users, AlertCircle } from "lucide-react"
+import { Copy, Check, Link2, Calendar, Users, AlertCircle, Settings2 } from "lucide-react"
+import Link from "next/link"
 import { trpc } from "@/trpc/client"
 import { showErrorFromException } from "@/lib/error-toast"
 import { toast } from "sonner"
@@ -176,6 +177,18 @@ export function TemporaryShareDialog({
                 {t("common.close")}
               </Button>
             </div>
+
+            <Link
+              href="/admin/passwords/shares"
+              onClick={() => {
+                handleClose()
+                onSuccess()
+              }}
+              className="flex items-center justify-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Settings2 className="h-3 w-3" />
+              Manage all share links
+            </Link>
           </div>
         ) : (
           <Form {...form}>

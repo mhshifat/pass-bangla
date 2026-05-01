@@ -894,6 +894,10 @@
       "newPasswordTitle": "New Password Generated",
       "newPasswordDescription": "Your password has been rotated. Please copy and save this new password securely:",
       "copyPasswordHint": "Click the button below to copy the password to your clipboard"
+    },
+    "shares": {
+      "title": "Shared Passwords",
+      "description": "Manage all team shares and temporary share links you have created."
     }
   },
   "teams": {

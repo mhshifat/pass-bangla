@@ -4564,12 +4564,33 @@ export const passwordsRouter = createTRPCRouter({
         })
       }
 
-      // Increment access count and update accessedAt
+      // Capture client info for the access log
+      let ipAddress: string | null = null
+      let userAgent: string | null = null
+      try {
+        const { headers } = await import("next/headers")
+        const headersList = await headers()
+        ipAddress =
+          headersList.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+          headersList.get("x-real-ip") ||
+          null
+        userAgent = headersList.get("user-agent") || null
+      } catch {
+        // headers() is unavailable outside a request context (e.g. tests) — ignore
+      }
+
+      // Increment access count, update accessedAt, and append an access log row
       await prisma.temporaryPasswordShare.update({
         where: { id: temporaryShare.id },
         data: {
           accessCount: { increment: 1 },
           accessedAt: new Date(),
+          accesses: {
+            create: {
+              ipAddress,
+              userAgent,
+            },
+          },
         },
       })
 
@@ -4660,15 +4681,28 @@ export const passwordsRouter = createTRPCRouter({
     .input(
       z.object({
         passwordId: z.string().optional(),
+        status: z.enum(["all", "active", "revoked", "expired", "exhausted"]).optional(),
+        search: z.string().optional(),
+        page: z.number().min(1).default(1),
+        pageSize: z.number().min(1).max(100).default(20),
       }).optional()
     )
     .query(async ({ input, ctx }) => {
+      const page = input?.page ?? 1
+      const pageSize = input?.pageSize ?? 20
+
       const where: Prisma.TemporaryPasswordShareWhereInput = {
         createdBy: ctx.userId,
       }
 
       if (input?.passwordId) {
         where.passwordId = input.passwordId
+      }
+
+      if (input?.search) {
+        where.password = {
+          name: { contains: input.search, mode: "insensitive" },
+        }
       }
 
       const shares = await prisma.temporaryPasswordShare.findMany({
@@ -4678,26 +4712,294 @@ export const passwordsRouter = createTRPCRouter({
             select: {
               id: true,
               name: true,
+              username: true,
             },
           },
         },
         orderBy: { createdAt: "desc" },
       })
 
-      return shares.map((share) => ({
-        id: share.id,
-        shareToken: share.shareToken,
-        passwordId: share.passwordId,
-        passwordName: share.password.name,
-        expiresAt: share.expiresAt,
-        maxAccesses: share.maxAccesses,
-        accessCount: share.accessCount,
-        isOneTime: share.isOneTime,
-        revokedAt: share.revokedAt,
-        createdAt: share.createdAt,
-        accessedAt: share.accessedAt,
-        shareUrl: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/share/${share.shareToken}`,
+      const now = new Date()
+      const enriched = shares.map((share) => {
+        let computedStatus: "active" | "revoked" | "expired" | "exhausted"
+        if (share.revokedAt) {
+          computedStatus = "revoked"
+        } else if (share.expiresAt && share.expiresAt < now) {
+          computedStatus = "expired"
+        } else if (share.maxAccesses && share.accessCount >= share.maxAccesses) {
+          computedStatus = "exhausted"
+        } else {
+          computedStatus = "active"
+        }
+
+        return {
+          id: share.id,
+          shareToken: share.shareToken,
+          passwordId: share.passwordId,
+          passwordName: share.password.name,
+          passwordUsername: share.password.username,
+          expiresAt: share.expiresAt,
+          maxAccesses: share.maxAccesses,
+          accessCount: share.accessCount,
+          isOneTime: share.isOneTime,
+          includeTotp: share.includeTotp,
+          revokedAt: share.revokedAt,
+          createdAt: share.createdAt,
+          accessedAt: share.accessedAt,
+          status: computedStatus,
+          shareUrl: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/share/${share.shareToken}`,
+        }
+      })
+
+      const filtered =
+        input?.status && input.status !== "all"
+          ? enriched.filter((s) => s.status === input!.status)
+          : enriched
+
+      const total = filtered.length
+      const totalPages = Math.max(1, Math.ceil(total / pageSize))
+      const safePage = Math.min(page, totalPages)
+      const start = (safePage - 1) * pageSize
+      const paged = filtered.slice(start, start + pageSize)
+
+      return {
+        shares: paged,
+        pagination: {
+          page: safePage,
+          pageSize,
+          total,
+          totalPages,
+        },
+      }
+    }),
+
+  updateTemporaryShare: protectedProcedure("password.share")
+    .input(
+      z.object({
+        shareId: z.string(),
+        expiresAt: z.date().nullable().optional(),
+        maxAccesses: z.number().min(1).max(100).nullable().optional(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const share = await prisma.temporaryPasswordShare.findUnique({
+        where: { id: input.shareId },
+        include: {
+          password: { select: { id: true, name: true } },
+        },
+      })
+
+      if (!share) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Share not found" })
+      }
+
+      if (share.createdBy !== ctx.userId) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You can only modify shares you created",
+        })
+      }
+
+      if (share.revokedAt) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Cannot modify a revoked share",
+        })
+      }
+
+      const data: Prisma.TemporaryPasswordShareUpdateInput = {}
+      if (input.expiresAt !== undefined) {
+        data.expiresAt = input.expiresAt
+      }
+      if (input.maxAccesses !== undefined) {
+        data.maxAccesses = input.maxAccesses
+      }
+
+      const updated = await prisma.temporaryPasswordShare.update({
+        where: { id: input.shareId },
+        data,
+        select: {
+          id: true,
+          expiresAt: true,
+          maxAccesses: true,
+        },
+      })
+
+      const { createAuditLog } = await import("@/lib/audit-log")
+      await createAuditLog({
+        action: "TEMPORARY_PASSWORD_SHARE_UPDATED",
+        resource: "Password",
+        resourceId: share.passwordId,
+        details: {
+          passwordName: share.password.name,
+          shareId: input.shareId,
+          expiresAt: input.expiresAt?.toISOString() ?? null,
+          maxAccesses: input.maxAccesses ?? null,
+        },
+        userId: ctx.userId,
+      })
+
+      return { success: true, share: updated }
+    }),
+
+  listMyTeamPasswordShares: protectedProcedure("password.view")
+    .input(
+      z.object({
+        search: z.string().optional(),
+        status: z.enum(["all", "active", "expired"]).optional(),
+        page: z.number().min(1).default(1),
+        pageSize: z.number().min(1).max(100).default(20),
+      }).optional()
+    )
+    .query(async ({ input, ctx }) => {
+      const page = input?.page ?? 1
+      const pageSize = input?.pageSize ?? 20
+
+      const shares = await prisma.passwordShare.findMany({
+        where: {
+          teamId: { not: null },
+          password: {
+            ownerId: ctx.userId,
+            ...(input?.search
+              ? {
+                  name: { contains: input.search, mode: "insensitive" },
+                }
+              : {}),
+          },
+        },
+        select: {
+          id: true,
+          permission: true,
+          createdAt: true,
+          expiresAt: true,
+          password: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+            },
+          },
+          team: {
+            select: {
+              id: true,
+              name: true,
+              _count: { select: { members: true } },
+            },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      })
+
+      const now = new Date()
+      const enriched = shares.map((s) => ({
+        id: s.id,
+        passwordId: s.password.id,
+        passwordName: s.password.name,
+        passwordUsername: s.password.username,
+        teamId: s.team?.id ?? null,
+        teamName: s.team?.name ?? null,
+        teamMemberCount: s.team?._count.members ?? 0,
+        permission: s.permission,
+        expiresAt: s.expiresAt,
+        createdAt: s.createdAt,
+        status:
+          s.expiresAt && s.expiresAt < now
+            ? ("expired" as const)
+            : ("active" as const),
       }))
+
+      const filtered =
+        input?.status && input.status !== "all"
+          ? enriched.filter((s) => s.status === input!.status)
+          : enriched
+
+      const total = filtered.length
+      const totalPages = Math.max(1, Math.ceil(total / pageSize))
+      const safePage = Math.min(page, totalPages)
+      const start = (safePage - 1) * pageSize
+      const paged = filtered.slice(start, start + pageSize)
+
+      return {
+        shares: paged,
+        pagination: {
+          page: safePage,
+          pageSize,
+          total,
+          totalPages,
+        },
+      }
+    }),
+
+  getShareStats: protectedProcedure("password.view")
+    .query(async ({ ctx }) => {
+      const now = new Date()
+
+      const [tempShares, teamShares] = await Promise.all([
+        prisma.temporaryPasswordShare.findMany({
+          where: { createdBy: ctx.userId },
+          select: {
+            id: true,
+            accessCount: true,
+            maxAccesses: true,
+            expiresAt: true,
+            revokedAt: true,
+          },
+        }),
+        prisma.passwordShare.findMany({
+          where: {
+            teamId: { not: null },
+            password: { ownerId: ctx.userId },
+          },
+          select: {
+            id: true,
+            expiresAt: true,
+          },
+        }),
+      ])
+
+      let tempActive = 0
+      let tempRevoked = 0
+      let tempExpired = 0
+      let tempExhausted = 0
+      let tempTotalAccesses = 0
+      for (const s of tempShares) {
+        tempTotalAccesses += s.accessCount
+        if (s.revokedAt) {
+          tempRevoked++
+        } else if (s.expiresAt && s.expiresAt < now) {
+          tempExpired++
+        } else if (s.maxAccesses && s.accessCount >= s.maxAccesses) {
+          tempExhausted++
+        } else {
+          tempActive++
+        }
+      }
+
+      let teamActive = 0
+      let teamExpired = 0
+      for (const s of teamShares) {
+        if (s.expiresAt && s.expiresAt < now) {
+          teamExpired++
+        } else {
+          teamActive++
+        }
+      }
+
+      return {
+        temporary: {
+          total: tempShares.length,
+          active: tempActive,
+          revoked: tempRevoked,
+          expired: tempExpired,
+          exhausted: tempExhausted,
+          totalAccesses: tempTotalAccesses,
+        },
+        team: {
+          total: teamShares.length,
+          active: teamActive,
+          expired: teamExpired,
+        },
+      }
     }),
 
   revokeTemporaryShare: protectedProcedure("password.share")
@@ -4764,6 +5066,61 @@ export const passwordsRouter = createTRPCRouter({
       })
 
       return { success: true }
+    }),
+
+  getTemporaryShareAccessLog: protectedProcedure("password.view")
+    .input(
+      z.object({
+        shareId: z.string(),
+        page: z.number().min(1).default(1),
+        pageSize: z.number().min(1).max(100).default(20),
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      const share = await prisma.temporaryPasswordShare.findUnique({
+        where: { id: input.shareId },
+        select: { id: true, createdBy: true },
+      })
+
+      if (!share) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Share not found" })
+      }
+      if (share.createdBy !== ctx.userId) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You can only view access logs for shares you created",
+        })
+      }
+
+      const page = input.page
+      const pageSize = input.pageSize
+
+      const [total, accesses] = await Promise.all([
+        prisma.temporaryShareAccess.count({ where: { shareId: input.shareId } }),
+        prisma.temporaryShareAccess.findMany({
+          where: { shareId: input.shareId },
+          orderBy: { accessedAt: "desc" },
+          skip: (page - 1) * pageSize,
+          take: pageSize,
+          select: {
+            id: true,
+            accessedAt: true,
+            ipAddress: true,
+            userAgent: true,
+          },
+        }),
+      ])
+
+      const totalPages = Math.max(1, Math.ceil(total / pageSize))
+      return {
+        accesses,
+        pagination: {
+          page: Math.min(page, totalPages),
+          pageSize,
+          total,
+          totalPages,
+        },
+      }
     }),
 })
 

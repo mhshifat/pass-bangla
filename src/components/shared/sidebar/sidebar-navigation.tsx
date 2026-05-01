@@ -71,6 +71,7 @@ const navigationStructure = [
       { nameKey: "passwords.duplicates.title", href: "/admin/passwords/duplicates", permission: "password.view" },
       { nameKey: "passwords.breach.title", href: "/admin/passwords/breaches", permission: "password.view" },
       { nameKey: "passwords.rotation.title", href: "/admin/passwords/rotation", permission: "password.view" },
+      { nameKey: "passwords.shares.title", href: "/admin/passwords/shares", permission: "password.view" },
     ],
   },
   {
@@ -291,6 +292,7 @@ export function SidebarNavigation({ isCollapsed }: SidebarNavigationProps) {
                         child.href === "/admin/passwords/duplicates" ? "tour-duplicate-detection" :
                         child.href === "/admin/passwords/breaches" ? "tour-breach-detection" :
                         child.href === "/admin/passwords/rotation" ? "tour-rotation" :
+                        child.href === "/admin/passwords/shares" ? "tour-shares" :
                         child.href === "/admin/settings/general" ? "tour-settings-general" :
                         child.href === "/admin/settings/email" ? "tour-settings-email" :
                         child.href === "/admin/settings/security" ? "tour-settings-security" :
