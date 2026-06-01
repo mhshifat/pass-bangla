@@ -1,6 +1,11 @@
 import nodemailer from "nodemailer"
 import type { Transporter } from "nodemailer"
 import prisma from "@/lib/prisma"
+import {
+  isBytloopMailConfigured,
+  getBytloopMailFrom,
+  sendEmailViaBytloopMailApi,
+} from "@/lib/bytloop-mail"
 
 interface EmailConfig {
   host: string
@@ -145,10 +150,43 @@ export async function sendEmail(options: {
   subject: string
   html?: string
   text?: string
+  replyTo?: string
+  correlationId?: string
 }): Promise<{ success: boolean; error?: string }> {
+  // Prefer the hosted Bytloop Mail HTTP API when an API key is configured.
+  // Falls back to SMTP/nodemailer (below) when it is not.
+  if (isBytloopMailConfigured()) {
+    try {
+      // Resolve the From address: explicit Bytloop From env, else the
+      // SMTP-configured From, else a last-resort default.
+      const config = await getEmailConfig().catch(() => null)
+      const from =
+        getBytloopMailFrom() ||
+        config?.from ||
+        "no-reply@passbangla.com"
+
+      await sendEmailViaBytloopMailApi({
+        from,
+        to: [options.to],
+        subject: options.subject,
+        html: options.html,
+        text: options.text,
+        replyTo: options.replyTo,
+        correlationId: options.correlationId,
+      })
+      return { success: true }
+    } catch (error) {
+      console.error("Bytloop Mail send failed:", error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Failed to send email via Bytloop Mail",
+      }
+    }
+  }
+
   try {
     const transporter = await getTransporter()
-    
+
     if (!transporter) {
       return {
         success: false,
@@ -202,6 +240,12 @@ export async function sendEmail(options: {
 // Helper to test email configuration
 export async function testEmailConfig(): Promise<{ success: boolean; error?: string }> {
   try {
+    // The Bytloop HTTP API has no connection to "verify"; if it's configured,
+    // treat the configuration as valid (a real failure surfaces on send).
+    if (isBytloopMailConfigured()) {
+      return { success: true }
+    }
+
     const transporter = await getTransporter()
     
     if (!transporter) {

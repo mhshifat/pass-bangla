@@ -736,23 +736,25 @@ export const usersRouter = createTRPCRouter({
         })
       }
 
-      // Send email using nodemailer
+      // Send email using the themed transactional mailer
       const { sendEmail } = await import("@/lib/mailer")
+      const { renderEmailLayout, escapeHtml, APP_NAME } = await import(
+        "@/lib/email-template"
+      )
       const emailResult = await sendEmail({
         to: user.email,
         subject: input.subject,
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #333;">${input.subject}</h2>
-            <div style="background-color: #f5f5f5; padding: 20px; border-radius: 5px; margin: 20px 0;">
-              <p style="color: #555; white-space: pre-wrap;">${input.message}</p>
-            </div>
-            <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
-            <p style="color: #999; font-size: 12px;">
-              This email was sent from Password Storage application.
+        html: renderEmailLayout({
+          title: input.subject,
+          heading: input.subject,
+          preview: input.message.slice(0, 140),
+          bodyHtml: `
+            <div style="white-space: pre-wrap;">${escapeHtml(input.message)}</div>
+            <p style="font-size: 13px; color: #737373; margin: 28px 0 0;">
+              This email was sent from the ${APP_NAME} application.
             </p>
-          </div>
-        `,
+          `,
+        }),
         text: input.message,
       })
 

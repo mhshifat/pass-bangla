@@ -1,6 +1,7 @@
 import crypto from "crypto"
 import prisma from "@/lib/prisma"
 import { sendEmail } from "./mailer"
+import { renderEmailLayout, emailButton, emailLinkFallback, APP_NAME } from "./email-template"
 
 /**
  * Generate a secure random token for email verification
@@ -86,56 +87,31 @@ export async function sendVerificationEmail(
     const emailResult = await sendEmail({
       to: email,
       subject: "Verify your email address",
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        </head>
-        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-            <h1 style="color: white; margin: 0;">Verify Your Email</h1>
-          </div>
-          <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px;">
-            <p style="font-size: 16px; margin-bottom: 20px;">Hello,</p>
-            <p style="font-size: 16px; margin-bottom: 20px;">
-              Thank you for registering with PassBangla! Please verify your email address by clicking the button below:
-            </p>
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="${verificationUrl}" 
-                 style="display: inline-block; background: #667eea; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">
-                Verify Email Address
-              </a>
-            </div>
-            <p style="font-size: 14px; color: #666; margin-top: 30px;">
-              Or copy and paste this link into your browser:
-            </p>
-            <p style="font-size: 12px; color: #999; word-break: break-all; background: #fff; padding: 10px; border-radius: 4px; border: 1px solid #e5e7eb;">
-              ${verificationUrl}
-            </p>
-            <p style="font-size: 14px; color: #666; margin-top: 30px;">
-              This link will expire in 24 hours. If you didn't create an account, you can safely ignore this email.
-            </p>
-            <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
-            <p style="font-size: 12px; color: #999; text-align: center; margin: 0;">
-              © ${new Date().getFullYear()} PassBangla. All rights reserved.
-            </p>
-          </div>
-        </body>
-        </html>
-      `,
-      text: `
-        Verify Your Email
-        
-        Thank you for registering with PassBangla! Please verify your email address by visiting the following link:
-        
-        ${verificationUrl}
-        
-        This link will expire in 24 hours. If you didn't create an account, you can safely ignore this email.
-        
-        © ${new Date().getFullYear()} PassBangla. All rights reserved.
-      `,
+      html: renderEmailLayout({
+        title: "Verify your email address",
+        heading: "Verify your email",
+        preview: `Confirm your email address to finish setting up your ${APP_NAME} account.`,
+        bodyHtml: `
+          <p style="margin: 0 0 16px;">Hello,</p>
+          <p style="margin: 0 0 8px;">
+            Thanks for registering with ${APP_NAME}. Please confirm your email address by clicking the button below.
+          </p>
+          ${emailButton(verificationUrl, "Verify email address")}
+          ${emailLinkFallback(verificationUrl)}
+          <p style="font-size: 14px; color: #737373; margin: 24px 0 0;">
+            This link will expire in 24 hours. If you didn't create an account, you can safely ignore this email.
+          </p>
+        `,
+      }),
+      text: `Verify your email
+
+Thanks for registering with ${APP_NAME}. Please confirm your email address by visiting the following link:
+
+${verificationUrl}
+
+This link will expire in 24 hours. If you didn't create an account, you can safely ignore this email.
+
+© ${new Date().getFullYear()} ${APP_NAME}. All rights reserved.`,
     })
 
     return emailResult

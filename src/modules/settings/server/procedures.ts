@@ -116,6 +116,9 @@ export const settingsRouter = createTRPCRouter({
     )
     .mutation(async ({ input }) => {
       const { testEmailConfig, sendEmail } = await import("@/lib/mailer")
+      const { renderEmailLayout, emailCallout, APP_NAME } = await import(
+        "@/lib/email-template"
+      )
 
       // First verify the configuration
       const testResult = await testEmailConfig()
@@ -129,25 +132,25 @@ export const settingsRouter = createTRPCRouter({
       // Send a test email
       const emailResult = await sendEmail({
         to: input.testEmail,
-        subject: "Test Email from PassBangla",
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #333;">Email Configuration Test</h2>
-            <div style="background-color: #f0f9ff; padding: 20px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #3b82f6;">
-              <p style="color: #1e40af; margin: 0;">
-                ✓ Your email configuration is working correctly!
-              </p>
-            </div>
-            <p style="color: #555;">
-              This is a test email sent from your PassBangla application to verify that your SMTP settings are configured correctly.
+        subject: `Test email from ${APP_NAME}`,
+        html: renderEmailLayout({
+          title: `Test email from ${APP_NAME}`,
+          heading: "Email configuration test",
+          preview: "Your email configuration is working correctly.",
+          bodyHtml: `
+            ${emailCallout(
+              "✓ Your email configuration is working correctly.",
+              "success"
+            )}
+            <p style="margin: 0 0 8px;">
+              This is a test email sent from your ${APP_NAME} application to verify that your email delivery is configured correctly.
             </p>
-            <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
-            <p style="color: #999; font-size: 12px;">
+            <p style="font-size: 13px; color: #737373; margin: 24px 0 0;">
               Sent at: ${new Date().toLocaleString()}
             </p>
-          </div>
-        `,
-        text: "Email configuration test successful! Your SMTP settings are working correctly.",
+          `,
+        }),
+        text: `Email configuration test successful! Your ${APP_NAME} email delivery is working correctly.`,
       })
 
       if (!emailResult.success) {

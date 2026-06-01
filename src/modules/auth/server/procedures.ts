@@ -1707,27 +1707,29 @@ export const authRouter = createTRPCRouter({
 
             const { generateMfaCode, storeMfaCode } = await import("@/lib/mfa-codes")
             const { sendEmail } = await import("@/lib/mailer")
-            
+            const { renderEmailLayout, emailCodeBlock, APP_NAME } = await import(
+                "@/lib/email-template"
+            )
+
             const code = generateMfaCode()
             storeMfaCode(user.id, "EMAIL", code)
-            
+
             const result = await sendEmail({
                 to: user.email,
-                subject: "Your Password Storage Verification Code",
-                html: `
-                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                        <h2 style="color: #333;">Verification Code</h2>
-                        <p>Your verification code is:</p>
-                        <div style="background-color: #f5f5f5; padding: 20px; border-radius: 5px; margin: 20px 0; text-align: center;">
-                            <h1 style="color: #333; font-size: 32px; letter-spacing: 4px; margin: 0;">${code}</h1>
-                        </div>
-                        <p style="color: #666; font-size: 14px;">This code will expire in 10 minutes.</p>
-                        <p style="color: #999; font-size: 12px; margin-top: 20px;">
-                            If you didn't request this code, please ignore this email.
+                subject: `Your ${APP_NAME} verification code`,
+                html: renderEmailLayout({
+                    title: `Your ${APP_NAME} verification code`,
+                    heading: "Verification code",
+                    preview: "Your one-time verification code.",
+                    bodyHtml: `
+                        <p style="margin: 0 0 8px;">Use the verification code below to continue:</p>
+                        ${emailCodeBlock(code)}
+                        <p style="font-size: 14px; color: #737373; margin: 0;">
+                            This code will expire in 10 minutes. If you didn't request this code, you can safely ignore this email.
                         </p>
-                    </div>
-                `,
-                text: `Your Password Storage verification code is: ${code}. This code will expire in 10 minutes.`,
+                    `,
+                }),
+                text: `Your ${APP_NAME} verification code is: ${code}. This code will expire in 10 minutes.`,
             })
 
             if (!result.success) {
