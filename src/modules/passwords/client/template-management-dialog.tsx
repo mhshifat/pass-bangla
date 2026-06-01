@@ -48,7 +48,7 @@ const templateSchema = z.object({
   service: z.string().optional(),
   icon: z.string().optional(),
   category: z.string().optional(),
-  isPublic: z.boolean().default(false),
+  isPublic: z.boolean(),
   defaultFields: z.object({
     name: z.string().optional(),
     username: z.string().optional(),

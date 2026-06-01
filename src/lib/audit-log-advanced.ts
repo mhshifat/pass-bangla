@@ -2,7 +2,7 @@
 
 import prisma from "@/lib/prisma"
 import { createAuditLog } from "@/lib/audit-log"
-import { Prisma } from "@/app/generated"
+import { Prisma, type AuditStatus } from "@/app/generated"
 
 export interface AuditLogArchiveConfig {
   archiveOlderThanDays: number
@@ -435,7 +435,7 @@ export async function searchAuditLogsAdvanced(
   }
 
   if (filters.statuses && filters.statuses.length > 0) {
-    where.status = { in: filters.statuses }
+    where.status = { in: filters.statuses as AuditStatus[] }
   }
 
   if (filters.userIds && filters.userIds.length > 0) {
@@ -455,9 +455,9 @@ export async function searchAuditLogsAdvanced(
 
   if (filters.hasDetails !== undefined) {
     if (filters.hasDetails) {
-      where.details = { not: null }
+      where.details = { not: Prisma.DbNull }
     } else {
-      where.details = null
+      where.details = { equals: Prisma.DbNull }
     }
   }
 

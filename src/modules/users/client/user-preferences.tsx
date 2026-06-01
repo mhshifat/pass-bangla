@@ -55,7 +55,7 @@ export function UserPreferences({ user, onUpdate }: UserPreferencesProps) {
 
   const form = useForm<PreferencesFormValues>({
     resolver: zodResolver(preferencesSchema),
-    defaultValues: defaultPreferences,
+    defaultValues: defaultPreferences as PreferencesFormValues,
   })
 
   // Sync theme when preferences are loaded

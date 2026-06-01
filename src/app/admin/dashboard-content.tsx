@@ -6,14 +6,15 @@ import { DashboardActivities } from "./dashboard-activities"
 import { DashboardAlerts } from "./dashboard-alerts"
 import { DashboardHealth } from "./dashboard-health"
 import { GettingStartedChecklist, StartTourButton } from "@/modules/onboarding/client"
+import { Stagger, StaggerItem } from "@/components/motion"
 
 export function DashboardContent() {
   const { t } = useTranslation()
 
   return (
-    <div className="p-6 space-y-6" id="tour-dashboard">
+    <Stagger className="p-6 space-y-6" id="tour-dashboard">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <StaggerItem className="flex items-start justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">{t("dashboard.title")}</h1>
           <p className="text-muted-foreground mt-1">
@@ -21,21 +22,27 @@ export function DashboardContent() {
           </p>
         </div>
         <StartTourButton />
-      </div>
+      </StaggerItem>
 
       {/* Getting Started Checklist */}
-      <GettingStartedChecklist />
+      <StaggerItem>
+        <GettingStartedChecklist />
+      </StaggerItem>
 
       {/* Stats Grid */}
-      <DashboardStats />
+      <StaggerItem>
+        <DashboardStats />
+      </StaggerItem>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <StaggerItem className="grid gap-6 lg:grid-cols-2">
         <DashboardActivities />
         <DashboardAlerts />
-      </div>
+      </StaggerItem>
 
-      <DashboardHealth />
-    </div>
+      <StaggerItem>
+        <DashboardHealth />
+      </StaggerItem>
+    </Stagger>
   )
 }
 

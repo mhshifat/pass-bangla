@@ -83,7 +83,15 @@ export function ActivityTimeline({ userId }: ActivityTimelineProps) {
     )
   }
 
-  const logs = data?.logs || []
+  const logs = (data?.logs ?? []) as unknown as Array<{
+    id: string
+    action: string
+    status: string
+    resource: string
+    resourceId?: string | null
+    ipAddress?: string | null
+    createdAt: string | Date
+  }>
   const pagination = data?.pagination
 
   if (logs.length === 0) {

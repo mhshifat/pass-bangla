@@ -4,7 +4,9 @@ function Skeleton({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="skeleton"
-      className={cn("bg-accent animate-pulse rounded-md", className)}
+      // `pb-shimmer` adds a sweeping highlight (see globals.css); it gracefully
+      // becomes a static block under reduced-motion.
+      className={cn("bg-accent pb-shimmer rounded-md", className)}
       {...props}
     />
   )

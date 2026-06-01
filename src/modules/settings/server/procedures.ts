@@ -1,5 +1,6 @@
 
 import prisma from "@/lib/prisma"
+import { Prisma } from "@/app/generated"
 import { baseProcedure, createTRPCRouter, protectedProcedure } from "@/trpc/init"
 import z from "zod"
 import { TRPCError } from "@trpc/server"
@@ -1110,8 +1111,8 @@ export const settingsRouter = createTRPCRouter({
           .map((setting) =>
             prisma.settings.upsert({
               where: { key: setting.key },
-              update: { value: setting.value },
-              create: { key: setting.key, value: setting.value },
+              update: { value: setting.value as Prisma.InputJsonValue },
+              create: { key: setting.key, value: setting.value as Prisma.InputJsonValue },
             })
           )
       )
@@ -1172,7 +1173,7 @@ export const settingsRouter = createTRPCRouter({
 
       const [threats, total] = await Promise.all([
         prisma.threatEvent.findMany({
-          where,
+          where: where as Prisma.ThreatEventWhereInput,
           include: {
             user: {
               select: {
@@ -1188,7 +1189,7 @@ export const settingsRouter = createTRPCRouter({
           skip: (input.page - 1) * input.limit,
           take: input.limit,
         }),
-        prisma.threatEvent.count({ where }),
+        prisma.threatEvent.count({ where: where as Prisma.ThreatEventWhereInput }),
       ])
 
       return {

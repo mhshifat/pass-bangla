@@ -51,10 +51,10 @@ export function SearchHistory({ onSelect, className, limit = 10 }: SearchHistory
     if (item.query) {
       params.set("search", item.query)
     }
-    if (item.tagIds?.length > 0) {
+    if (item.tagIds && item.tagIds.length > 0) {
       params.set("tags", item.tagIds.join(","))
     }
-    if (item.folderIds?.length > 0) {
+    if (item.folderIds && item.folderIds.length > 0) {
       params.set("folders", item.folderIds.join(","))
     }
     if (item.filter) {

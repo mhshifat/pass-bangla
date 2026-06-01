@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useState, useTransition } from "react"
 import { useTranslation } from "react-i18next"
-import { Trash2, Loader2, AlertTriangle } from "lucide-react"
+import { Trash2, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -23,6 +23,11 @@ interface BulkDeleteDialogProps {
   onOpenChange: (open: boolean) => void
   passwordIds: string[]
   onSuccess?: () => void
+  /**
+   * Called the instant the user confirms, before the server responds, so the
+   * caller can optimistically remove the rows from its list.
+   */
+  onOptimisticRemove?: (ids: string[]) => void
 }
 
 export function BulkDeleteDialog({
@@ -30,33 +35,37 @@ export function BulkDeleteDialog({
   onOpenChange,
   passwordIds,
   onSuccess,
+  onOptimisticRemove,
 }: BulkDeleteDialogProps) {
   const { t } = useTranslation()
-  const [isDeleting, setIsDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [isPending, startTransition] = useTransition()
+  const [, startTransition] = useTransition()
 
-  const handleDelete = async () => {
-    setIsDeleting(true)
+  const handleDelete = () => {
     setError(null)
+
+    // Optimistically remove the rows and close the dialog immediately; the
+    // server call runs in the background and the list reconciles on settle.
+    const ids = passwordIds
+    onOptimisticRemove?.(ids)
+    onOpenChange(false)
 
     startTransition(async () => {
       try {
-        const result = await bulkDeletePasswordsAction({
-          passwordIds,
-        })
+        const result = await bulkDeletePasswordsAction({ passwordIds: ids })
 
         if (result.success) {
           toast.success(
             t("passwords.bulk.deleteSuccess", { count: result.deleted })
           )
-          onSuccess?.()
-          handleClose()
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : t("passwords.bulk.deleteError"))
+        toast.error(
+          err instanceof Error ? err.message : t("passwords.bulk.deleteError")
+        )
       } finally {
-        setIsDeleting(false)
+        // Reconcile the underlying list (restores rows if the delete failed).
+        onSuccess?.()
       }
     })
   }
@@ -91,21 +100,12 @@ export function BulkDeleteDialog({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={handleClose} disabled={isDeleting || isPending}>
+          <Button variant="outline" onClick={handleClose}>
             {t("common.cancel")}
           </Button>
-          <Button variant="destructive" onClick={handleDelete} disabled={isDeleting || isPending}>
-            {isDeleting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {t("passwords.bulk.deleting")}
-              </>
-            ) : (
-              <>
-                <Trash2 className="mr-2 h-4 w-4" />
-                {t("common.delete")}
-              </>
-            )}
+          <Button variant="destructive" onClick={handleDelete}>
+            <Trash2 className="mr-2 h-4 w-4" />
+            {t("common.delete")}
           </Button>
         </DialogFooter>
       </DialogContent>

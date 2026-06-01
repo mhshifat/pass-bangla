@@ -9,7 +9,7 @@
 
 import crypto from "crypto"
 import type { PrismaClient as GeneratedPrismaClient } from "@/app/generated"
-import type { PrismaClient as StandardPrismaClient } from "@prisma/client"
+import type { PrismaClient as StandardPrismaClient } from "@/app/generated"
 
 type PrismaClientLike = GeneratedPrismaClient | StandardPrismaClient
 
@@ -45,7 +45,7 @@ async function getPrisma(): Promise<PrismaClientLike> {
       const errorCode = isRecord(error) && typeof error.code === "string" ? error.code : undefined
       const errorMessage = error instanceof Error ? error.message : ""
       if (errorCode === "MODULE_NOT_FOUND" || errorMessage.includes("Cannot find module")) {
-        const { PrismaClient } = await import("@prisma/client")
+        const { PrismaClient } = await import("@/app/generated")
         const { PrismaPg } = await import("@prisma/adapter-pg")
         
         if (!process.env.DATABASE_URL) {
@@ -328,7 +328,7 @@ export async function migrateUserPasswords(userId: string): Promise<{
   })
 
   const results = await Promise.all(
-    passwords.map((pwd) => migratePassword(pwd.id))
+    passwords.map((pwd: { id: string }) => migratePassword(pwd.id))
   )
 
   const migrated = results.filter((r) => r.success).length
@@ -386,7 +386,7 @@ export async function migrateAllPasswords(options: {
     })
 
     const results = await Promise.all(
-      passwords.map((pwd) => migratePassword(pwd.id))
+      passwords.map((pwd: { id: string }) => migratePassword(pwd.id))
     )
 
     for (const result of results) {

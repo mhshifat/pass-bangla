@@ -339,7 +339,7 @@ export function TemplatesPageClient() {
             setEditingTemplate(null)
           }
         }}
-        template={editingTemplate}
+        template={editingTemplate as Parameters<typeof TemplateManagementDialog>[0]["template"]}
         onSuccess={async () => {
           await refetch()
         }}

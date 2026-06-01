@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useOptimistic, startTransition } from "react"
 import { useActionState } from "react"
 import { useRouter } from "next/navigation"
 import {
@@ -117,6 +117,18 @@ interface PasswordsListClientProps {
 export function PasswordsListClient({ passwords, pagination }: PasswordsListClientProps) {
   const router = useRouter()
   const { hasPermission } = usePermissions()
+
+  // Optimistic list: removals reflect instantly. The optimistic state is scoped
+  // to the surrounding transition and automatically reconciles with the real
+  // `passwords` prop once `router.refresh()` re-runs the server component (so a
+  // failed delete reappears, a successful one stays gone).
+  const [optimisticPasswords, removeOptimisticPasswords] = useOptimistic(
+    passwords,
+    (state: Password[], idsToRemove: string[]) => {
+      const set = new Set(idsToRemove)
+      return state.filter((p) => !set.has(p.id))
+    }
+  )
   const [selectedPassword, setSelectedPassword] = useState<Password | null>(null)
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
@@ -196,20 +208,32 @@ export function PasswordsListClient({ passwords, pagination }: PasswordsListClie
     setIsDeleteDialogOpen(true)
   }
 
-  const confirmDelete = async () => {
+  const confirmDelete = () => {
     if (!passwordToDelete) return
+    const id = passwordToDelete
 
-    try {
-      const result = await deletePasswordAction(passwordToDelete)
-      if (result.success) {
-        toast.success("Password deleted successfully")
-        setIsDeleteDialogOpen(false)
-        setPasswordToDelete(null)
+    // Close the dialog immediately — the row disappears optimistically and the
+    // server call runs in the background, so the UI never freezes.
+    setIsDeleteDialogOpen(false)
+    setPasswordToDelete(null)
+
+    startTransition(async () => {
+      removeOptimisticPasswords([id])
+      try {
+        const result = await deletePasswordAction(id)
+        if (result.success) {
+          toast.success("Password deleted successfully")
+        } else if (result.error) {
+          showErrorFromException(result.error, "Failed to delete password")
+        }
+      } catch (error) {
+        showErrorFromException(error, "Failed to delete password")
+      } finally {
+        // Reconcile with the server: keeps the row gone on success, restores it
+        // on failure.
         router.refresh()
-      } else if (result.error) {
-        showErrorFromException(result.error, "Failed to delete password")
       }
-    } catch (error) { showErrorFromException(error, "Failed to delete password") }
+    })
   }
 
   const handleShare = (password: Password) => {
@@ -226,11 +250,19 @@ export function PasswordsListClient({ passwords, pagination }: PasswordsListClie
     router.refresh()
   }
 
+  // Called by the bulk-delete dialog the moment the user confirms, so the rows
+  // vanish instantly while the server processes the deletion.
+  const handleOptimisticRemove = (ids: string[]) => {
+    startTransition(() => {
+      removeOptimisticPasswords(ids)
+    })
+  }
+
   return (
     <>
       <div className="pb-20">
         <PasswordsTable
-          passwords={passwords}
+          passwords={optimisticPasswords}
           onViewDetails={handleViewDetails}
           onEdit={handleEdit}
           onDelete={handleDelete}
@@ -276,11 +308,21 @@ export function PasswordsListClient({ passwords, pagination }: PasswordsListClie
           key={`${passwordToEdit.id}-${editKey}`}
           open={isEditDialogOpen}
           onOpenChange={handleEditDialogClose}
-          password={passwordData ? {
+          password={passwordData ? ({
             ...passwordData,
             passwordEncrypted: passwordData.passwordEncrypted ?? false,
             totpEncrypted: passwordData.totpEncrypted ?? false,
-          } : undefined}
+          } as {
+            id: string
+            name: string
+            username: string
+            password: string
+            url?: string | null
+            folderId?: string | null
+            notes?: string | null
+            hasTotp: boolean
+            totpSecret?: string | null
+          }) : undefined}
           passwordId={passwordToEdit.id}
         />
       )}
@@ -319,6 +361,7 @@ export function PasswordsListClient({ passwords, pagination }: PasswordsListClie
         onOpenChange={setIsBulkDeleteOpen}
         passwordIds={selectedIds}
         onSuccess={handleBulkSuccess}
+        onOptimisticRemove={handleOptimisticRemove}
       />
       <BulkMoveDialog
         open={isBulkMoveOpen}

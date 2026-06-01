@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
-import { trpc } from "@/trpc/client"
+import { trpc, type RouterOutputs } from "@/trpc/client"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import {
@@ -37,13 +37,8 @@ type SavedSearchParams = {
   filter?: string
 }
 
-interface SavedSearch {
-  id: string
-  name: string
-  description?: string | null
-  searchParams: SavedSearchParams
-  isShared?: boolean
-}
+// Derive the saved-search item shape from the server output so it stays in sync.
+type SavedSearch = RouterOutputs["passwords"]["listSavedSearches"]["savedSearches"][number]
 
 interface SavedSearchesProps {
   onExecute?: (searchParams: SavedSearchParams) => void
@@ -71,10 +66,10 @@ export function SavedSearches({ onExecute, className }: SavedSearchesProps) {
         if (result.searchParams.search) {
           params.set("search", result.searchParams.search)
         }
-        if (result.searchParams.tagIds?.length > 0) {
+        if (result.searchParams.tagIds && result.searchParams.tagIds.length > 0) {
           params.set("tags", result.searchParams.tagIds.join(","))
         }
-        if (result.searchParams.folderIds?.length > 0) {
+        if (result.searchParams.folderIds && result.searchParams.folderIds.length > 0) {
           params.set("folders", result.searchParams.folderIds.join(","))
         }
         if (result.searchParams.filter) {
@@ -257,10 +252,16 @@ export function SavedSearches({ onExecute, className }: SavedSearchesProps) {
           }}
           initialValues={{
             query: editingSearch.query || "",
-            searchFields: editingSearch.searchFields || ["name", "username", "url", "notes"],
+            searchFields:
+              (editingSearch.searchFields as ("name" | "username" | "url" | "notes")[]) || [
+                "name",
+                "username",
+                "url",
+                "notes",
+              ],
             folderIds: editingSearch.folderIds || [],
             tagIds: editingSearch.tagIds || [],
-            filter: editingSearch.filter || undefined,
+            filter: (editingSearch.filter as "weak" | "expiring" | "favorites" | undefined) || undefined,
             saveAsName: editingSearch.name || "",
           }}
           mode="edit"

@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils"
 import { OnboardingProvider } from "@/modules/onboarding/client"
 import { CommandPaletteProvider } from "@/modules/quick-actions/client"
 import { useCurrentUser } from "@/hooks/use-current-user"
+import { usePathname } from "next/navigation"
+import { PageTransition } from "@/components/motion"
 
 export function AdminLayoutClient({
   children,
@@ -17,7 +19,8 @@ export function AdminLayoutClient({
   children: React.ReactNode
 }) {
   const [isCollapsed, setIsCollapsed] = React.useState(false)
-  
+  const pathname = usePathname()
+
   // Use the prefetched user data from the server
   const { user, isLoading } = useCurrentUser()
 
@@ -96,7 +99,7 @@ export function AdminLayoutClient({
           {/* Page Content */}
           <main className="flex-1 overflow-y-auto overflow-x-hidden">
             <OnboardingProvider>
-              {children}
+              <PageTransition key={pathname}>{children}</PageTransition>
             </OnboardingProvider>
           </main>
         </div>

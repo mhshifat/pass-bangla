@@ -52,7 +52,7 @@ export function PasswordQrDialog({ passwordId, open, onOpenChange }: PasswordQrD
       ]).then(([decryptedPassword, decryptedTotp]) => {
         setDecryptedData({
           username: password.username,
-          url: password.url,
+          url: password.url ?? undefined,
           password: decryptedPassword,
           totpSecret: decryptedTotp
         })

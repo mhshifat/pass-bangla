@@ -7,6 +7,19 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { BlogContent } from "./blog-content"
 
+interface BlogPostData {
+  title: string
+  description: string
+  category: string
+  date: string
+  readTime: string
+}
+
+interface BlogTranslations {
+  backToBlog: string
+  posts: Record<string, BlogPostData>
+}
+
 interface BlogPostClientProps {
   slug: string
   translations: Record<string, unknown>
@@ -14,12 +27,13 @@ interface BlogPostClientProps {
 }
 
 export function BlogPostClient({ slug, translations, language }: BlogPostClientProps) {
-  const postMap: Record<string, Record<string, unknown>> = {
-    "core-features": translations.posts.coreFeatures,
-    "advanced-search": translations.posts.advancedSearch,
-    "security": translations.posts.security,
-    "team-management": translations.posts.teamManagement,
-    "complete-overview": translations.posts.completeOverview,
+  const tr = translations as unknown as BlogTranslations
+  const postMap: Record<string, BlogPostData> = {
+    "core-features": tr.posts.coreFeatures,
+    "advanced-search": tr.posts.advancedSearch,
+    "security": tr.posts.security,
+    "team-management": tr.posts.teamManagement,
+    "complete-overview": tr.posts.completeOverview,
   }
 
   const post = postMap[slug]
@@ -28,11 +42,11 @@ export function BlogPostClient({ slug, translations, language }: BlogPostClientP
   }
 
   const allPosts = [
-    { slug: "core-features", title: translations.posts.coreFeatures.title },
-    { slug: "advanced-search", title: translations.posts.advancedSearch.title },
-    { slug: "security", title: translations.posts.security.title },
-    { slug: "team-management", title: translations.posts.teamManagement.title },
-    { slug: "complete-overview", title: translations.posts.completeOverview.title },
+    { slug: "core-features", title: tr.posts.coreFeatures.title },
+    { slug: "advanced-search", title: tr.posts.advancedSearch.title },
+    { slug: "security", title: tr.posts.security.title },
+    { slug: "team-management", title: tr.posts.teamManagement.title },
+    { slug: "complete-overview", title: tr.posts.completeOverview.title },
   ]
 
   const currentIndex = allPosts.findIndex((p) => p.slug === slug)
@@ -47,7 +61,7 @@ export function BlogPostClient({ slug, translations, language }: BlogPostClientP
           <Button asChild variant="ghost" className="mb-6">
             <Link href="/blogs">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              {translations.backToBlog}
+              {tr.backToBlog}
             </Link>
           </Button>
           <div className="flex items-center gap-2 mb-4">

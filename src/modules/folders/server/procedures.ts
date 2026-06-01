@@ -92,8 +92,8 @@ export const foldersRouter = createTRPCRouter({
           name: input.name,
           description: input.description || null,
           parentId: input.parentId || null,
-          companyId: companyId || null,
-        },
+          ...(companyId ? { companyId } : {}),
+        } as Prisma.FolderUncheckedCreateInput,
         select: {
           id: true,
           name: true,

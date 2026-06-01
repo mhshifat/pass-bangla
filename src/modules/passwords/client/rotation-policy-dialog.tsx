@@ -106,7 +106,7 @@ export function RotationPolicyDialog({
           reminderDays: policy.reminderDays || 7,
           autoRotate: policy.autoRotate || false,
           requireApproval: policy.requireApproval || false,
-          isActive: policy.isActive !== undefined ? policy.isActive : true,
+          isActive: policy.isActive ?? true,
         })
       }, 0)
       return () => clearTimeout(timer)

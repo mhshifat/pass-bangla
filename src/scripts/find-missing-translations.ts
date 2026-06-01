@@ -5,6 +5,7 @@
 
 import * as fs from "fs"
 import * as path from "path"
+// @ts-expect-error - glob ships without bundled type declarations in this setup
 import { glob } from "glob"
 
 interface StringMatch {
@@ -147,7 +148,7 @@ async function main() {
 
   const allMatches: Map<string, StringMatch[]> = new Map()
 
-  files.forEach((file) => {
+  files.forEach((file: string) => {
     const filePath = path.join(srcDir, file)
     const matches = findHardcodedStrings(filePath)
     if (matches.length > 0) {

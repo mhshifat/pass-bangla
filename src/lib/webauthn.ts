@@ -318,3 +318,14 @@ export async function isPlatformAuthenticatorAvailable(): Promise<boolean> {
         return false
     }
 }
+
+/**
+ * Clears any cached WebAuthn credentials/config.
+ *
+ * WebAuthn config is currently read fresh per request (no module-level cache),
+ * so this is a no-op kept for parity with {@link clearSmsCredentialsCache} and
+ * as a safe hook if caching is added later.
+ */
+export function clearWebAuthnCredentialsCache(): void {
+    // no cached state to clear
+}

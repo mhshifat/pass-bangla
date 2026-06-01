@@ -244,7 +244,7 @@ export function AuditLogsContent() {
         </div>
       ) : logsDataToUse && logsDataToUse.logs.length > 0 ? (
         <AuditLogsTable
-          logs={logsDataToUse.logs}
+          logs={logsDataToUse.logs as Parameters<typeof AuditLogsTable>[0]["logs"]}
           actionTypes={actionTypesData || []}
           onViewDetails={handleViewDetails}
           pagination={logsDataToUse.pagination}

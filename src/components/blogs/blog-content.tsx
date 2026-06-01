@@ -7,6 +7,17 @@ interface BlogContentProps {
   language: "en" | "bn"
 }
 
+interface BlogSection {
+  title?: string
+  subtitle?: string
+  paragraphs?: string[]
+  list?: string[]
+}
+
+interface BlogStructuredContent {
+  sections?: BlogSection[]
+}
+
 // Convert slug to camelCase (e.g., "core-features" -> "coreFeatures")
 function slugToCamelCase(slug: string): string {
   return slug
@@ -26,7 +37,9 @@ export function BlogContent({ slug, language }: BlogContentProps) {
   const contentKey = `blog.posts.${camelCaseSlug}.content`
 
   // Get the content from translations
-  const content = t(contentKey, { returnObjects: true }) as Record<string, unknown>
+  const content = t(contentKey, { returnObjects: true }) as unknown as
+    | string
+    | BlogStructuredContent
 
   if (typeof content === "string") {
     // If it's a simple string, render it
@@ -37,7 +50,7 @@ export function BlogContent({ slug, language }: BlogContentProps) {
   if (content && typeof content === "object" && !Array.isArray(content)) {
     return (
       <div className="space-y-8">
-        {content.sections?.map((section: Record<string, unknown>, index: number) => (
+        {content.sections?.map((section, index) => (
           <div key={index} className="space-y-4">
             {section.title && (
               <h2 className="text-3xl font-bold mt-8 mb-4">{section.title}</h2>

@@ -58,7 +58,7 @@ export function DuplicatesPageClient() {
   )
 
   const { data: reusedData, isLoading: reusedLoading, isFetching: reusedFetching, refetch: refetchReused } = trpc.passwords.findReused.useQuery(
-    {},
+    undefined,
     { enabled: true }
   )
 
@@ -631,7 +631,7 @@ export function DuplicatesPageClient() {
       <PasswordDetailsDialog
         open={isViewDialogOpen}
         onOpenChange={setIsViewDialogOpen}
-        password={selectedPassword}
+        password={selectedPassword as Parameters<typeof PasswordDetailsDialog>[0]["password"]}
       />
     </>
   )

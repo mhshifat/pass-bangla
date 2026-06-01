@@ -6,6 +6,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator"
 import { useTranslation } from "@/hooks/use-translation"
 
+interface ChangelogEntry {
+  version?: string
+  date?: string
+  title?: string
+  description?: string
+  changes?: Record<string, string[]>
+}
+
+interface ChangelogTranslations {
+  title: string
+  subtitle: string
+  types: Record<string, string>
+}
+
 interface ChangelogClientProps {
   translations: Record<string, unknown>
   language: "en" | "bn"
@@ -13,9 +27,10 @@ interface ChangelogClientProps {
 
 export function ChangelogClient({ translations, language }: ChangelogClientProps) {
   const { t } = useTranslation()
+  const tr = translations as unknown as ChangelogTranslations
 
   // Get changelog entries from translations
-  const entries = t("changelog.entries", { returnObjects: true }) as Array<{date: string; title: string; type: string}>
+  const entries = t("changelog.entries", { returnObjects: true }) as unknown as ChangelogEntry[]
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -52,15 +67,15 @@ export function ChangelogClient({ translations, language }: ChangelogClientProps
       {/* Hero Section */}
       <section className="py-20 px-4 bg-linear-to-br from-primary/5 via-background to-muted/20">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">{translations.title}</h1>
-          <p className="text-xl text-muted-foreground mb-8">{translations.subtitle}</p>
+          <h1 className="text-4xl md:text-5xl font-bold mb-6">{tr.title}</h1>
+          <p className="text-xl text-muted-foreground mb-8">{tr.subtitle}</p>
         </div>
       </section>
 
       {/* Changelog Entries */}
       <section className="py-12 px-4">
         <div className="max-w-4xl mx-auto space-y-8">
-          {entries && Array.isArray(entries) && entries.map((entry: Record<string, unknown>, index: number) => (
+          {entries && Array.isArray(entries) && entries.map((entry, index: number) => (
             <Card key={index} className="relative">
               <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />
               <CardHeader>
@@ -86,12 +101,12 @@ export function ChangelogClient({ translations, language }: ChangelogClientProps
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {entry.changes && Object.entries(entry.changes as Record<string, Record<string, unknown>[]>).map(([type, items]: [string, Record<string, unknown>[]]) => (
+                  {entry.changes && Object.entries(entry.changes).map(([type, items]) => (
                     <div key={type} className="space-y-2">
                       <div className="flex items-center gap-2 mb-2">
                         {getTypeIcon(type)}
                         <span className="font-semibold text-sm uppercase tracking-wide">
-                          {translations.types[type] || type}
+                          {tr.types[type] || type}
                         </span>
                       </div>
                       {Array.isArray(items) && items.length > 0 && (

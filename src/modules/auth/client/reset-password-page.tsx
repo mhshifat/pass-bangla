@@ -163,7 +163,7 @@ export function ResetPasswordPage() {
                           placeholder={t("auth.password")}
                           className="pl-10"
                           disabled={resetPasswordMutation.isPending}
-                          onGeneratePassword={(password) => {
+                          onGeneratePassword={(password: string) => {
                             form.setValue("newPassword", password)
                             form.setValue("confirmPassword", password)
                           }}

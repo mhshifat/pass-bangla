@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useActionState } from "react"
+import { useActionState, useOptimistic, startTransition } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
@@ -55,6 +55,14 @@ export function RolesActionsClient({ roles, permissions }: RolesActionsClientPro
   const { t } = useTranslation()
   const { hasPermission } = usePermissions()
   const router = useRouter()
+
+  // Optimistic list: a deleted role disappears instantly and reconciles with the
+  // server prop once `router.refresh()` re-runs the server component.
+  const [optimisticRoles, removeOptimisticRole] = useOptimistic(
+    roles,
+    (state: Role[], idToRemove: string) => state.filter((r) => r.id !== idToRemove)
+  )
+
   const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false)
   const [isPermissionsDialogOpen, setIsPermissionsDialogOpen] = React.useState(false)
@@ -106,18 +114,31 @@ export function RolesActionsClient({ roles, permissions }: RolesActionsClientPro
     setIsDeleteDialogOpen(true)
   }
 
-  const confirmDelete = async () => {
-    if (roleToDelete) {
-      const result = await deleteRoleAction(roleToDelete)
-      if (result.error) {
-        showErrorFromException(result.error, t("roles.deleteError"))
-      } else {
-        toast.success(t("roles.roleDeletedSuccess"))
+  const confirmDelete = () => {
+    if (!roleToDelete) return
+    const id = roleToDelete
+
+    // Close immediately; the row disappears optimistically while the server
+    // processes the deletion in the background.
+    setIsDeleteDialogOpen(false)
+    setRoleToDelete(null)
+
+    startTransition(async () => {
+      removeOptimisticRole(id)
+      try {
+        const result = await deleteRoleAction(id)
+        if (result.error) {
+          showErrorFromException(result.error, t("roles.deleteError"))
+        } else {
+          toast.success(t("roles.roleDeletedSuccess"))
+        }
+      } catch (error) {
+        showErrorFromException(error, t("roles.deleteError"))
+      } finally {
+        // Reconcile: keeps the row gone on success, restores it on failure.
         router.refresh()
       }
-      setIsDeleteDialogOpen(false)
-      setRoleToDelete(null)
-    }
+    })
   }
 
   const handleSyncPermissions = async () => {
@@ -157,8 +178,8 @@ export function RolesActionsClient({ roles, permissions }: RolesActionsClientPro
         )}
       </div>
 
-      <RolesTable 
-        roles={roles} 
+      <RolesTable
+        roles={optimisticRoles}
         onViewPermissions={handleViewPermissions}
         onEdit={handleEdit}
         onDelete={handleDelete}

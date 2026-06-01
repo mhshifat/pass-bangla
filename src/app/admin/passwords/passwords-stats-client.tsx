@@ -44,7 +44,7 @@ export function PasswordsStatsClient({ stats }: PasswordsStatsClientProps) {
   return (
     <>
       <div className="grid gap-4 md:grid-cols-4">
-        <Card>
+        <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium">{t("passwords.totalPasswords")}</CardTitle>
           </CardHeader>
@@ -57,7 +57,7 @@ export function PasswordsStatsClient({ stats }: PasswordsStatsClientProps) {
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium">{t("passwords.strongPasswords")}</CardTitle>
           </CardHeader>
@@ -66,7 +66,7 @@ export function PasswordsStatsClient({ stats }: PasswordsStatsClientProps) {
             <p className="text-xs text-muted-foreground">{t("passwords.percentageOfTotal", { percentage: stats.strongPercentage })}</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium">{t("passwords.weakPasswords")}</CardTitle>
           </CardHeader>
@@ -77,7 +77,7 @@ export function PasswordsStatsClient({ stats }: PasswordsStatsClientProps) {
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium">{t("passwords.expiringSoon")}</CardTitle>
           </CardHeader>

@@ -74,6 +74,11 @@ export type PasswordShare = $Result.DefaultSelection<Prisma.$PasswordSharePayloa
  */
 export type TemporaryPasswordShare = $Result.DefaultSelection<Prisma.$TemporaryPasswordSharePayload>
 /**
+ * Model TemporaryShareAccess
+ * 
+ */
+export type TemporaryShareAccess = $Result.DefaultSelection<Prisma.$TemporaryShareAccessPayload>
+/**
  * Model Team
  * 
  */
@@ -593,6 +598,16 @@ export class PrismaClient<
     * ```
     */
   get temporaryPasswordShare(): Prisma.TemporaryPasswordShareDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.temporaryShareAccess`: Exposes CRUD operations for the **TemporaryShareAccess** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more TemporaryShareAccesses
+    * const temporaryShareAccesses = await prisma.temporaryShareAccess.findMany()
+    * ```
+    */
+  get temporaryShareAccess(): Prisma.TemporaryShareAccessDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.team`: Exposes CRUD operations for the **Team** model.
@@ -1349,6 +1364,7 @@ export namespace Prisma {
     Folder: 'Folder',
     PasswordShare: 'PasswordShare',
     TemporaryPasswordShare: 'TemporaryPasswordShare',
+    TemporaryShareAccess: 'TemporaryShareAccess',
     Team: 'Team',
     TeamMember: 'TeamMember',
     Tag: 'Tag',
@@ -1395,7 +1411,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "company" | "user" | "account" | "session" | "password" | "passwordHistory" | "passwordBreach" | "passwordRotationPolicy" | "passwordRotation" | "folder" | "passwordShare" | "temporaryPasswordShare" | "team" | "teamMember" | "tag" | "passwordTag" | "auditLog" | "auditLogArchive" | "auditLogSearch" | "settings" | "threatEvent" | "rateLimit" | "role" | "permission" | "rolePermission" | "mfaCredential" | "recoveryCode" | "passkeyCredential" | "savedSearch" | "searchHistory" | "passwordTemplate" | "emailVerificationToken" | "passwordResetToken" | "securityQuestion" | "ipWhitelist" | "geographicRestriction" | "passwordPolicy" | "dataRetentionPolicy" | "dataExport" | "dataDeletionRequest" | "report" | "reportTemplate" | "scheduledReport"
+      modelProps: "company" | "user" | "account" | "session" | "password" | "passwordHistory" | "passwordBreach" | "passwordRotationPolicy" | "passwordRotation" | "folder" | "passwordShare" | "temporaryPasswordShare" | "temporaryShareAccess" | "team" | "teamMember" | "tag" | "passwordTag" | "auditLog" | "auditLogArchive" | "auditLogSearch" | "settings" | "threatEvent" | "rateLimit" | "role" | "permission" | "rolePermission" | "mfaCredential" | "recoveryCode" | "passkeyCredential" | "savedSearch" | "searchHistory" | "passwordTemplate" | "emailVerificationToken" | "passwordResetToken" | "securityQuestion" | "ipWhitelist" | "geographicRestriction" | "passwordPolicy" | "dataRetentionPolicy" | "dataExport" | "dataDeletionRequest" | "report" | "reportTemplate" | "scheduledReport"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2284,6 +2300,80 @@ export namespace Prisma {
           count: {
             args: Prisma.TemporaryPasswordShareCountArgs<ExtArgs>
             result: $Utils.Optional<TemporaryPasswordShareCountAggregateOutputType> | number
+          }
+        }
+      }
+      TemporaryShareAccess: {
+        payload: Prisma.$TemporaryShareAccessPayload<ExtArgs>
+        fields: Prisma.TemporaryShareAccessFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.TemporaryShareAccessFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TemporaryShareAccessPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.TemporaryShareAccessFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TemporaryShareAccessPayload>
+          }
+          findFirst: {
+            args: Prisma.TemporaryShareAccessFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TemporaryShareAccessPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.TemporaryShareAccessFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TemporaryShareAccessPayload>
+          }
+          findMany: {
+            args: Prisma.TemporaryShareAccessFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TemporaryShareAccessPayload>[]
+          }
+          create: {
+            args: Prisma.TemporaryShareAccessCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TemporaryShareAccessPayload>
+          }
+          createMany: {
+            args: Prisma.TemporaryShareAccessCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.TemporaryShareAccessCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TemporaryShareAccessPayload>[]
+          }
+          delete: {
+            args: Prisma.TemporaryShareAccessDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TemporaryShareAccessPayload>
+          }
+          update: {
+            args: Prisma.TemporaryShareAccessUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TemporaryShareAccessPayload>
+          }
+          deleteMany: {
+            args: Prisma.TemporaryShareAccessDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.TemporaryShareAccessUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.TemporaryShareAccessUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TemporaryShareAccessPayload>[]
+          }
+          upsert: {
+            args: Prisma.TemporaryShareAccessUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TemporaryShareAccessPayload>
+          }
+          aggregate: {
+            args: Prisma.TemporaryShareAccessAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateTemporaryShareAccess>
+          }
+          groupBy: {
+            args: Prisma.TemporaryShareAccessGroupByArgs<ExtArgs>
+            result: $Utils.Optional<TemporaryShareAccessGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.TemporaryShareAccessCountArgs<ExtArgs>
+            result: $Utils.Optional<TemporaryShareAccessCountAggregateOutputType> | number
           }
         }
       }
@@ -4685,6 +4775,7 @@ export namespace Prisma {
     folder?: FolderOmit
     passwordShare?: PasswordShareOmit
     temporaryPasswordShare?: TemporaryPasswordShareOmit
+    temporaryShareAccess?: TemporaryShareAccessOmit
     team?: TeamOmit
     teamMember?: TeamMemberOmit
     tag?: TagOmit
@@ -5501,6 +5592,37 @@ export namespace Prisma {
    */
   export type FolderCountOutputTypeCountPasswordsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: PasswordWhereInput
+  }
+
+
+  /**
+   * Count Type TemporaryPasswordShareCountOutputType
+   */
+
+  export type TemporaryPasswordShareCountOutputType = {
+    accesses: number
+  }
+
+  export type TemporaryPasswordShareCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    accesses?: boolean | TemporaryPasswordShareCountOutputTypeCountAccessesArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * TemporaryPasswordShareCountOutputType without action
+   */
+  export type TemporaryPasswordShareCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TemporaryPasswordShareCountOutputType
+     */
+    select?: TemporaryPasswordShareCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * TemporaryPasswordShareCountOutputType without action
+   */
+  export type TemporaryPasswordShareCountOutputTypeCountAccessesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: TemporaryShareAccessWhereInput
   }
 
 
@@ -21019,6 +21141,8 @@ export namespace Prisma {
     createdAt?: boolean
     password?: boolean | PasswordDefaultArgs<ExtArgs>
     creator?: boolean | UserDefaultArgs<ExtArgs>
+    accesses?: boolean | TemporaryPasswordShare$accessesArgs<ExtArgs>
+    _count?: boolean | TemporaryPasswordShareCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["temporaryPasswordShare"]>
 
   export type TemporaryPasswordShareSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -21074,6 +21198,8 @@ export namespace Prisma {
   export type TemporaryPasswordShareInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     password?: boolean | PasswordDefaultArgs<ExtArgs>
     creator?: boolean | UserDefaultArgs<ExtArgs>
+    accesses?: boolean | TemporaryPasswordShare$accessesArgs<ExtArgs>
+    _count?: boolean | TemporaryPasswordShareCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type TemporaryPasswordShareIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     password?: boolean | PasswordDefaultArgs<ExtArgs>
@@ -21089,6 +21215,7 @@ export namespace Prisma {
     objects: {
       password: Prisma.$PasswordPayload<ExtArgs>
       creator: Prisma.$UserPayload<ExtArgs>
+      accesses: Prisma.$TemporaryShareAccessPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -21499,6 +21626,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     password<T extends PasswordDefaultArgs<ExtArgs> = {}>(args?: Subset<T, PasswordDefaultArgs<ExtArgs>>): Prisma__PasswordClient<$Result.GetResult<Prisma.$PasswordPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     creator<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    accesses<T extends TemporaryPasswordShare$accessesArgs<ExtArgs> = {}>(args?: Subset<T, TemporaryPasswordShare$accessesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TemporaryShareAccessPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -21936,6 +22064,30 @@ export namespace Prisma {
   }
 
   /**
+   * TemporaryPasswordShare.accesses
+   */
+  export type TemporaryPasswordShare$accessesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TemporaryShareAccess
+     */
+    select?: TemporaryShareAccessSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TemporaryShareAccess
+     */
+    omit?: TemporaryShareAccessOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TemporaryShareAccessInclude<ExtArgs> | null
+    where?: TemporaryShareAccessWhereInput
+    orderBy?: TemporaryShareAccessOrderByWithRelationInput | TemporaryShareAccessOrderByWithRelationInput[]
+    cursor?: TemporaryShareAccessWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: TemporaryShareAccessScalarFieldEnum | TemporaryShareAccessScalarFieldEnum[]
+  }
+
+  /**
    * TemporaryPasswordShare without action
    */
   export type TemporaryPasswordShareDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -21951,6 +22103,1064 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: TemporaryPasswordShareInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model TemporaryShareAccess
+   */
+
+  export type AggregateTemporaryShareAccess = {
+    _count: TemporaryShareAccessCountAggregateOutputType | null
+    _min: TemporaryShareAccessMinAggregateOutputType | null
+    _max: TemporaryShareAccessMaxAggregateOutputType | null
+  }
+
+  export type TemporaryShareAccessMinAggregateOutputType = {
+    id: string | null
+    shareId: string | null
+    accessedAt: Date | null
+    ipAddress: string | null
+    userAgent: string | null
+  }
+
+  export type TemporaryShareAccessMaxAggregateOutputType = {
+    id: string | null
+    shareId: string | null
+    accessedAt: Date | null
+    ipAddress: string | null
+    userAgent: string | null
+  }
+
+  export type TemporaryShareAccessCountAggregateOutputType = {
+    id: number
+    shareId: number
+    accessedAt: number
+    ipAddress: number
+    userAgent: number
+    _all: number
+  }
+
+
+  export type TemporaryShareAccessMinAggregateInputType = {
+    id?: true
+    shareId?: true
+    accessedAt?: true
+    ipAddress?: true
+    userAgent?: true
+  }
+
+  export type TemporaryShareAccessMaxAggregateInputType = {
+    id?: true
+    shareId?: true
+    accessedAt?: true
+    ipAddress?: true
+    userAgent?: true
+  }
+
+  export type TemporaryShareAccessCountAggregateInputType = {
+    id?: true
+    shareId?: true
+    accessedAt?: true
+    ipAddress?: true
+    userAgent?: true
+    _all?: true
+  }
+
+  export type TemporaryShareAccessAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which TemporaryShareAccess to aggregate.
+     */
+    where?: TemporaryShareAccessWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of TemporaryShareAccesses to fetch.
+     */
+    orderBy?: TemporaryShareAccessOrderByWithRelationInput | TemporaryShareAccessOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: TemporaryShareAccessWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` TemporaryShareAccesses from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` TemporaryShareAccesses.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned TemporaryShareAccesses
+    **/
+    _count?: true | TemporaryShareAccessCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: TemporaryShareAccessMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: TemporaryShareAccessMaxAggregateInputType
+  }
+
+  export type GetTemporaryShareAccessAggregateType<T extends TemporaryShareAccessAggregateArgs> = {
+        [P in keyof T & keyof AggregateTemporaryShareAccess]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateTemporaryShareAccess[P]>
+      : GetScalarType<T[P], AggregateTemporaryShareAccess[P]>
+  }
+
+
+
+
+  export type TemporaryShareAccessGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: TemporaryShareAccessWhereInput
+    orderBy?: TemporaryShareAccessOrderByWithAggregationInput | TemporaryShareAccessOrderByWithAggregationInput[]
+    by: TemporaryShareAccessScalarFieldEnum[] | TemporaryShareAccessScalarFieldEnum
+    having?: TemporaryShareAccessScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: TemporaryShareAccessCountAggregateInputType | true
+    _min?: TemporaryShareAccessMinAggregateInputType
+    _max?: TemporaryShareAccessMaxAggregateInputType
+  }
+
+  export type TemporaryShareAccessGroupByOutputType = {
+    id: string
+    shareId: string
+    accessedAt: Date
+    ipAddress: string | null
+    userAgent: string | null
+    _count: TemporaryShareAccessCountAggregateOutputType | null
+    _min: TemporaryShareAccessMinAggregateOutputType | null
+    _max: TemporaryShareAccessMaxAggregateOutputType | null
+  }
+
+  type GetTemporaryShareAccessGroupByPayload<T extends TemporaryShareAccessGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<TemporaryShareAccessGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof TemporaryShareAccessGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], TemporaryShareAccessGroupByOutputType[P]>
+            : GetScalarType<T[P], TemporaryShareAccessGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type TemporaryShareAccessSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    shareId?: boolean
+    accessedAt?: boolean
+    ipAddress?: boolean
+    userAgent?: boolean
+    share?: boolean | TemporaryPasswordShareDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["temporaryShareAccess"]>
+
+  export type TemporaryShareAccessSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    shareId?: boolean
+    accessedAt?: boolean
+    ipAddress?: boolean
+    userAgent?: boolean
+    share?: boolean | TemporaryPasswordShareDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["temporaryShareAccess"]>
+
+  export type TemporaryShareAccessSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    shareId?: boolean
+    accessedAt?: boolean
+    ipAddress?: boolean
+    userAgent?: boolean
+    share?: boolean | TemporaryPasswordShareDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["temporaryShareAccess"]>
+
+  export type TemporaryShareAccessSelectScalar = {
+    id?: boolean
+    shareId?: boolean
+    accessedAt?: boolean
+    ipAddress?: boolean
+    userAgent?: boolean
+  }
+
+  export type TemporaryShareAccessOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "shareId" | "accessedAt" | "ipAddress" | "userAgent", ExtArgs["result"]["temporaryShareAccess"]>
+  export type TemporaryShareAccessInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    share?: boolean | TemporaryPasswordShareDefaultArgs<ExtArgs>
+  }
+  export type TemporaryShareAccessIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    share?: boolean | TemporaryPasswordShareDefaultArgs<ExtArgs>
+  }
+  export type TemporaryShareAccessIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    share?: boolean | TemporaryPasswordShareDefaultArgs<ExtArgs>
+  }
+
+  export type $TemporaryShareAccessPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "TemporaryShareAccess"
+    objects: {
+      share: Prisma.$TemporaryPasswordSharePayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      shareId: string
+      accessedAt: Date
+      ipAddress: string | null
+      userAgent: string | null
+    }, ExtArgs["result"]["temporaryShareAccess"]>
+    composites: {}
+  }
+
+  type TemporaryShareAccessGetPayload<S extends boolean | null | undefined | TemporaryShareAccessDefaultArgs> = $Result.GetResult<Prisma.$TemporaryShareAccessPayload, S>
+
+  type TemporaryShareAccessCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<TemporaryShareAccessFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: TemporaryShareAccessCountAggregateInputType | true
+    }
+
+  export interface TemporaryShareAccessDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['TemporaryShareAccess'], meta: { name: 'TemporaryShareAccess' } }
+    /**
+     * Find zero or one TemporaryShareAccess that matches the filter.
+     * @param {TemporaryShareAccessFindUniqueArgs} args - Arguments to find a TemporaryShareAccess
+     * @example
+     * // Get one TemporaryShareAccess
+     * const temporaryShareAccess = await prisma.temporaryShareAccess.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends TemporaryShareAccessFindUniqueArgs>(args: SelectSubset<T, TemporaryShareAccessFindUniqueArgs<ExtArgs>>): Prisma__TemporaryShareAccessClient<$Result.GetResult<Prisma.$TemporaryShareAccessPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one TemporaryShareAccess that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {TemporaryShareAccessFindUniqueOrThrowArgs} args - Arguments to find a TemporaryShareAccess
+     * @example
+     * // Get one TemporaryShareAccess
+     * const temporaryShareAccess = await prisma.temporaryShareAccess.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends TemporaryShareAccessFindUniqueOrThrowArgs>(args: SelectSubset<T, TemporaryShareAccessFindUniqueOrThrowArgs<ExtArgs>>): Prisma__TemporaryShareAccessClient<$Result.GetResult<Prisma.$TemporaryShareAccessPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first TemporaryShareAccess that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TemporaryShareAccessFindFirstArgs} args - Arguments to find a TemporaryShareAccess
+     * @example
+     * // Get one TemporaryShareAccess
+     * const temporaryShareAccess = await prisma.temporaryShareAccess.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends TemporaryShareAccessFindFirstArgs>(args?: SelectSubset<T, TemporaryShareAccessFindFirstArgs<ExtArgs>>): Prisma__TemporaryShareAccessClient<$Result.GetResult<Prisma.$TemporaryShareAccessPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first TemporaryShareAccess that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TemporaryShareAccessFindFirstOrThrowArgs} args - Arguments to find a TemporaryShareAccess
+     * @example
+     * // Get one TemporaryShareAccess
+     * const temporaryShareAccess = await prisma.temporaryShareAccess.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends TemporaryShareAccessFindFirstOrThrowArgs>(args?: SelectSubset<T, TemporaryShareAccessFindFirstOrThrowArgs<ExtArgs>>): Prisma__TemporaryShareAccessClient<$Result.GetResult<Prisma.$TemporaryShareAccessPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more TemporaryShareAccesses that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TemporaryShareAccessFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all TemporaryShareAccesses
+     * const temporaryShareAccesses = await prisma.temporaryShareAccess.findMany()
+     * 
+     * // Get first 10 TemporaryShareAccesses
+     * const temporaryShareAccesses = await prisma.temporaryShareAccess.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const temporaryShareAccessWithIdOnly = await prisma.temporaryShareAccess.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends TemporaryShareAccessFindManyArgs>(args?: SelectSubset<T, TemporaryShareAccessFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TemporaryShareAccessPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a TemporaryShareAccess.
+     * @param {TemporaryShareAccessCreateArgs} args - Arguments to create a TemporaryShareAccess.
+     * @example
+     * // Create one TemporaryShareAccess
+     * const TemporaryShareAccess = await prisma.temporaryShareAccess.create({
+     *   data: {
+     *     // ... data to create a TemporaryShareAccess
+     *   }
+     * })
+     * 
+     */
+    create<T extends TemporaryShareAccessCreateArgs>(args: SelectSubset<T, TemporaryShareAccessCreateArgs<ExtArgs>>): Prisma__TemporaryShareAccessClient<$Result.GetResult<Prisma.$TemporaryShareAccessPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many TemporaryShareAccesses.
+     * @param {TemporaryShareAccessCreateManyArgs} args - Arguments to create many TemporaryShareAccesses.
+     * @example
+     * // Create many TemporaryShareAccesses
+     * const temporaryShareAccess = await prisma.temporaryShareAccess.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends TemporaryShareAccessCreateManyArgs>(args?: SelectSubset<T, TemporaryShareAccessCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many TemporaryShareAccesses and returns the data saved in the database.
+     * @param {TemporaryShareAccessCreateManyAndReturnArgs} args - Arguments to create many TemporaryShareAccesses.
+     * @example
+     * // Create many TemporaryShareAccesses
+     * const temporaryShareAccess = await prisma.temporaryShareAccess.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many TemporaryShareAccesses and only return the `id`
+     * const temporaryShareAccessWithIdOnly = await prisma.temporaryShareAccess.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends TemporaryShareAccessCreateManyAndReturnArgs>(args?: SelectSubset<T, TemporaryShareAccessCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TemporaryShareAccessPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a TemporaryShareAccess.
+     * @param {TemporaryShareAccessDeleteArgs} args - Arguments to delete one TemporaryShareAccess.
+     * @example
+     * // Delete one TemporaryShareAccess
+     * const TemporaryShareAccess = await prisma.temporaryShareAccess.delete({
+     *   where: {
+     *     // ... filter to delete one TemporaryShareAccess
+     *   }
+     * })
+     * 
+     */
+    delete<T extends TemporaryShareAccessDeleteArgs>(args: SelectSubset<T, TemporaryShareAccessDeleteArgs<ExtArgs>>): Prisma__TemporaryShareAccessClient<$Result.GetResult<Prisma.$TemporaryShareAccessPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one TemporaryShareAccess.
+     * @param {TemporaryShareAccessUpdateArgs} args - Arguments to update one TemporaryShareAccess.
+     * @example
+     * // Update one TemporaryShareAccess
+     * const temporaryShareAccess = await prisma.temporaryShareAccess.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends TemporaryShareAccessUpdateArgs>(args: SelectSubset<T, TemporaryShareAccessUpdateArgs<ExtArgs>>): Prisma__TemporaryShareAccessClient<$Result.GetResult<Prisma.$TemporaryShareAccessPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more TemporaryShareAccesses.
+     * @param {TemporaryShareAccessDeleteManyArgs} args - Arguments to filter TemporaryShareAccesses to delete.
+     * @example
+     * // Delete a few TemporaryShareAccesses
+     * const { count } = await prisma.temporaryShareAccess.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends TemporaryShareAccessDeleteManyArgs>(args?: SelectSubset<T, TemporaryShareAccessDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more TemporaryShareAccesses.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TemporaryShareAccessUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many TemporaryShareAccesses
+     * const temporaryShareAccess = await prisma.temporaryShareAccess.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends TemporaryShareAccessUpdateManyArgs>(args: SelectSubset<T, TemporaryShareAccessUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more TemporaryShareAccesses and returns the data updated in the database.
+     * @param {TemporaryShareAccessUpdateManyAndReturnArgs} args - Arguments to update many TemporaryShareAccesses.
+     * @example
+     * // Update many TemporaryShareAccesses
+     * const temporaryShareAccess = await prisma.temporaryShareAccess.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more TemporaryShareAccesses and only return the `id`
+     * const temporaryShareAccessWithIdOnly = await prisma.temporaryShareAccess.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends TemporaryShareAccessUpdateManyAndReturnArgs>(args: SelectSubset<T, TemporaryShareAccessUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TemporaryShareAccessPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one TemporaryShareAccess.
+     * @param {TemporaryShareAccessUpsertArgs} args - Arguments to update or create a TemporaryShareAccess.
+     * @example
+     * // Update or create a TemporaryShareAccess
+     * const temporaryShareAccess = await prisma.temporaryShareAccess.upsert({
+     *   create: {
+     *     // ... data to create a TemporaryShareAccess
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the TemporaryShareAccess we want to update
+     *   }
+     * })
+     */
+    upsert<T extends TemporaryShareAccessUpsertArgs>(args: SelectSubset<T, TemporaryShareAccessUpsertArgs<ExtArgs>>): Prisma__TemporaryShareAccessClient<$Result.GetResult<Prisma.$TemporaryShareAccessPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of TemporaryShareAccesses.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TemporaryShareAccessCountArgs} args - Arguments to filter TemporaryShareAccesses to count.
+     * @example
+     * // Count the number of TemporaryShareAccesses
+     * const count = await prisma.temporaryShareAccess.count({
+     *   where: {
+     *     // ... the filter for the TemporaryShareAccesses we want to count
+     *   }
+     * })
+    **/
+    count<T extends TemporaryShareAccessCountArgs>(
+      args?: Subset<T, TemporaryShareAccessCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], TemporaryShareAccessCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a TemporaryShareAccess.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TemporaryShareAccessAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends TemporaryShareAccessAggregateArgs>(args: Subset<T, TemporaryShareAccessAggregateArgs>): Prisma.PrismaPromise<GetTemporaryShareAccessAggregateType<T>>
+
+    /**
+     * Group by TemporaryShareAccess.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TemporaryShareAccessGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends TemporaryShareAccessGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: TemporaryShareAccessGroupByArgs['orderBy'] }
+        : { orderBy?: TemporaryShareAccessGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, TemporaryShareAccessGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetTemporaryShareAccessGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the TemporaryShareAccess model
+   */
+  readonly fields: TemporaryShareAccessFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for TemporaryShareAccess.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__TemporaryShareAccessClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    share<T extends TemporaryPasswordShareDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TemporaryPasswordShareDefaultArgs<ExtArgs>>): Prisma__TemporaryPasswordShareClient<$Result.GetResult<Prisma.$TemporaryPasswordSharePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the TemporaryShareAccess model
+   */
+  interface TemporaryShareAccessFieldRefs {
+    readonly id: FieldRef<"TemporaryShareAccess", 'String'>
+    readonly shareId: FieldRef<"TemporaryShareAccess", 'String'>
+    readonly accessedAt: FieldRef<"TemporaryShareAccess", 'DateTime'>
+    readonly ipAddress: FieldRef<"TemporaryShareAccess", 'String'>
+    readonly userAgent: FieldRef<"TemporaryShareAccess", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * TemporaryShareAccess findUnique
+   */
+  export type TemporaryShareAccessFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TemporaryShareAccess
+     */
+    select?: TemporaryShareAccessSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TemporaryShareAccess
+     */
+    omit?: TemporaryShareAccessOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TemporaryShareAccessInclude<ExtArgs> | null
+    /**
+     * Filter, which TemporaryShareAccess to fetch.
+     */
+    where: TemporaryShareAccessWhereUniqueInput
+  }
+
+  /**
+   * TemporaryShareAccess findUniqueOrThrow
+   */
+  export type TemporaryShareAccessFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TemporaryShareAccess
+     */
+    select?: TemporaryShareAccessSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TemporaryShareAccess
+     */
+    omit?: TemporaryShareAccessOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TemporaryShareAccessInclude<ExtArgs> | null
+    /**
+     * Filter, which TemporaryShareAccess to fetch.
+     */
+    where: TemporaryShareAccessWhereUniqueInput
+  }
+
+  /**
+   * TemporaryShareAccess findFirst
+   */
+  export type TemporaryShareAccessFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TemporaryShareAccess
+     */
+    select?: TemporaryShareAccessSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TemporaryShareAccess
+     */
+    omit?: TemporaryShareAccessOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TemporaryShareAccessInclude<ExtArgs> | null
+    /**
+     * Filter, which TemporaryShareAccess to fetch.
+     */
+    where?: TemporaryShareAccessWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of TemporaryShareAccesses to fetch.
+     */
+    orderBy?: TemporaryShareAccessOrderByWithRelationInput | TemporaryShareAccessOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for TemporaryShareAccesses.
+     */
+    cursor?: TemporaryShareAccessWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` TemporaryShareAccesses from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` TemporaryShareAccesses.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of TemporaryShareAccesses.
+     */
+    distinct?: TemporaryShareAccessScalarFieldEnum | TemporaryShareAccessScalarFieldEnum[]
+  }
+
+  /**
+   * TemporaryShareAccess findFirstOrThrow
+   */
+  export type TemporaryShareAccessFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TemporaryShareAccess
+     */
+    select?: TemporaryShareAccessSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TemporaryShareAccess
+     */
+    omit?: TemporaryShareAccessOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TemporaryShareAccessInclude<ExtArgs> | null
+    /**
+     * Filter, which TemporaryShareAccess to fetch.
+     */
+    where?: TemporaryShareAccessWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of TemporaryShareAccesses to fetch.
+     */
+    orderBy?: TemporaryShareAccessOrderByWithRelationInput | TemporaryShareAccessOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for TemporaryShareAccesses.
+     */
+    cursor?: TemporaryShareAccessWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` TemporaryShareAccesses from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` TemporaryShareAccesses.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of TemporaryShareAccesses.
+     */
+    distinct?: TemporaryShareAccessScalarFieldEnum | TemporaryShareAccessScalarFieldEnum[]
+  }
+
+  /**
+   * TemporaryShareAccess findMany
+   */
+  export type TemporaryShareAccessFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TemporaryShareAccess
+     */
+    select?: TemporaryShareAccessSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TemporaryShareAccess
+     */
+    omit?: TemporaryShareAccessOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TemporaryShareAccessInclude<ExtArgs> | null
+    /**
+     * Filter, which TemporaryShareAccesses to fetch.
+     */
+    where?: TemporaryShareAccessWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of TemporaryShareAccesses to fetch.
+     */
+    orderBy?: TemporaryShareAccessOrderByWithRelationInput | TemporaryShareAccessOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing TemporaryShareAccesses.
+     */
+    cursor?: TemporaryShareAccessWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` TemporaryShareAccesses from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` TemporaryShareAccesses.
+     */
+    skip?: number
+    distinct?: TemporaryShareAccessScalarFieldEnum | TemporaryShareAccessScalarFieldEnum[]
+  }
+
+  /**
+   * TemporaryShareAccess create
+   */
+  export type TemporaryShareAccessCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TemporaryShareAccess
+     */
+    select?: TemporaryShareAccessSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TemporaryShareAccess
+     */
+    omit?: TemporaryShareAccessOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TemporaryShareAccessInclude<ExtArgs> | null
+    /**
+     * The data needed to create a TemporaryShareAccess.
+     */
+    data: XOR<TemporaryShareAccessCreateInput, TemporaryShareAccessUncheckedCreateInput>
+  }
+
+  /**
+   * TemporaryShareAccess createMany
+   */
+  export type TemporaryShareAccessCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many TemporaryShareAccesses.
+     */
+    data: TemporaryShareAccessCreateManyInput | TemporaryShareAccessCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * TemporaryShareAccess createManyAndReturn
+   */
+  export type TemporaryShareAccessCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TemporaryShareAccess
+     */
+    select?: TemporaryShareAccessSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the TemporaryShareAccess
+     */
+    omit?: TemporaryShareAccessOmit<ExtArgs> | null
+    /**
+     * The data used to create many TemporaryShareAccesses.
+     */
+    data: TemporaryShareAccessCreateManyInput | TemporaryShareAccessCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TemporaryShareAccessIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * TemporaryShareAccess update
+   */
+  export type TemporaryShareAccessUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TemporaryShareAccess
+     */
+    select?: TemporaryShareAccessSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TemporaryShareAccess
+     */
+    omit?: TemporaryShareAccessOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TemporaryShareAccessInclude<ExtArgs> | null
+    /**
+     * The data needed to update a TemporaryShareAccess.
+     */
+    data: XOR<TemporaryShareAccessUpdateInput, TemporaryShareAccessUncheckedUpdateInput>
+    /**
+     * Choose, which TemporaryShareAccess to update.
+     */
+    where: TemporaryShareAccessWhereUniqueInput
+  }
+
+  /**
+   * TemporaryShareAccess updateMany
+   */
+  export type TemporaryShareAccessUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update TemporaryShareAccesses.
+     */
+    data: XOR<TemporaryShareAccessUpdateManyMutationInput, TemporaryShareAccessUncheckedUpdateManyInput>
+    /**
+     * Filter which TemporaryShareAccesses to update
+     */
+    where?: TemporaryShareAccessWhereInput
+    /**
+     * Limit how many TemporaryShareAccesses to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * TemporaryShareAccess updateManyAndReturn
+   */
+  export type TemporaryShareAccessUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TemporaryShareAccess
+     */
+    select?: TemporaryShareAccessSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the TemporaryShareAccess
+     */
+    omit?: TemporaryShareAccessOmit<ExtArgs> | null
+    /**
+     * The data used to update TemporaryShareAccesses.
+     */
+    data: XOR<TemporaryShareAccessUpdateManyMutationInput, TemporaryShareAccessUncheckedUpdateManyInput>
+    /**
+     * Filter which TemporaryShareAccesses to update
+     */
+    where?: TemporaryShareAccessWhereInput
+    /**
+     * Limit how many TemporaryShareAccesses to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TemporaryShareAccessIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * TemporaryShareAccess upsert
+   */
+  export type TemporaryShareAccessUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TemporaryShareAccess
+     */
+    select?: TemporaryShareAccessSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TemporaryShareAccess
+     */
+    omit?: TemporaryShareAccessOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TemporaryShareAccessInclude<ExtArgs> | null
+    /**
+     * The filter to search for the TemporaryShareAccess to update in case it exists.
+     */
+    where: TemporaryShareAccessWhereUniqueInput
+    /**
+     * In case the TemporaryShareAccess found by the `where` argument doesn't exist, create a new TemporaryShareAccess with this data.
+     */
+    create: XOR<TemporaryShareAccessCreateInput, TemporaryShareAccessUncheckedCreateInput>
+    /**
+     * In case the TemporaryShareAccess was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<TemporaryShareAccessUpdateInput, TemporaryShareAccessUncheckedUpdateInput>
+  }
+
+  /**
+   * TemporaryShareAccess delete
+   */
+  export type TemporaryShareAccessDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TemporaryShareAccess
+     */
+    select?: TemporaryShareAccessSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TemporaryShareAccess
+     */
+    omit?: TemporaryShareAccessOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TemporaryShareAccessInclude<ExtArgs> | null
+    /**
+     * Filter which TemporaryShareAccess to delete.
+     */
+    where: TemporaryShareAccessWhereUniqueInput
+  }
+
+  /**
+   * TemporaryShareAccess deleteMany
+   */
+  export type TemporaryShareAccessDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which TemporaryShareAccesses to delete
+     */
+    where?: TemporaryShareAccessWhereInput
+    /**
+     * Limit how many TemporaryShareAccesses to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * TemporaryShareAccess without action
+   */
+  export type TemporaryShareAccessDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TemporaryShareAccess
+     */
+    select?: TemporaryShareAccessSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TemporaryShareAccess
+     */
+    omit?: TemporaryShareAccessOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TemporaryShareAccessInclude<ExtArgs> | null
   }
 
 
@@ -57900,6 +59110,17 @@ export namespace Prisma {
   export type TemporaryPasswordShareScalarFieldEnum = (typeof TemporaryPasswordShareScalarFieldEnum)[keyof typeof TemporaryPasswordShareScalarFieldEnum]
 
 
+  export const TemporaryShareAccessScalarFieldEnum: {
+    id: 'id',
+    shareId: 'shareId',
+    accessedAt: 'accessedAt',
+    ipAddress: 'ipAddress',
+    userAgent: 'userAgent'
+  };
+
+  export type TemporaryShareAccessScalarFieldEnum = (typeof TemporaryShareAccessScalarFieldEnum)[keyof typeof TemporaryShareAccessScalarFieldEnum]
+
+
   export const TeamScalarFieldEnum: {
     id: 'id',
     name: 'name',
@@ -59905,6 +61126,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"TemporaryPasswordShare"> | Date | string
     password?: XOR<PasswordScalarRelationFilter, PasswordWhereInput>
     creator?: XOR<UserScalarRelationFilter, UserWhereInput>
+    accesses?: TemporaryShareAccessListRelationFilter
   }
 
   export type TemporaryPasswordShareOrderByWithRelationInput = {
@@ -59922,6 +61144,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     password?: PasswordOrderByWithRelationInput
     creator?: UserOrderByWithRelationInput
+    accesses?: TemporaryShareAccessOrderByRelationAggregateInput
   }
 
   export type TemporaryPasswordShareWhereUniqueInput = Prisma.AtLeast<{
@@ -59942,6 +61165,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"TemporaryPasswordShare"> | Date | string
     password?: XOR<PasswordScalarRelationFilter, PasswordWhereInput>
     creator?: XOR<UserScalarRelationFilter, UserWhereInput>
+    accesses?: TemporaryShareAccessListRelationFilter
   }, "id" | "shareToken">
 
   export type TemporaryPasswordShareOrderByWithAggregationInput = {
@@ -59980,6 +61204,61 @@ export namespace Prisma {
     accessedAt?: DateTimeNullableWithAggregatesFilter<"TemporaryPasswordShare"> | Date | string | null
     revokedAt?: DateTimeNullableWithAggregatesFilter<"TemporaryPasswordShare"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"TemporaryPasswordShare"> | Date | string
+  }
+
+  export type TemporaryShareAccessWhereInput = {
+    AND?: TemporaryShareAccessWhereInput | TemporaryShareAccessWhereInput[]
+    OR?: TemporaryShareAccessWhereInput[]
+    NOT?: TemporaryShareAccessWhereInput | TemporaryShareAccessWhereInput[]
+    id?: StringFilter<"TemporaryShareAccess"> | string
+    shareId?: StringFilter<"TemporaryShareAccess"> | string
+    accessedAt?: DateTimeFilter<"TemporaryShareAccess"> | Date | string
+    ipAddress?: StringNullableFilter<"TemporaryShareAccess"> | string | null
+    userAgent?: StringNullableFilter<"TemporaryShareAccess"> | string | null
+    share?: XOR<TemporaryPasswordShareScalarRelationFilter, TemporaryPasswordShareWhereInput>
+  }
+
+  export type TemporaryShareAccessOrderByWithRelationInput = {
+    id?: SortOrder
+    shareId?: SortOrder
+    accessedAt?: SortOrder
+    ipAddress?: SortOrderInput | SortOrder
+    userAgent?: SortOrderInput | SortOrder
+    share?: TemporaryPasswordShareOrderByWithRelationInput
+  }
+
+  export type TemporaryShareAccessWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: TemporaryShareAccessWhereInput | TemporaryShareAccessWhereInput[]
+    OR?: TemporaryShareAccessWhereInput[]
+    NOT?: TemporaryShareAccessWhereInput | TemporaryShareAccessWhereInput[]
+    shareId?: StringFilter<"TemporaryShareAccess"> | string
+    accessedAt?: DateTimeFilter<"TemporaryShareAccess"> | Date | string
+    ipAddress?: StringNullableFilter<"TemporaryShareAccess"> | string | null
+    userAgent?: StringNullableFilter<"TemporaryShareAccess"> | string | null
+    share?: XOR<TemporaryPasswordShareScalarRelationFilter, TemporaryPasswordShareWhereInput>
+  }, "id">
+
+  export type TemporaryShareAccessOrderByWithAggregationInput = {
+    id?: SortOrder
+    shareId?: SortOrder
+    accessedAt?: SortOrder
+    ipAddress?: SortOrderInput | SortOrder
+    userAgent?: SortOrderInput | SortOrder
+    _count?: TemporaryShareAccessCountOrderByAggregateInput
+    _max?: TemporaryShareAccessMaxOrderByAggregateInput
+    _min?: TemporaryShareAccessMinOrderByAggregateInput
+  }
+
+  export type TemporaryShareAccessScalarWhereWithAggregatesInput = {
+    AND?: TemporaryShareAccessScalarWhereWithAggregatesInput | TemporaryShareAccessScalarWhereWithAggregatesInput[]
+    OR?: TemporaryShareAccessScalarWhereWithAggregatesInput[]
+    NOT?: TemporaryShareAccessScalarWhereWithAggregatesInput | TemporaryShareAccessScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"TemporaryShareAccess"> | string
+    shareId?: StringWithAggregatesFilter<"TemporaryShareAccess"> | string
+    accessedAt?: DateTimeWithAggregatesFilter<"TemporaryShareAccess"> | Date | string
+    ipAddress?: StringNullableWithAggregatesFilter<"TemporaryShareAccess"> | string | null
+    userAgent?: StringNullableWithAggregatesFilter<"TemporaryShareAccess"> | string | null
   }
 
   export type TeamWhereInput = {
@@ -63899,6 +65178,7 @@ export namespace Prisma {
     createdAt?: Date | string
     password: PasswordCreateNestedOneWithoutTemporarySharesInput
     creator: UserCreateNestedOneWithoutTemporaryPasswordSharesInput
+    accesses?: TemporaryShareAccessCreateNestedManyWithoutShareInput
   }
 
   export type TemporaryPasswordShareUncheckedCreateInput = {
@@ -63914,6 +65194,7 @@ export namespace Prisma {
     accessedAt?: Date | string | null
     revokedAt?: Date | string | null
     createdAt?: Date | string
+    accesses?: TemporaryShareAccessUncheckedCreateNestedManyWithoutShareInput
   }
 
   export type TemporaryPasswordShareUpdateInput = {
@@ -63929,6 +65210,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     password?: PasswordUpdateOneRequiredWithoutTemporarySharesNestedInput
     creator?: UserUpdateOneRequiredWithoutTemporaryPasswordSharesNestedInput
+    accesses?: TemporaryShareAccessUpdateManyWithoutShareNestedInput
   }
 
   export type TemporaryPasswordShareUncheckedUpdateInput = {
@@ -63944,6 +65226,7 @@ export namespace Prisma {
     accessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    accesses?: TemporaryShareAccessUncheckedUpdateManyWithoutShareNestedInput
   }
 
   export type TemporaryPasswordShareCreateManyInput = {
@@ -63987,6 +65270,61 @@ export namespace Prisma {
     accessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TemporaryShareAccessCreateInput = {
+    id?: string
+    accessedAt?: Date | string
+    ipAddress?: string | null
+    userAgent?: string | null
+    share: TemporaryPasswordShareCreateNestedOneWithoutAccessesInput
+  }
+
+  export type TemporaryShareAccessUncheckedCreateInput = {
+    id?: string
+    shareId: string
+    accessedAt?: Date | string
+    ipAddress?: string | null
+    userAgent?: string | null
+  }
+
+  export type TemporaryShareAccessUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    accessedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    share?: TemporaryPasswordShareUpdateOneRequiredWithoutAccessesNestedInput
+  }
+
+  export type TemporaryShareAccessUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    shareId?: StringFieldUpdateOperationsInput | string
+    accessedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type TemporaryShareAccessCreateManyInput = {
+    id?: string
+    shareId: string
+    accessedAt?: Date | string
+    ipAddress?: string | null
+    userAgent?: string | null
+  }
+
+  export type TemporaryShareAccessUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    accessedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type TemporaryShareAccessUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    shareId?: StringFieldUpdateOperationsInput | string
+    accessedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type TeamCreateInput = {
@@ -67879,6 +69217,16 @@ export namespace Prisma {
     _max?: NestedEnumSharePermissionFilter<$PrismaModel>
   }
 
+  export type TemporaryShareAccessListRelationFilter = {
+    every?: TemporaryShareAccessWhereInput
+    some?: TemporaryShareAccessWhereInput
+    none?: TemporaryShareAccessWhereInput
+  }
+
+  export type TemporaryShareAccessOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type TemporaryPasswordShareCountOrderByAggregateInput = {
     id?: SortOrder
     passwordId?: SortOrder
@@ -67932,6 +69280,35 @@ export namespace Prisma {
   export type TemporaryPasswordShareSumOrderByAggregateInput = {
     accessCount?: SortOrder
     maxAccesses?: SortOrder
+  }
+
+  export type TemporaryPasswordShareScalarRelationFilter = {
+    is?: TemporaryPasswordShareWhereInput
+    isNot?: TemporaryPasswordShareWhereInput
+  }
+
+  export type TemporaryShareAccessCountOrderByAggregateInput = {
+    id?: SortOrder
+    shareId?: SortOrder
+    accessedAt?: SortOrder
+    ipAddress?: SortOrder
+    userAgent?: SortOrder
+  }
+
+  export type TemporaryShareAccessMaxOrderByAggregateInput = {
+    id?: SortOrder
+    shareId?: SortOrder
+    accessedAt?: SortOrder
+    ipAddress?: SortOrder
+    userAgent?: SortOrder
+  }
+
+  export type TemporaryShareAccessMinOrderByAggregateInput = {
+    id?: SortOrder
+    shareId?: SortOrder
+    accessedAt?: SortOrder
+    ipAddress?: SortOrder
+    userAgent?: SortOrder
   }
 
   export type TeamCountOrderByAggregateInput = {
@@ -72696,6 +74073,20 @@ export namespace Prisma {
     connect?: UserWhereUniqueInput
   }
 
+  export type TemporaryShareAccessCreateNestedManyWithoutShareInput = {
+    create?: XOR<TemporaryShareAccessCreateWithoutShareInput, TemporaryShareAccessUncheckedCreateWithoutShareInput> | TemporaryShareAccessCreateWithoutShareInput[] | TemporaryShareAccessUncheckedCreateWithoutShareInput[]
+    connectOrCreate?: TemporaryShareAccessCreateOrConnectWithoutShareInput | TemporaryShareAccessCreateOrConnectWithoutShareInput[]
+    createMany?: TemporaryShareAccessCreateManyShareInputEnvelope
+    connect?: TemporaryShareAccessWhereUniqueInput | TemporaryShareAccessWhereUniqueInput[]
+  }
+
+  export type TemporaryShareAccessUncheckedCreateNestedManyWithoutShareInput = {
+    create?: XOR<TemporaryShareAccessCreateWithoutShareInput, TemporaryShareAccessUncheckedCreateWithoutShareInput> | TemporaryShareAccessCreateWithoutShareInput[] | TemporaryShareAccessUncheckedCreateWithoutShareInput[]
+    connectOrCreate?: TemporaryShareAccessCreateOrConnectWithoutShareInput | TemporaryShareAccessCreateOrConnectWithoutShareInput[]
+    createMany?: TemporaryShareAccessCreateManyShareInputEnvelope
+    connect?: TemporaryShareAccessWhereUniqueInput | TemporaryShareAccessWhereUniqueInput[]
+  }
+
   export type PasswordUpdateOneRequiredWithoutTemporarySharesNestedInput = {
     create?: XOR<PasswordCreateWithoutTemporarySharesInput, PasswordUncheckedCreateWithoutTemporarySharesInput>
     connectOrCreate?: PasswordCreateOrConnectWithoutTemporarySharesInput
@@ -72710,6 +74101,48 @@ export namespace Prisma {
     upsert?: UserUpsertWithoutTemporaryPasswordSharesInput
     connect?: UserWhereUniqueInput
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutTemporaryPasswordSharesInput, UserUpdateWithoutTemporaryPasswordSharesInput>, UserUncheckedUpdateWithoutTemporaryPasswordSharesInput>
+  }
+
+  export type TemporaryShareAccessUpdateManyWithoutShareNestedInput = {
+    create?: XOR<TemporaryShareAccessCreateWithoutShareInput, TemporaryShareAccessUncheckedCreateWithoutShareInput> | TemporaryShareAccessCreateWithoutShareInput[] | TemporaryShareAccessUncheckedCreateWithoutShareInput[]
+    connectOrCreate?: TemporaryShareAccessCreateOrConnectWithoutShareInput | TemporaryShareAccessCreateOrConnectWithoutShareInput[]
+    upsert?: TemporaryShareAccessUpsertWithWhereUniqueWithoutShareInput | TemporaryShareAccessUpsertWithWhereUniqueWithoutShareInput[]
+    createMany?: TemporaryShareAccessCreateManyShareInputEnvelope
+    set?: TemporaryShareAccessWhereUniqueInput | TemporaryShareAccessWhereUniqueInput[]
+    disconnect?: TemporaryShareAccessWhereUniqueInput | TemporaryShareAccessWhereUniqueInput[]
+    delete?: TemporaryShareAccessWhereUniqueInput | TemporaryShareAccessWhereUniqueInput[]
+    connect?: TemporaryShareAccessWhereUniqueInput | TemporaryShareAccessWhereUniqueInput[]
+    update?: TemporaryShareAccessUpdateWithWhereUniqueWithoutShareInput | TemporaryShareAccessUpdateWithWhereUniqueWithoutShareInput[]
+    updateMany?: TemporaryShareAccessUpdateManyWithWhereWithoutShareInput | TemporaryShareAccessUpdateManyWithWhereWithoutShareInput[]
+    deleteMany?: TemporaryShareAccessScalarWhereInput | TemporaryShareAccessScalarWhereInput[]
+  }
+
+  export type TemporaryShareAccessUncheckedUpdateManyWithoutShareNestedInput = {
+    create?: XOR<TemporaryShareAccessCreateWithoutShareInput, TemporaryShareAccessUncheckedCreateWithoutShareInput> | TemporaryShareAccessCreateWithoutShareInput[] | TemporaryShareAccessUncheckedCreateWithoutShareInput[]
+    connectOrCreate?: TemporaryShareAccessCreateOrConnectWithoutShareInput | TemporaryShareAccessCreateOrConnectWithoutShareInput[]
+    upsert?: TemporaryShareAccessUpsertWithWhereUniqueWithoutShareInput | TemporaryShareAccessUpsertWithWhereUniqueWithoutShareInput[]
+    createMany?: TemporaryShareAccessCreateManyShareInputEnvelope
+    set?: TemporaryShareAccessWhereUniqueInput | TemporaryShareAccessWhereUniqueInput[]
+    disconnect?: TemporaryShareAccessWhereUniqueInput | TemporaryShareAccessWhereUniqueInput[]
+    delete?: TemporaryShareAccessWhereUniqueInput | TemporaryShareAccessWhereUniqueInput[]
+    connect?: TemporaryShareAccessWhereUniqueInput | TemporaryShareAccessWhereUniqueInput[]
+    update?: TemporaryShareAccessUpdateWithWhereUniqueWithoutShareInput | TemporaryShareAccessUpdateWithWhereUniqueWithoutShareInput[]
+    updateMany?: TemporaryShareAccessUpdateManyWithWhereWithoutShareInput | TemporaryShareAccessUpdateManyWithWhereWithoutShareInput[]
+    deleteMany?: TemporaryShareAccessScalarWhereInput | TemporaryShareAccessScalarWhereInput[]
+  }
+
+  export type TemporaryPasswordShareCreateNestedOneWithoutAccessesInput = {
+    create?: XOR<TemporaryPasswordShareCreateWithoutAccessesInput, TemporaryPasswordShareUncheckedCreateWithoutAccessesInput>
+    connectOrCreate?: TemporaryPasswordShareCreateOrConnectWithoutAccessesInput
+    connect?: TemporaryPasswordShareWhereUniqueInput
+  }
+
+  export type TemporaryPasswordShareUpdateOneRequiredWithoutAccessesNestedInput = {
+    create?: XOR<TemporaryPasswordShareCreateWithoutAccessesInput, TemporaryPasswordShareUncheckedCreateWithoutAccessesInput>
+    connectOrCreate?: TemporaryPasswordShareCreateOrConnectWithoutAccessesInput
+    upsert?: TemporaryPasswordShareUpsertWithoutAccessesInput
+    connect?: TemporaryPasswordShareWhereUniqueInput
+    update?: XOR<XOR<TemporaryPasswordShareUpdateToOneWithWhereWithoutAccessesInput, TemporaryPasswordShareUpdateWithoutAccessesInput>, TemporaryPasswordShareUncheckedUpdateWithoutAccessesInput>
   }
 
   export type CompanyCreateNestedOneWithoutTeamsInput = {
@@ -76629,6 +78062,7 @@ export namespace Prisma {
     revokedAt?: Date | string | null
     createdAt?: Date | string
     password: PasswordCreateNestedOneWithoutTemporarySharesInput
+    accesses?: TemporaryShareAccessCreateNestedManyWithoutShareInput
   }
 
   export type TemporaryPasswordShareUncheckedCreateWithoutCreatorInput = {
@@ -76643,6 +78077,7 @@ export namespace Prisma {
     accessedAt?: Date | string | null
     revokedAt?: Date | string | null
     createdAt?: Date | string
+    accesses?: TemporaryShareAccessUncheckedCreateNestedManyWithoutShareInput
   }
 
   export type TemporaryPasswordShareCreateOrConnectWithoutCreatorInput = {
@@ -79479,6 +80914,7 @@ export namespace Prisma {
     revokedAt?: Date | string | null
     createdAt?: Date | string
     creator: UserCreateNestedOneWithoutTemporaryPasswordSharesInput
+    accesses?: TemporaryShareAccessCreateNestedManyWithoutShareInput
   }
 
   export type TemporaryPasswordShareUncheckedCreateWithoutPasswordInput = {
@@ -79493,6 +80929,7 @@ export namespace Prisma {
     accessedAt?: Date | string | null
     revokedAt?: Date | string | null
     createdAt?: Date | string
+    accesses?: TemporaryShareAccessUncheckedCreateNestedManyWithoutShareInput
   }
 
   export type TemporaryPasswordShareCreateOrConnectWithoutPasswordInput = {
@@ -82954,6 +84391,30 @@ export namespace Prisma {
     create: XOR<UserCreateWithoutTemporaryPasswordSharesInput, UserUncheckedCreateWithoutTemporaryPasswordSharesInput>
   }
 
+  export type TemporaryShareAccessCreateWithoutShareInput = {
+    id?: string
+    accessedAt?: Date | string
+    ipAddress?: string | null
+    userAgent?: string | null
+  }
+
+  export type TemporaryShareAccessUncheckedCreateWithoutShareInput = {
+    id?: string
+    accessedAt?: Date | string
+    ipAddress?: string | null
+    userAgent?: string | null
+  }
+
+  export type TemporaryShareAccessCreateOrConnectWithoutShareInput = {
+    where: TemporaryShareAccessWhereUniqueInput
+    create: XOR<TemporaryShareAccessCreateWithoutShareInput, TemporaryShareAccessUncheckedCreateWithoutShareInput>
+  }
+
+  export type TemporaryShareAccessCreateManyShareInputEnvelope = {
+    data: TemporaryShareAccessCreateManyShareInput | TemporaryShareAccessCreateManyShareInput[]
+    skipDuplicates?: boolean
+  }
+
   export type PasswordUpsertWithoutTemporarySharesInput = {
     update: XOR<PasswordUpdateWithoutTemporarySharesInput, PasswordUncheckedUpdateWithoutTemporarySharesInput>
     create: XOR<PasswordCreateWithoutTemporarySharesInput, PasswordUncheckedCreateWithoutTemporarySharesInput>
@@ -83142,6 +84603,109 @@ export namespace Prisma {
     geographicRestrictions?: GeographicRestrictionUncheckedUpdateManyWithoutUserNestedInput
     createdIpWhitelists?: IpWhitelistUncheckedUpdateManyWithoutCreatorNestedInput
     createdGeographicRestrictions?: GeographicRestrictionUncheckedUpdateManyWithoutCreatorNestedInput
+  }
+
+  export type TemporaryShareAccessUpsertWithWhereUniqueWithoutShareInput = {
+    where: TemporaryShareAccessWhereUniqueInput
+    update: XOR<TemporaryShareAccessUpdateWithoutShareInput, TemporaryShareAccessUncheckedUpdateWithoutShareInput>
+    create: XOR<TemporaryShareAccessCreateWithoutShareInput, TemporaryShareAccessUncheckedCreateWithoutShareInput>
+  }
+
+  export type TemporaryShareAccessUpdateWithWhereUniqueWithoutShareInput = {
+    where: TemporaryShareAccessWhereUniqueInput
+    data: XOR<TemporaryShareAccessUpdateWithoutShareInput, TemporaryShareAccessUncheckedUpdateWithoutShareInput>
+  }
+
+  export type TemporaryShareAccessUpdateManyWithWhereWithoutShareInput = {
+    where: TemporaryShareAccessScalarWhereInput
+    data: XOR<TemporaryShareAccessUpdateManyMutationInput, TemporaryShareAccessUncheckedUpdateManyWithoutShareInput>
+  }
+
+  export type TemporaryShareAccessScalarWhereInput = {
+    AND?: TemporaryShareAccessScalarWhereInput | TemporaryShareAccessScalarWhereInput[]
+    OR?: TemporaryShareAccessScalarWhereInput[]
+    NOT?: TemporaryShareAccessScalarWhereInput | TemporaryShareAccessScalarWhereInput[]
+    id?: StringFilter<"TemporaryShareAccess"> | string
+    shareId?: StringFilter<"TemporaryShareAccess"> | string
+    accessedAt?: DateTimeFilter<"TemporaryShareAccess"> | Date | string
+    ipAddress?: StringNullableFilter<"TemporaryShareAccess"> | string | null
+    userAgent?: StringNullableFilter<"TemporaryShareAccess"> | string | null
+  }
+
+  export type TemporaryPasswordShareCreateWithoutAccessesInput = {
+    id?: string
+    shareToken: string
+    accessCount?: number
+    maxAccesses?: number | null
+    isOneTime?: boolean
+    includeTotp?: boolean
+    expiresAt?: Date | string | null
+    accessedAt?: Date | string | null
+    revokedAt?: Date | string | null
+    createdAt?: Date | string
+    password: PasswordCreateNestedOneWithoutTemporarySharesInput
+    creator: UserCreateNestedOneWithoutTemporaryPasswordSharesInput
+  }
+
+  export type TemporaryPasswordShareUncheckedCreateWithoutAccessesInput = {
+    id?: string
+    passwordId: string
+    shareToken: string
+    createdBy: string
+    accessCount?: number
+    maxAccesses?: number | null
+    isOneTime?: boolean
+    includeTotp?: boolean
+    expiresAt?: Date | string | null
+    accessedAt?: Date | string | null
+    revokedAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type TemporaryPasswordShareCreateOrConnectWithoutAccessesInput = {
+    where: TemporaryPasswordShareWhereUniqueInput
+    create: XOR<TemporaryPasswordShareCreateWithoutAccessesInput, TemporaryPasswordShareUncheckedCreateWithoutAccessesInput>
+  }
+
+  export type TemporaryPasswordShareUpsertWithoutAccessesInput = {
+    update: XOR<TemporaryPasswordShareUpdateWithoutAccessesInput, TemporaryPasswordShareUncheckedUpdateWithoutAccessesInput>
+    create: XOR<TemporaryPasswordShareCreateWithoutAccessesInput, TemporaryPasswordShareUncheckedCreateWithoutAccessesInput>
+    where?: TemporaryPasswordShareWhereInput
+  }
+
+  export type TemporaryPasswordShareUpdateToOneWithWhereWithoutAccessesInput = {
+    where?: TemporaryPasswordShareWhereInput
+    data: XOR<TemporaryPasswordShareUpdateWithoutAccessesInput, TemporaryPasswordShareUncheckedUpdateWithoutAccessesInput>
+  }
+
+  export type TemporaryPasswordShareUpdateWithoutAccessesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    shareToken?: StringFieldUpdateOperationsInput | string
+    accessCount?: IntFieldUpdateOperationsInput | number
+    maxAccesses?: NullableIntFieldUpdateOperationsInput | number | null
+    isOneTime?: BoolFieldUpdateOperationsInput | boolean
+    includeTotp?: BoolFieldUpdateOperationsInput | boolean
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    accessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    password?: PasswordUpdateOneRequiredWithoutTemporarySharesNestedInput
+    creator?: UserUpdateOneRequiredWithoutTemporaryPasswordSharesNestedInput
+  }
+
+  export type TemporaryPasswordShareUncheckedUpdateWithoutAccessesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    passwordId?: StringFieldUpdateOperationsInput | string
+    shareToken?: StringFieldUpdateOperationsInput | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    accessCount?: IntFieldUpdateOperationsInput | number
+    maxAccesses?: NullableIntFieldUpdateOperationsInput | number | null
+    isOneTime?: BoolFieldUpdateOperationsInput | boolean
+    includeTotp?: BoolFieldUpdateOperationsInput | boolean
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    accessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type CompanyCreateWithoutTeamsInput = {
@@ -95067,6 +96631,7 @@ export namespace Prisma {
     revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     password?: PasswordUpdateOneRequiredWithoutTemporarySharesNestedInput
+    accesses?: TemporaryShareAccessUpdateManyWithoutShareNestedInput
   }
 
   export type TemporaryPasswordShareUncheckedUpdateWithoutCreatorInput = {
@@ -95081,6 +96646,7 @@ export namespace Prisma {
     accessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    accesses?: TemporaryShareAccessUncheckedUpdateManyWithoutShareNestedInput
   }
 
   export type TemporaryPasswordShareUncheckedUpdateManyWithoutCreatorInput = {
@@ -96063,6 +97629,7 @@ export namespace Prisma {
     revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     creator?: UserUpdateOneRequiredWithoutTemporaryPasswordSharesNestedInput
+    accesses?: TemporaryShareAccessUpdateManyWithoutShareNestedInput
   }
 
   export type TemporaryPasswordShareUncheckedUpdateWithoutPasswordInput = {
@@ -96077,6 +97644,7 @@ export namespace Prisma {
     accessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    accesses?: TemporaryShareAccessUncheckedUpdateManyWithoutShareNestedInput
   }
 
   export type TemporaryPasswordShareUncheckedUpdateManyWithoutPasswordInput = {
@@ -96518,6 +98086,34 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rotationPolicyId?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type TemporaryShareAccessCreateManyShareInput = {
+    id?: string
+    accessedAt?: Date | string
+    ipAddress?: string | null
+    userAgent?: string | null
+  }
+
+  export type TemporaryShareAccessUpdateWithoutShareInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    accessedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type TemporaryShareAccessUncheckedUpdateWithoutShareInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    accessedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type TemporaryShareAccessUncheckedUpdateManyWithoutShareInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    accessedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type TeamMemberCreateManyTeamInput = {

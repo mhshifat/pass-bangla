@@ -37,8 +37,8 @@ import { Badge } from "@/components/ui/badge"
 const temporaryShareSchema = z.object({
   expiresAt: z.string().optional(),
   maxAccesses: z.number().min(1).max(100).optional(),
-  isOneTime: z.boolean().default(false),
-  includeTotp: z.boolean().default(false),
+  isOneTime: z.boolean(),
+  includeTotp: z.boolean(),
 })
 
 type TemporaryShareFormValues = z.infer<typeof temporaryShareSchema>

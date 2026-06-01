@@ -301,3 +301,90 @@
   clip: auto;
   white-space: normal;
 }
+
+/* ===========================================================================
+   Design system: elevation, glass, gradient surfaces, shimmer
+   Layered on top of the neutral OKLCH theme to add premium depth without
+   changing the base palette. Tokens adapt to light/dark automatically.
+   =========================================================================== */
+:root {
+  --shadow-low:
+    0 1px 2px -1px oklch(0 0 0 / 0.10),
+    0 1px 3px oklch(0 0 0 / 0.06);
+  --shadow-medium:
+    0 4px 10px -2px oklch(0 0 0 / 0.10),
+    0 2px 6px -2px oklch(0 0 0 / 0.06);
+  --shadow-high:
+    0 12px 28px -6px oklch(0 0 0 / 0.16),
+    0 6px 12px -6px oklch(0 0 0 / 0.10);
+  --surface-glass: color-mix(in oklch, var(--card) 80%, transparent);
+}
+
+.dark {
+  --shadow-low:
+    0 1px 2px -1px oklch(0 0 0 / 0.45),
+    0 1px 3px oklch(0 0 0 / 0.35);
+  --shadow-medium:
+    0 4px 10px -2px oklch(0 0 0 / 0.50),
+    0 2px 6px -2px oklch(0 0 0 / 0.40);
+  --shadow-high:
+    0 12px 28px -6px oklch(0 0 0 / 0.60),
+    0 6px 12px -6px oklch(0 0 0 / 0.45);
+  --surface-glass: color-mix(in oklch, var(--card) 62%, transparent);
+}
+
+/* Soft elevation that lifts on hover — for interactive cards/tiles. */
+.pb-elevated {
+  box-shadow: var(--shadow-low);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.pb-elevated:hover {
+  box-shadow: var(--shadow-medium);
+}
+
+/* Frosted translucent surface — for sticky headers, overlays, command bars. */
+.pb-glass {
+  background: var(--surface-glass);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid color-mix(in oklch, var(--border) 85%, transparent);
+}
+
+/* Subtle radial gradient backdrop for hero/empty/auth surfaces. */
+.pb-gradient-surface {
+  background-image:
+    radial-gradient(
+      120% 120% at 0% 0%,
+      color-mix(in oklch, var(--primary) 6%, transparent) 0%,
+      transparent 45%
+    ),
+    radial-gradient(
+      120% 120% at 100% 0%,
+      color-mix(in oklch, var(--primary) 4%, transparent) 0%,
+      transparent 40%
+    );
+}
+
+/* Shimmer for skeleton loaders — auto-disabled under .reduced-motion. */
+@keyframes pb-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+.pb-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.pb-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklch, var(--foreground) 8%, transparent),
+    transparent
+  );
+  animation: pb-shimmer 1.6s infinite;
+}

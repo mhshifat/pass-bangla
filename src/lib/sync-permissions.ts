@@ -278,7 +278,7 @@ export async function seedSystemReportTemplates() {
           description: templateData.description,
           reportType: templateData.reportType,
           category: templateData.category,
-          config: templateData.config as Prisma.JsonValue,
+          config: templateData.config as Prisma.InputJsonValue,
           isSystem: templateData.isSystem,
           isPublic: templateData.isPublic,
           userId: systemUser.id,

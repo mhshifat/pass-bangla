@@ -372,7 +372,7 @@ export function RotationPageClient() {
       <RotationPolicyDialog
         open={isPolicyDialogOpen}
         onOpenChange={setIsPolicyDialogOpen}
-        policy={editingPolicy}
+        policy={editingPolicy as Parameters<typeof RotationPolicyDialog>[0]["policy"]}
         onSuccess={handlePolicySuccess}
       />
 

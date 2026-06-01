@@ -72,11 +72,11 @@ export function PermissionsDialog({ open, onOpenChange, role, permissions }: Per
   )
 
   React.useEffect(() => {
-    if (saveState?.success) {
+    if (saveState && "success" in saveState && saveState.success) {
       toast.success("Permissions updated successfully")
       onOpenChange(false)
       router.refresh()
-    } else if (saveState?.error) {
+    } else if (saveState && "error" in saveState && saveState.error) {
       showErrorFromException(saveState.error, "Failed to update permissions")
     }
   }, [saveState, router, onOpenChange])

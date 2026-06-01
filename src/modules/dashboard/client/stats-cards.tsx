@@ -31,7 +31,7 @@ export function StatsCards({ stats }: StatsCardsProps) {
       {stats.map((stat) => {
         const IconComponent = iconMap[stat.icon] || Users
         return (
-          <Card key={stat.name}>
+          <Card key={stat.name} className="hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 {stat.name}

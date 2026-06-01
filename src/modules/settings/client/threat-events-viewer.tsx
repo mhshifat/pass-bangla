@@ -235,10 +235,10 @@ export function ThreatEventsViewer() {
                         )}
                       </TableCell>
                       <TableCell>
-                        {threat.user ? (
+                        {(threat as { user?: { name: string | null; email: string | null } | null }).user ? (
                           <div className="flex flex-col">
-                            <span>{threat.user.name}</span>
-                            <span className="text-xs text-muted-foreground">{threat.user.email}</span>
+                            <span>{(threat as { user?: { name: string | null; email: string | null } | null }).user!.name}</span>
+                            <span className="text-xs text-muted-foreground">{(threat as { user?: { name: string | null; email: string | null } | null }).user!.email}</span>
                           </div>
                         ) : (
                           <span className="text-muted-foreground">-</span>

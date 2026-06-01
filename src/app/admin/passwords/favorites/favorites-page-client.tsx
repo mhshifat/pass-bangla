@@ -9,24 +9,12 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { trpc } from "@/trpc/client"
 import { Skeleton } from "@/components/ui/skeleton"
-import { PasswordsTable } from "@/modules/passwords/client/passwords-table"
+import { PasswordsTable, type Password } from "@/modules/passwords/client/passwords-table"
 import { PasswordDetailsDialog } from "@/modules/passwords/client"
 import { usePermissions } from "@/hooks/use-permissions"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Star } from "lucide-react"
 import type { RouterOutputs } from "@/trpc/client"
-
-interface PasswordItem {
-  id: string
-  name: string
-  username?: string | null
-  url?: string | null
-  folder?: string | null
-  strength?: string
-  shared?: boolean
-  lastModified?: string
-  [key: string]: unknown
-}
 
 // Types for SSR data
 type FavoritesData = RouterOutputs["passwords"]["getFavorites"]
@@ -76,23 +64,23 @@ export function FavoritesPageClient({
     router.push(`?${params.toString()}`)
   }
 
-  const [selectedPassword, setSelectedPassword] = useState<PasswordItem | null>(null)
+  const [selectedPassword, setSelectedPassword] = useState<Password | null>(null)
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
 
-  const handleViewDetails = (password: PasswordItem) => {
+  const handleViewDetails = (password: Password) => {
     setSelectedPassword(password)
     setIsViewDialogOpen(true)
   }
 
-  const handleEdit = (_password: PasswordItem) => {
+  const handleEdit = (_password: Password) => {
     // This will be handled by the PasswordsTable component
   }
 
-  const handleDelete = (_password: PasswordItem) => {
+  const handleDelete = (_password: Password) => {
     // This will be handled by the PasswordsTable component
   }
 
-  const handleShare = (_password: PasswordItem) => {
+  const handleShare = (_password: Password) => {
     // This will be handled by the PasswordsTable component
   }
 

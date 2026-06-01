@@ -364,13 +364,27 @@ model TemporaryPasswordShare {
   createdAt   DateTime  @default(now())
 
   // Relations
-  password Password @relation(fields: [passwordId], references: [id], onDelete: Cascade)
-  creator  User     @relation("TemporaryPasswordShareCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  password Password               @relation(fields: [passwordId], references: [id], onDelete: Cascade)
+  creator  User                   @relation("TemporaryPasswordShareCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  accesses TemporaryShareAccess[]
 
   @@index([passwordId])
   @@index([createdBy])
   @@index([shareToken])
   @@index([expiresAt])
+}
+
+model TemporaryShareAccess {
+  id         String   @id @default(cuid())
+  shareId    String
+  accessedAt DateTime @default(now())
+  ipAddress  String?
+  userAgent  String?
+
+  share TemporaryPasswordShare @relation(fields: [shareId], references: [id], onDelete: Cascade)
+
+  @@index([shareId])
+  @@index([accessedAt])
 }
 
 model Team {

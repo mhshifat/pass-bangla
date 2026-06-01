@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useActionState } from "react"
+import { useActionState, useOptimistic, startTransition } from "react"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 import {
@@ -52,6 +52,13 @@ export function UserActionsClient({ users, currentUserId, isSuperAdmin = false, 
   const router = useRouter()
   const { hasPermission } = usePermissions()
   const utils = trpc.useUtils()
+
+  // Optimistic list: a deleted user disappears instantly and reconciles with the
+  // server prop once `router.refresh()` re-runs the server component.
+  const [optimisticUsers, removeOptimisticUser] = useOptimistic(
+    users,
+    (state: User[], idToRemove: string) => state.filter((u) => u.id !== idToRemove)
+  )
   const resetMfa = trpc.auth.resetUserMfa.useMutation({
     onSuccess: () => {
       toast.success(t("users.mfaResetSuccess"))
@@ -139,18 +146,31 @@ export function UserActionsClient({ users, currentUserId, isSuperAdmin = false, 
     }
   }
 
-  const confirmDelete = async () => {
-    if (userToDelete) {
-      const result = await deleteUserAction(userToDelete)
-      if (result.error) {
-        showErrorFromException(result.error, t("users.deleteError"))
-      } else {
-        toast.success(t("users.userDeletedSuccess"))
+  const confirmDelete = () => {
+    if (!userToDelete) return
+    const id = userToDelete
+
+    // Close immediately; the row disappears optimistically while the server
+    // processes the deletion in the background.
+    setIsDeleteDialogOpen(false)
+    setUserToDelete(null)
+
+    startTransition(async () => {
+      removeOptimisticUser(id)
+      try {
+        const result = await deleteUserAction(id)
+        if (result.error) {
+          showErrorFromException(result.error, t("users.deleteError"))
+        } else {
+          toast.success(t("users.userDeletedSuccess"))
+        }
+      } catch (error) {
+        showErrorFromException(error, t("users.deleteError"))
+      } finally {
+        // Reconcile: keeps the row gone on success, restores it on failure.
         router.refresh()
       }
-      setIsDeleteDialogOpen(false)
-      setUserToDelete(null)
-    }
+    })
   }
 
   React.useEffect(() => {
@@ -171,7 +191,7 @@ export function UserActionsClient({ users, currentUserId, isSuperAdmin = false, 
 
   // Map users to the format expected by UsersTable
   // Handle cases where sensitive fields might not be included
-  const mappedUsers = users.map((user) => {
+  const mappedUsers = optimisticUsers.map((user, index) => {
     const isCreator = user.id === currentUser.createdById;
     return {
       id: user.id,
@@ -183,9 +203,9 @@ export function UserActionsClient({ users, currentUserId, isSuperAdmin = false, 
       // SUPER_ADMIN can see everything, other roles cannot see sensitive info about their creator
       mfa: (!isCreator || isSuperAdmin) && "mfaEnabled" in user ? user.mfaEnabled : undefined,
       lastLogin: (!isCreator || isSuperAdmin) && "lastLoginAt" in user && user.lastLoginAt
-        ? new Date(user.lastLoginAt).toLocaleString() 
+        ? new Date(user.lastLoginAt).toLocaleString()
         : undefined,
-      avatar: `/avatars/0${(users.indexOf(user) % 5) + 1}.png`,
+      avatar: `/avatars/0${(index % 5) + 1}.png`,
       isCreator: isCreator && !isSuperAdmin, // Only mark as creator if not SUPER_ADMIN
     };
   })

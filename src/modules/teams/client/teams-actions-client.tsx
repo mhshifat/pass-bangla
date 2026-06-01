@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useActionState } from "react"
+import { useActionState, useOptimistic, startTransition } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
@@ -50,6 +50,14 @@ export function TeamsActionsClient({ teams, pagination }: TeamsActionsClientProp
   const { t } = useTranslation()
   const router = useRouter()
   const { hasPermission } = usePermissions()
+
+  // Optimistic list: a deleted team disappears instantly and reconciles with the
+  // server prop once `router.refresh()` re-runs the server component.
+  const [optimisticTeams, removeOptimisticTeam] = useOptimistic(
+    teams,
+    (state: Team[], idToRemove: string) => state.filter((tm) => tm.id !== idToRemove)
+  )
+
   const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false)
   const [isViewDialogOpen, setIsViewDialogOpen] = React.useState(false)
@@ -106,22 +114,31 @@ export function TeamsActionsClient({ teams, pagination }: TeamsActionsClientProp
     setIsDeleteDialogOpen(true)
   }
 
-  const confirmDelete = async () => {
+  const confirmDelete = () => {
     if (!teamToDelete) return
+    const id = teamToDelete
 
-    try {
-      const result = await deleteTeamAction(teamToDelete)
-      if (result.success) {
-        toast.success(t("teams.teamDeletedSuccess"))
-        setIsDeleteDialogOpen(false)
-        setTeamToDelete(null)
+    // Close immediately; the row disappears optimistically while the server
+    // processes the deletion in the background.
+    setIsDeleteDialogOpen(false)
+    setTeamToDelete(null)
+
+    startTransition(async () => {
+      removeOptimisticTeam(id)
+      try {
+        const result = await deleteTeamAction(id)
+        if (result.success) {
+          toast.success(t("teams.teamDeletedSuccess"))
+        } else if (result.error) {
+          showErrorFromException(result.error, t("teams.teamDeleteFailed"))
+        }
+      } catch (error) {
+        showErrorFromException(error, t("teams.teamDeleteFailed"))
+      } finally {
+        // Reconcile: keeps the row gone on success, restores it on failure.
         router.refresh()
-      } else if (result.error) {
-        showErrorFromException(result.error, t("teams.teamDeleteFailed"))
       }
-    } catch (error) {
-      showErrorFromException(error, t("teams.teamDeleteFailed"))
-    }
+    })
   }
 
   return (
@@ -134,7 +151,7 @@ export function TeamsActionsClient({ teams, pagination }: TeamsActionsClientProp
       )}
 
       <TeamsTable
-        teams={teams}
+        teams={optimisticTeams}
         onViewMembers={handleViewMembers}
         onEdit={handleEdit}
         onDelete={handleDelete}

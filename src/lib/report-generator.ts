@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma"
-import { Prisma } from "@/app/generated"
+import { Prisma, type AuditStatus } from "@/app/generated"
 
 /**
  * Report configuration interface
@@ -38,6 +38,7 @@ export interface ReportData {
       end: Date
     }
     filters?: Record<string, unknown>
+    complianceStandard?: string
   }
   summary?: {
     totalRecords: number
@@ -123,7 +124,7 @@ async function generateAuditReport(
   }
 
   if (config.filters?.statuses && config.filters.statuses.length > 0) {
-    where.status = { in: config.filters.statuses as string[] }
+    where.status = { in: config.filters.statuses as AuditStatus[] }
   }
 
   const logs = await prisma.auditLog.findMany({
@@ -569,7 +570,7 @@ async function generateCustomReport(
   }
 
   if (config.filters?.statuses && config.filters.statuses.length > 0) {
-    where.status = { in: config.filters.statuses as string[] }
+    where.status = { in: config.filters.statuses as AuditStatus[] }
   }
 
   // Map sortBy field names to database fields

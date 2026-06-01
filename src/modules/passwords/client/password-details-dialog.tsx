@@ -271,7 +271,7 @@ export function PasswordDetailsDialog({
     setIsTogglingFavorite(true)
     try {
       const result = await toggleFavoriteAction(password.id)
-      if (result.success) {
+      if (result.success && "isFavorite" in result) {
         toast.success(
           result.isFavorite
             ? t("passwords.favorites.added")
@@ -281,7 +281,7 @@ export function PasswordDetailsDialog({
         await utils.passwords.list.invalidate()
         await utils.passwords.getFavorites.invalidate()
         router.refresh()
-      } else {
+      } else if ("error" in result) {
         showErrorFromException(result.error, t("passwords.favorites.toggleError"))
       }
     } catch (error) { showErrorFromException(error, t("passwords.favorites.toggleError")) } finally {
@@ -733,7 +733,7 @@ export function PasswordDetailsDialog({
                     <>
                       {typeof displayPassword.sharedWith[0] === "string" ? (
                         // Legacy format: array of strings
-                        displayPassword.sharedWith.map((team, idx) => (
+                        (displayPassword.sharedWith as string[]).map((team, idx) => (
                           <Badge key={idx} variant="secondary">
                             {team}
                           </Badge>

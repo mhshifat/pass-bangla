@@ -8,6 +8,8 @@ import { cn } from "@/lib/utils"
 
 interface PasswordInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   onGenerate?: () => void
+  /** Called with a freshly generated strong password when the generate action fires. */
+  onGeneratePassword?: (password: string) => void
   showGenerateButton?: boolean
   showToggleButton?: boolean
 }
@@ -50,10 +52,13 @@ export function generateStrongPassword(length: number = 16): string {
 }
 
 export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
-  ({ className, onGenerate, showGenerateButton = false, showToggleButton = true, type = "password", ...props }, ref) => {
+  ({ className, onGenerate, onGeneratePassword, showGenerateButton = false, showToggleButton = true, type = "password", ...props }, ref) => {
     const [showPassword, setShowPassword] = React.useState(false)
-    
+
     const handleGenerate = () => {
+      if (onGeneratePassword) {
+        onGeneratePassword(generateStrongPassword())
+      }
       if (onGenerate) {
         onGenerate()
       }

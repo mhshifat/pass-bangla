@@ -1,5 +1,8 @@
+"use client"
+
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
+import { FadeIn } from "@/components/motion"
 
 interface AuthCardProps {
   title?: string
@@ -28,16 +31,18 @@ export function AuthCard({ title, description, children, footer, className }: Au
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-200/40 dark:bg-primary/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
 
       {/* Card with backdrop blur */}
-      <Card className="w-full max-w-md relative z-10 backdrop-blur-sm bg-card/95 border-border/50 shadow-xl">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">{title}</CardTitle>
-          <CardDescription className="text-center">
-            {description}
-          </CardDescription>
-        </CardHeader>
-        {children}
-        {footer && <CardFooter className="flex flex-col space-y-4 mt-4">{footer}</CardFooter>}
-      </Card>
+      <FadeIn y={12} className="w-full max-w-md relative z-10">
+        <Card className="backdrop-blur-sm bg-card/95 border-border/50 shadow-xl">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl font-bold text-center">{title}</CardTitle>
+            <CardDescription className="text-center">
+              {description}
+            </CardDescription>
+          </CardHeader>
+          {children}
+          {footer && <CardFooter className="flex flex-col space-y-4 mt-4">{footer}</CardFooter>}
+        </Card>
+      </FadeIn>
     </div>
   )
 }

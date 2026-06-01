@@ -107,7 +107,7 @@ export async function prefetchFavoritesData(input: PrefetchFavoritesInput = {}) 
       onboardingStatus,
       accessibilityPrefs
     ] = await Promise.allSettled([
-      trpc.passwords.getFavorites(favoritesInput),
+      trpc.passwords.getFavorites({ page, pageSize, search: search || undefined }),
       trpc.passwords.getExportFilters(),
       trpc.passwordRotation.getReminders({ daysAhead: 365 }),
       trpc.users.getOnboardingStatus(),
@@ -216,7 +216,7 @@ export async function prefetchTemplatesData() {
   
   try {
     const [templates, onboardingStatus, accessibilityPrefs] = await Promise.allSettled([
-      trpc.passwords.listTemplates({ page: 1, pageSize: 100 }),
+      trpc.passwords.listTemplates({}),
       trpc.users.getOnboardingStatus(),
       trpc.users.getAccessibilityPreferences(),
     ]);
@@ -258,7 +258,7 @@ export async function prefetchDuplicatesData() {
   try {
     const [duplicates, reused, similar, onboardingStatus, accessibilityPrefs] = await Promise.allSettled([
       trpc.passwords.findDuplicates({}),
-      trpc.passwords.findReused({}),
+      trpc.passwords.findReused(),
       trpc.passwords.findSimilar({ threshold: 0.8 }),
       trpc.users.getOnboardingStatus(),
       trpc.users.getAccessibilityPreferences(),

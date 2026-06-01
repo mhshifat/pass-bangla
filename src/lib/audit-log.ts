@@ -1,4 +1,5 @@
 import prisma from "./prisma"
+import { Prisma } from "@/app/generated"
 import { getSession } from "./session"
 
 interface CreateAuditLogParams {
@@ -50,7 +51,7 @@ export async function createAuditLog(params: CreateAuditLogParams): Promise<void
         action: params.action,
         resource: params.resource,
         resourceId: params.resourceId || null,
-        details: typeof params.details === "string" ? { message: params.details } : params.details || null,
+        details: typeof params.details === "string" ? { message: params.details } : (params.details as Prisma.InputJsonValue) || Prisma.JsonNull,
         status: params.status || "SUCCESS",
         ipAddress: params.ipAddress || null,
         userAgent: params.userAgent || null,

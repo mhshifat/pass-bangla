@@ -87,7 +87,7 @@ export function TemplateSelector({ onSelectTemplate, className }: TemplateSelect
 
   const useTemplateMutation = trpc.passwords.useTemplate.useMutation({
     onSuccess: (result) => {
-      onSelectTemplate?.(result.template)
+      onSelectTemplate?.(result.template as Parameters<NonNullable<typeof onSelectTemplate>>[0])
       setOpen(false)
     },
     onError: (error) => {

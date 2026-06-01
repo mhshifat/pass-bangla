@@ -212,7 +212,7 @@ export function ReportBuilderDialog({
 
     // Additional filters for CUSTOM reports
     if (isCustomReport) {
-      const filters: Record<string, unknown> = config.filters || {}
+      const filters: Record<string, unknown> = (config.filters || {}) as Record<string, unknown>
       
       if (values.userIds && values.userIds.length > 0) {
         filters.userIds = values.userIds

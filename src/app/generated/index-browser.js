@@ -302,6 +302,14 @@ exports.Prisma.TemporaryPasswordShareScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.TemporaryShareAccessScalarFieldEnum = {
+  id: 'id',
+  shareId: 'shareId',
+  accessedAt: 'accessedAt',
+  ipAddress: 'ipAddress',
+  userAgent: 'userAgent'
+};
+
 exports.Prisma.TeamScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -778,6 +786,7 @@ exports.Prisma.ModelName = {
   Folder: 'Folder',
   PasswordShare: 'PasswordShare',
   TemporaryPasswordShare: 'TemporaryPasswordShare',
+  TemporaryShareAccess: 'TemporaryShareAccess',
   Team: 'Team',
   TeamMember: 'TeamMember',
   Tag: 'Tag',

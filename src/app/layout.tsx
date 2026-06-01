@@ -10,6 +10,7 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 import { ThemeInitializer } from "@/components/providers/theme-initializer";
 import { I18nProvider } from "@/components/providers/i18n-provider";
 import { AccessibilityProvider } from "@/components/providers/accessibility-provider";
+import { MotionProvider } from "@/components/motion";
 import { AccessibilityInitializer } from "@/components/providers/accessibility-initializer";
 import { InstallPrompt } from "@/components/pwa/install-prompt";
 import { ServiceWorkerRegistration } from "@/components/pwa/service-worker-registration";
@@ -211,7 +212,7 @@ export default async function RootLayout({
               <Suspense fallback={null}>
                 <NavigationProgress showFullPageLoader={false} />
               </Suspense>
-              {children}
+              <MotionProvider>{children}</MotionProvider>
             </TRPCReactProvider>
             <Toaster />
             <ServiceWorkerRegistration />

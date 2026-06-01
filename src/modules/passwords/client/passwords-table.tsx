@@ -62,15 +62,16 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 import { showErrorFromException } from "@/lib/error-toast"
+import { motion, AnimatePresence } from "@/components/motion"
 
-interface PasswordShare {
+export interface PasswordShare {
   shareId: string
   teamId: string | null
   teamName: string
   expiresAt: Date | null
 }
 
-interface Password {
+export interface Password {
   id: string
   name: string
   username: string
@@ -643,8 +644,17 @@ export function PasswordsTable({
       <CardContent className="px-6">
         {isMobile ? (
               <div className="space-y-4 md:hidden">
+                <AnimatePresence initial={false}>
                 {passwords.map((pwd) => (
-                  <Card key={pwd.id} className="p-4">
+                  <motion.div
+                    key={pwd.id}
+                    layout
+                    initial={false}
+                    exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                    transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                    style={{ overflow: "hidden" }}
+                  >
+                  <Card className="p-4">
                     <div className="space-y-3">
                       {/* Header with name and actions */}
                       <div className="flex items-start justify-between gap-2">
@@ -811,7 +821,9 @@ export function PasswordsTable({
                       </div>
                     </div>
                   </Card>
+                  </motion.div>
                 ))}
+                </AnimatePresence>
               </div>
         ) : (
           <div className="overflow-x-auto">
@@ -836,12 +848,18 @@ export function PasswordsTable({
             </TableRow>
           </TableHeader>
             <TableBody>
+              <AnimatePresence initial={false}>
               {passwords.map((pwd) => (
-                <TableRow
+                <motion.tr
                   key={pwd.id}
-                  className={`group hover:bg-muted/50 transition-colors ${
+                  layout
+                  initial={false}
+                  exit={{ opacity: 0, x: -16 }}
+                  transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                  className={cn(
+                    "group border-b transition-colors hover:bg-muted/50",
                     selectedIds.includes(pwd.id) ? "bg-muted/50" : ""
-                  }`}
+                  )}
                 >
                 {onSelectionChange && (
                   <TableCell>
@@ -1040,8 +1058,9 @@ export function PasswordsTable({
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
-              </TableRow>
+                </motion.tr>
               ))}
+              </AnimatePresence>
             </TableBody>
           </Table>
           </div>

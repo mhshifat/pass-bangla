@@ -1,4 +1,5 @@
 import prisma from "./prisma"
+import { Prisma } from "@/app/generated"
 import { createAuditLog } from "./audit-log"
 
 export type ThreatType = 
@@ -383,7 +384,7 @@ export async function createThreatEvent(params: {
         companyId: params.companyId || null,
         ipAddress: params.ipAddress || null,
         userAgent: params.userAgent || null,
-        details: params.details || null,
+        details: (params.details as Prisma.InputJsonValue) || Prisma.JsonNull,
       },
     })
 

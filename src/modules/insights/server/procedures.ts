@@ -695,7 +695,7 @@ export const insightsRouter = createTRPCRouter({
             userId: u.userId,
             userName: userMap.get(u.userId || "")?.name || "Unknown",
             userEmail: userMap.get(u.userId || "")?.email || "N/A",
-            actionCount: u._count.userId || 0,
+            actionCount: u._count || 0,
           }))
           .filter((u) => u.userId),
         activityByDay: activityByDay.map((item) => ({
@@ -916,7 +916,7 @@ export const insightsRouter = createTRPCRouter({
           .map((s) => ({
             teamId: s.teamId,
             teamName: teamMap.get(s.teamId || "")?.name || "Unknown Team",
-            shareCount: s._count.teamId || 0,
+            shareCount: s._count || 0,
           }))
           .filter((s) => s.teamId),
         topCollaborators: topCollaborators
@@ -926,7 +926,7 @@ export const insightsRouter = createTRPCRouter({
               collaboratorMap.get(c.userId || "")?.name || "Unknown",
             userEmail:
               collaboratorMap.get(c.userId || "")?.email || "N/A",
-            shareCount: c._count.userId || 0,
+            shareCount: c._count || 0,
           }))
           .filter((c) => c.userId),
       }

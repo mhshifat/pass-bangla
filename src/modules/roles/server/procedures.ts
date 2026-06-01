@@ -349,7 +349,7 @@ export const rolesRouter = createTRPCRouter({
       }
       
       if (companyId) {
-        where.OR.push({
+        where.OR!.push({
           isSystem: false,
           createdBy: {
             companyId: companyId,
@@ -357,7 +357,7 @@ export const rolesRouter = createTRPCRouter({
         })
       } else {
         // If no company, only show system roles and roles created by current user
-        where.OR.push({
+        where.OR!.push({
           isSystem: false,
           createdById: ctx.userId,
         })
@@ -417,13 +417,13 @@ export const rolesRouter = createTRPCRouter({
       
       if (companyId) {
         // Show custom roles for this company
-        where.OR.push({
+        where.OR!.push({
           isSystem: false,
           companyId: companyId,
         })
       } else {
         // If no company, only show system roles and roles created by current user
-        where.OR.push({
+        where.OR!.push({
           isSystem: false,
           createdById: ctx.userId,
         })

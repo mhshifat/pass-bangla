@@ -1,14 +1,19 @@
 'use client';
 import superjson from 'superjson';
-import type { QueryClient } from '@tanstack/react-query';
+import type { QueryClient, DehydratedState } from '@tanstack/react-query';
 import { QueryClientProvider, HydrationBoundary } from '@tanstack/react-query';
 import { httpBatchLink } from '@trpc/client';
 import { createTRPCReact } from '@trpc/react-query';
+import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
 import { useState } from 'react';
 import { AppRouter } from './routers/_app';
 import { makeQueryClient } from './query-client';
 
 export const trpc = createTRPCReact<AppRouter>();
+
+/** Inferred input/output types for the app's tRPC router. */
+export type RouterInputs = inferRouterInputs<AppRouter>;
+export type RouterOutputs = inferRouterOutputs<AppRouter>;
 
 let browserQueryClient: QueryClient;
 function getQueryClient() {
@@ -54,7 +59,7 @@ export function TRPCReactProvider(
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
-        <HydrationBoundary state={props.dehydratedState}>
+        <HydrationBoundary state={props.dehydratedState as DehydratedState | undefined}>
           {props.children}
         </HydrationBoundary>
       </QueryClientProvider>
