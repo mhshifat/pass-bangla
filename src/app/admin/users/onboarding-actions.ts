@@ -9,6 +9,8 @@ interface SendOnboardingEmailInput {
   loginUrl: string
   /** Temporary password, when the admin wants to include it. */
   password?: string
+  /** `reminder` for existing/active users; defaults to `new`. */
+  variant?: "new" | "reminder"
 }
 
 /**
@@ -30,6 +32,46 @@ export async function sendOnboardingEmailAction(
       escapeHtml,
       APP_NAME,
     } = await import("@/lib/email-template")
+
+    // Existing/active user: send a short sign-in reminder instead of a setup guide.
+    if (input.variant === "reminder") {
+      const reminderSubject = `Your ${APP_NAME} sign-in details`
+      const reminderHtml = renderEmailLayout({
+        title: reminderSubject,
+        heading: `Your ${APP_NAME} sign-in details`,
+        preview: `How to access your ${APP_NAME} account.`,
+        bodyHtml: `
+          <p style="margin: 0 0 16px;">
+            Hi ${escapeHtml(input.name)}, here's how to access your ${APP_NAME} account.
+          </p>
+          ${emailButton(input.loginUrl, "Sign in to your account")}
+          ${emailCallout(
+            `<strong>Email:</strong> ${escapeHtml(input.to)}<br/>` +
+              `Forgot your password? Use <strong>“Forgot password”</strong> on the sign-in page.`,
+            "info"
+          )}
+        `,
+      })
+      const reminderText = [
+        `Hi ${input.name},`,
+        ``,
+        `Access your ${APP_NAME} account: ${input.loginUrl}`,
+        `Email: ${input.to}`,
+        `Forgot your password? Use "Forgot password" on the sign-in page.`,
+      ].join("\n")
+
+      const reminderResult = await sendEmail({
+        to: input.to,
+        subject: reminderSubject,
+        html: reminderHtml,
+        text: reminderText,
+        correlationId,
+      })
+      if (!reminderResult.success) {
+        return { error: reminderResult.error || "Failed to send email", correlationId }
+      }
+      return { success: true, correlationId }
+    }
 
     const subject = onboardingSubject(APP_NAME)
 

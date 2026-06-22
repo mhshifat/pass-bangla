@@ -92,7 +92,7 @@ export function UserActionsClient({ users, currentUserId, isSuperAdmin = false, 
 
   // Onboarding share (welcome the newly created user / re-invite an existing one)
   const [isOnboardingOpen, setIsOnboardingOpen] = React.useState(false)
-  const [onboardingUser, setOnboardingUser] = React.useState<{ name: string; email: string; password?: string } | null>(null)
+  const [onboardingUser, setOnboardingUser] = React.useState<{ name: string; email: string; password?: string; variant?: "new" | "reminder" } | null>(null)
   // Captures the credentials submitted in the create form so we can prefill the
   // onboarding share once creation succeeds.
   const pendingCreateRef = React.useRef<{ name: string; email: string; password?: string } | null>(null)
@@ -199,19 +199,45 @@ export function UserActionsClient({ users, currentUserId, isSuperAdmin = false, 
       router.refresh()
       // Offer to share onboarding details with the new user.
       if (pendingCreateRef.current) {
-        setOnboardingUser(pendingCreateRef.current)
+        setOnboardingUser({ ...pendingCreateRef.current, variant: "new" })
         setIsOnboardingOpen(true)
         pendingCreateRef.current = null
       }
+    } else if ((createState as { conflict?: boolean } | null)?.conflict && pendingCreateRef.current) {
+      // The email already belongs to an existing account in this company.
+      // Offer to send that user their sign-in details instead.
+      const email = pendingCreateRef.current.email
+      const existing = users.find((u) => u.email.toLowerCase() === email.toLowerCase())
+      pendingCreateRef.current = null
+      if (existing) {
+        toast.error(t("users.userExists", "A user with this email already exists."), {
+          action: {
+            label: t("users.sendSignInDetails", "Send sign-in details"),
+            onClick: () => {
+              setIsCreateDialogOpen(false)
+              setOnboardingUser({
+                name: existing.name,
+                email: existing.email,
+                variant: existing.lastLoginAt ? "reminder" : "new",
+              })
+              setIsOnboardingOpen(true)
+            },
+          },
+        })
+      }
     }
-  }, [createState, router, t])
+  }, [createState, router, t, users])
 
   const handleSendOnboarding = (userId: string) => {
     const user = users.find((u) => u.id === userId)
     if (user) {
-      // Existing user: the password isn't known, so the message guides them to
-      // set it via "Forgot password".
-      setOnboardingUser({ name: user.name, email: user.email })
+      // Existing user: the password isn't known. If they've signed in before,
+      // send a short reminder; otherwise treat it as a pending invite (set-up).
+      setOnboardingUser({
+        name: user.name,
+        email: user.email,
+        variant: user.lastLoginAt ? "reminder" : "new",
+      })
       setIsOnboardingOpen(true)
     }
   }

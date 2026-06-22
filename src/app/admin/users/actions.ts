@@ -11,7 +11,7 @@ type FieldErrors = {
 }
 
 export async function createUserAction(
-  prevState: { error?: string; fieldErrors?: FieldErrors; success?: boolean; correlationId?: string } | null,
+  prevState: { error?: string; fieldErrors?: FieldErrors; success?: boolean; conflict?: boolean; correlationId?: string } | null,
   formData: FormData
 ) {
   const name = formData.get("name") as string
@@ -61,6 +61,15 @@ export async function createUserAction(
           // If parsing fails, return the message as a root error
           const safeMessage = sanitizeClientErrorMessage(error.message, fallbackMessage)
           return { error: `${safeMessage} (ID: ${correlationId})`, correlationId }
+        }
+      }
+
+      // Email already taken in this company — surface a clean, actionable message.
+      if (error.code === "CONFLICT") {
+        return {
+          error: "A user with this email already exists in your company.",
+          conflict: true,
+          correlationId,
         }
       }
 

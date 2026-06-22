@@ -40,7 +40,7 @@ import {
 interface OnboardingShareDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  user: { name: string; email: string; password?: string } | null
+  user: { name: string; email: string; password?: string; variant?: "new" | "reminder" } | null
   /** Defaults to `${origin}/login`. */
   loginUrl?: string
 }
@@ -71,6 +71,7 @@ export function OnboardingShareDialog({
         email: user.email,
         password: user.password,
         loginUrl: url,
+        variant: user.variant,
       })
     )
     setCopied(false)
@@ -116,6 +117,7 @@ export function OnboardingShareDialog({
         name: user.name,
         loginUrl: resolvedLoginUrl,
         password: user.password,
+        variant: user.variant,
       })
       if (result.success) {
         setEmailSent(true)
@@ -184,11 +186,15 @@ export function OnboardingShareDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[560px]">
+      <DialogContent className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Share onboarding details</DialogTitle>
+          <DialogTitle>
+            {user.variant === "reminder" ? "Share sign-in details" : "Share onboarding details"}
+          </DialogTitle>
           <DialogDescription>
-            Send {user.name} their sign-in details and getting-started steps.
+            {user.variant === "reminder"
+              ? `Send ${user.name} their sign-in link and account details.`
+              : `Send ${user.name} their sign-in details and getting-started steps.`}
           </DialogDescription>
         </DialogHeader>
 
@@ -240,7 +246,7 @@ export function OnboardingShareDialog({
               id="onboarding-message"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              rows={9}
+              rows={6}
               className="font-mono text-xs leading-relaxed"
             />
             <p className="text-xs text-muted-foreground">

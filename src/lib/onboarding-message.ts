@@ -9,6 +9,13 @@ import { APP_NAME } from "@/lib/email-template"
  * `email-template` helpers.
  */
 
+/**
+ * - `new`: a brand-new/pending user — full welcome + password setup steps.
+ * - `reminder`: an existing user who already has an active account — a short
+ *   sign-in reminder, no setup steps.
+ */
+export type OnboardingVariant = "new" | "reminder"
+
 export interface OnboardingDetails {
   name: string
   email: string
@@ -17,6 +24,8 @@ export interface OnboardingDetails {
   /** Sign-in URL (defaults handled by the caller, usually `${origin}/login`). */
   loginUrl: string
   appName?: string
+  /** Defaults to `new`. */
+  variant?: OnboardingVariant
 }
 
 /**
@@ -24,6 +33,22 @@ export interface OnboardingDetails {
  */
 export function buildOnboardingText(details: OnboardingDetails): string {
   const appName = details.appName ?? APP_NAME
+
+  // Existing, established user: just remind them how to get in.
+  if (details.variant === "reminder") {
+    return [
+      `Hi ${details.name},`,
+      ``,
+      `Here's how to access your ${appName} account.`,
+      ``,
+      `Sign in: ${details.loginUrl}`,
+      `Email: ${details.email}`,
+      `Forgot your password? Use "Forgot password" on the sign-in page.`,
+      ``,
+      `— The ${appName} Team`,
+    ].join("\n")
+  }
+
   const credentialLine = details.password
     ? `Temporary password: ${details.password}`
     : `Set your password using "Forgot password" on the sign-in page.`
