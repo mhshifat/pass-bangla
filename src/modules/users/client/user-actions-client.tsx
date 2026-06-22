@@ -19,9 +19,10 @@ import { UserFormDialog } from "./user-form-dialog"
 import { UsersTable } from "./users-table"
 import { ResetPasswordDialog } from "./reset-password-dialog"
 import { SendEmailDialog } from "./send-email-dialog"
+import { OnboardingShareDialog } from "./onboarding-share-dialog"
 import { createUserAction, updateUserAction, deleteUserAction, resetPasswordAction } from "@/app/admin/users/actions"
 import { sendEmailAction } from "@/app/admin/users/email-actions"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { usePermissions } from "@/hooks/use-permissions"
 import { trpc } from "@/trpc/client"
 import { useTranslation } from "react-i18next"
@@ -50,7 +51,18 @@ interface UserActionsClientProps {
 export function UserActionsClient({ users, currentUserId, isSuperAdmin = false, currentUser }: UserActionsClientProps) {
   const { t } = useTranslation()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { hasPermission } = usePermissions()
+
+  // Deep-link support: opening /admin/users?new=1 (e.g. the "Create user"
+  // command from the dashboard / command palette) jumps straight into creation.
+  React.useEffect(() => {
+    if (searchParams.get("new") === "1" && hasPermission("user.create")) {
+      setIsCreateDialogOpen(true)
+      router.replace("/admin/users")
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams])
   const utils = trpc.useUtils()
 
   // Optimistic list: a deleted user disappears instantly and reconciles with the
@@ -77,6 +89,13 @@ export function UserActionsClient({ users, currentUserId, isSuperAdmin = false, 
   const [userToDelete, setUserToDelete] = React.useState<string | null>(null)
   const [userToResetPassword, setUserToResetPassword] = React.useState<{ id: string; name: string } | null>(null)
   const [userToEmail, setUserToEmail] = React.useState<{ id: string; name: string; email: string } | null>(null)
+
+  // Onboarding share (welcome the newly created user / re-invite an existing one)
+  const [isOnboardingOpen, setIsOnboardingOpen] = React.useState(false)
+  const [onboardingUser, setOnboardingUser] = React.useState<{ name: string; email: string; password?: string } | null>(null)
+  // Captures the credentials submitted in the create form so we can prefill the
+  // onboarding share once creation succeeds.
+  const pendingCreateRef = React.useRef<{ name: string; email: string; password?: string } | null>(null)
 
   const [createState, createFormAction, createPending] = useActionState(createUserAction, null)
   const [updateState, updateFormAction, updatePending] = useActionState(
@@ -178,8 +197,24 @@ export function UserActionsClient({ users, currentUserId, isSuperAdmin = false, 
       setIsCreateDialogOpen(false)
       toast.success(t("users.userCreatedSuccess"))
       router.refresh()
+      // Offer to share onboarding details with the new user.
+      if (pendingCreateRef.current) {
+        setOnboardingUser(pendingCreateRef.current)
+        setIsOnboardingOpen(true)
+        pendingCreateRef.current = null
+      }
     }
   }, [createState, router, t])
+
+  const handleSendOnboarding = (userId: string) => {
+    const user = users.find((u) => u.id === userId)
+    if (user) {
+      // Existing user: the password isn't known, so the message guides them to
+      // set it via "Forgot password".
+      setOnboardingUser({ name: user.name, email: user.email })
+      setIsOnboardingOpen(true)
+    }
+  }
 
   React.useEffect(() => {
     if (updateState?.success) {
@@ -255,6 +290,11 @@ export function UserActionsClient({ users, currentUserId, isSuperAdmin = false, 
           if (!isSuperAdmin && user?.createdById === currentUserId) return;
           if (hasPermission("user.edit")) handleResetMfa(userId);
         }}
+        onSendOnboarding={(userId) => {
+          const user = users.find(u => u.id === userId);
+          if (!isSuperAdmin && user?.createdById === currentUserId) return;
+          if (hasPermission("user.edit")) handleSendOnboarding(userId);
+        }}
         onAddUser={hasPermission("user.create") ? () => setIsCreateDialogOpen(true) : undefined}
       />
 
@@ -262,7 +302,14 @@ export function UserActionsClient({ users, currentUserId, isSuperAdmin = false, 
         open={isCreateDialogOpen}
         onOpenChange={setIsCreateDialogOpen}
         mode="create"
-        formAction={createFormAction}
+        formAction={(formData) => {
+          pendingCreateRef.current = {
+            name: (formData.get("name") as string) || "",
+            email: (formData.get("email") as string) || "",
+            password: (formData.get("password") as string) || undefined,
+          }
+          createFormAction(formData)
+        }}
         isPending={createPending}
         state={createState}
       />
@@ -316,6 +363,12 @@ export function UserActionsClient({ users, currentUserId, isSuperAdmin = false, 
         onConfirm={confirmEmail}
         userEmail={userToEmail?.email}
         userName={userToEmail?.name}
+      />
+
+      <OnboardingShareDialog
+        open={isOnboardingOpen}
+        onOpenChange={setIsOnboardingOpen}
+        user={onboardingUser}
       />
     </>
   )

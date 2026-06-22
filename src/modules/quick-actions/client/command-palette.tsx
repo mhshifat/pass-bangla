@@ -20,6 +20,7 @@ import {
   Search,
   FileText,
   Users,
+  UserPlus,
   Shield,
   Settings,
   BarChart3,
@@ -141,6 +142,13 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       shortcut: "⌘N",
       action: () => setIsCreatePasswordOpen(true),
       permission: "password.create",
+    },
+    {
+      name: t("quickActions.actions.createUser", "Create user"),
+      icon: UserPlus,
+      shortcut: undefined,
+      action: () => router.push("/admin/users?new=1"),
+      permission: "user.create",
     },
     {
       name: t("quickActions.shortcuts.title"),

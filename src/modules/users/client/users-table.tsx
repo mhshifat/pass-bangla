@@ -23,7 +23,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Search, MoreHorizontal, Pencil, Trash2, Mail, Shield } from "lucide-react"
+import { Search, MoreHorizontal, Pencil, Trash2, Mail, Shield, Send } from "lucide-react"
 import { UsersEmptyState } from "./users-empty-state"
 import { useIsMobile } from "@/hooks/use-mobile"
 
@@ -46,10 +46,11 @@ interface UsersTableProps {
   onResetPassword?: (userId: string) => void
   onEmail?: (userId: string) => void
   onResetMfa?: (userId: string) => void
+  onSendOnboarding?: (userId: string) => void
   onAddUser?: () => void
 }
 
-export function UsersTable({ users, onEdit, onDelete, onResetPassword, onEmail, onResetMfa, onAddUser }: UsersTableProps) {
+export function UsersTable({ users, onEdit, onDelete, onResetPassword, onEmail, onResetMfa, onSendOnboarding, onAddUser }: UsersTableProps) {
   const { t } = useTranslation()
   const isMobile = useIsMobile()
   const [searchQuery, setSearchQuery] = React.useState("")
@@ -134,6 +135,12 @@ export function UsersTable({ users, onEdit, onDelete, onResetPassword, onEmail, 
                                 <DropdownMenuItem onClick={() => onEmail(user.id)}>
                                   <Mail className="mr-2 h-4 w-4" />
                                   {t("users.sendEmail")}
+                                </DropdownMenuItem>
+                              )}
+                              {onSendOnboarding && (
+                                <DropdownMenuItem onClick={() => onSendOnboarding(user.id)}>
+                                  <Send className="mr-2 h-4 w-4" />
+                                  {t("users.sendOnboarding", "Send onboarding info")}
                                 </DropdownMenuItem>
                               )}
                               {onResetPassword && (
@@ -304,6 +311,12 @@ export function UsersTable({ users, onEdit, onDelete, onResetPassword, onEmail, 
                               <DropdownMenuItem onClick={() => onEmail(user.id)}>
                                 <Mail className="mr-2 h-4 w-4" />
                                 {t("users.sendEmail")}
+                              </DropdownMenuItem>
+                            )}
+                            {onSendOnboarding && (
+                              <DropdownMenuItem onClick={() => onSendOnboarding(user.id)}>
+                                <Send className="mr-2 h-4 w-4" />
+                                {t("users.sendOnboarding", "Send onboarding info")}
                               </DropdownMenuItem>
                             )}
                             {onResetPassword && (
