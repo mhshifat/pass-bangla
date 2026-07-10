@@ -120,10 +120,47 @@ export const createTRPCContext = cache(async (): Promise<Context> => {
   const companyId = userWithTeams?.companyId || null;
   const userTeams = userWithTeams?.teamMemberships?.map((tm: { teamId: string }) => tm.teamId) || [];
 
+  // Fetch role + permissions with a small retry. A TRANSIENT DB failure (Neon
+  // pooler cold-start / dropped connection) must NOT be silently turned into an
+  // empty permission set — that surfaces as a bogus 403 "insufficient
+  // permissions" on protected procedures even for fully-authorized users.
+  // We retry, and if it ultimately throws we LOG it loudly (was previously
+  // swallowed by `.catch(() => [])`).
+  const withRetry = async <T,>(
+    label: string,
+    fn: () => Promise<T>,
+    fallback: T
+  ): Promise<T> => {
+    let lastErr: unknown;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        return await limit(fn);
+      } catch (err) {
+        lastErr = err;
+        // brief backoff before retrying a transient DB error
+        await new Promise((r) => setTimeout(r, attempt * 60));
+      }
+    }
+    console.error(
+      `[ctx] ${label} failed after retries for user ${userId}:`,
+      lastErr instanceof Error ? lastErr.message : String(lastErr)
+    );
+    return fallback;
+  };
+
   const [userRole, permissions] = await Promise.all([
-    limit(() => getUserRoleName(userId).catch(() => null)),
-    limit(() => getUserPermissions(userId).catch(() => [])),
+    withRetry("getUserRoleName", () => getUserRoleName(userId), null as string | null),
+    withRetry("getUserPermissions", () => getUserPermissions(userId), [] as string[]),
   ]);
+
+  // Distinguish "genuinely has no permissions" from a masked failure so it's
+  // visible in logs when a normally-privileged user resolves to zero perms.
+  if (permissions.length === 0) {
+    console.warn(
+      `[ctx] user ${userId} resolved to ZERO permissions (role=${userRole ?? "none"}). ` +
+        `If this user should be privileged, the role→permission lookup returned empty or failed.`
+    );
+  }
   
   // Get session token for client-side decryption
   // Try header first (for extensions), then cookie (for web)
