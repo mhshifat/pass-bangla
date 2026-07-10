@@ -1229,48 +1229,41 @@ export const passwordsRouter = createTRPCRouter({
         userId: ctx.userId,
       })
 
-      // Check if password is encrypted with new client-side method or old server-side method
-      // Try to decrypt with new method first (user-specific key)
-      let isNewEncryption = false
-      let newEncryptionError: Error | null = null
-      try {
-        const { decryptFromStorage } = await import("@/lib/server-crypto-migration")
-        // Try to decrypt with new method - if it works, it's new encryption
-        if (!password.ownerId) {
-          throw new Error("Password ownerId is missing")
-        }
-        decryptFromStorage(password.password, password.ownerId)
-        isNewEncryption = true
-      } catch (error) {
-        // Can't decrypt with new method - might be old encryption or error
-        newEncryptionError = error instanceof Error ? error : new Error(String(error))
-        isNewEncryption = false
+      // Decrypt the at-rest ciphertext on the SERVER and return plaintext to the
+      // authenticated client over HTTPS. v2 storage is encrypted with a server-only
+      // master key the browser does not have, so the browser can NEVER decrypt it —
+      // the old code returned the raw `v2:` blob with passwordEncrypted:true, which
+      // is exactly what produced "Invalid encrypted password format" on copy.
+      if (!password.ownerId) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Password ownerId is missing" })
       }
 
-      // CLIENT-SIDE DECRYPTION: Return encrypted password if using new method
-      // For old encryption, we need to decrypt on server (backward compatibility)
-      if (isNewEncryption) {
-        return { 
-          password: password.password, // Return encrypted password
-          passwordEncrypted: true, // Flag to indicate it's encrypted
-        }
-      } else {
-        // Old encryption - decrypt on server for backward compatibility
-        // TODO: Migrate this password to new encryption method
+      const { decryptFromStorage, storageKeyFingerprint } = await import("@/lib/server-crypto-migration")
+      try {
+        // Handles v2 (GCM master key) + legacy (userId CBC) formats.
+        const decryptedPassword = decryptFromStorage(password.password, password.ownerId)
+        return { password: decryptedPassword, passwordEncrypted: false }
+      } catch (v2Error) {
+        // Fall back to the very-old server-side single-key scheme, if any.
         try {
           const decryptedPassword = decryptPassword(password.password)
-          return {
-            password: decryptedPassword, // Return decrypted password (old method)
-            passwordEncrypted: false, // Flag to indicate it's not encrypted (already decrypted)
-          }
+          return { password: decryptedPassword, passwordEncrypted: false }
         } catch (oldDecryptError) {
-          // Both new and old decryption failed - password might be corrupted
-          // Log both errors for debugging
-          console.error("New encryption decryption error:", newEncryptionError)
-          console.error("Old encryption decryption error:", oldDecryptError)
+          console.error(
+            "[getPassword] decrypt FAILED",
+            JSON.stringify({
+              passwordId: password.id,
+              ownerId: password.ownerId,
+              fmt: password.password.slice(0, 3),
+              keyfp: storageKeyFingerprint(),
+              v2Err: v2Error instanceof Error ? v2Error.message : String(v2Error),
+              legacyErr: oldDecryptError instanceof Error ? oldDecryptError.message : String(oldDecryptError),
+            })
+          )
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
-            message: "Failed to decrypt password. The password may be corrupted or encrypted with an unknown key. Please try updating the password.",
+            message:
+              "This password could not be decrypted on the server. The at-rest encryption key may be misconfigured — contact support.",
             cause: oldDecryptError,
           })
         }
