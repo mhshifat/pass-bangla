@@ -108,6 +108,11 @@ function PasswordCell({ passwordId }: { passwordId: string }) {
   const { t } = useTranslation()
   const { copy: copyToClipboard, isCopying } = useClipboard()
   const { user } = useCurrentUser()
+  // Local busy flag so the button shows a spinner IMMEDIATELY on click and stays
+  // busy for the whole operation (network fetch + decrypt + clipboard write).
+  // `isCopying` alone only covers the final clipboard step, so the slow fetch
+  // felt unresponsive.
+  const [isBusy, setIsBusy] = React.useState(false)
   const { refetch } = trpc.passwords.getPassword.useQuery(
     { id: passwordId },
     {
@@ -116,6 +121,8 @@ function PasswordCell({ passwordId }: { passwordId: string }) {
   )
 
   const handleCopyPassword = async () => {
+    if (isBusy) return
+    setIsBusy(true)
     try {
       const result = await refetch()
       if (result.data?.password) {
@@ -155,8 +162,10 @@ function PasswordCell({ passwordId }: { passwordId: string }) {
           successMessage: t("clipboard.passwordCopied"),
         })
       }
-    } catch (error) { showErrorFromException(error, t("clipboard.copyFailed")) }
+    } catch (error) { showErrorFromException(error, t("clipboard.copyFailed")) } finally { setIsBusy(false) }
   }
+
+  const busy = isBusy || isCopying
 
   return (
     <div className="flex items-center gap-2">
@@ -166,10 +175,10 @@ function PasswordCell({ passwordId }: { passwordId: string }) {
         size="icon"
         className="h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
         onClick={handleCopyPassword}
-        disabled={isCopying}
+        disabled={busy}
         title={t("clipboard.copyPassword")}
       >
-        {isCopying ? (
+        {busy ? (
           <Loader2 className="h-3.5 w-3.5 animate-spin" />
         ) : (
           <Copy className="h-3.5 w-3.5" />
@@ -184,6 +193,7 @@ function TotpCell({ passwordId }: { passwordId: string }) {
   const { t } = useTranslation()
   const { copy: copyToClipboard, isCopying } = useClipboard()
   const { user } = useCurrentUser()
+  const [isBusy, setIsBusy] = React.useState(false)
   const { refetch } = trpc.passwords.generateTotp.useQuery(
     { id: passwordId },
     {
@@ -192,6 +202,8 @@ function TotpCell({ passwordId }: { passwordId: string }) {
   )
 
   const handleCopyTotp = async () => {
+    if (isBusy) return
+    setIsBusy(true)
     try {
       const result = await refetch()
       if (result.data?.totpCode) {
@@ -214,8 +226,10 @@ function TotpCell({ passwordId }: { passwordId: string }) {
           successMessage: t("clipboard.totpCopied"),
         })
       }
-    } catch (error) { showErrorFromException(error, t("clipboard.copyFailed")) }
+    } catch (error) { showErrorFromException(error, t("clipboard.copyFailed")) } finally { setIsBusy(false) }
   }
+
+  const busy = isBusy || isCopying
 
   return (
     <div className="flex items-center gap-2">
@@ -228,10 +242,10 @@ function TotpCell({ passwordId }: { passwordId: string }) {
         size="icon"
         className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
         onClick={handleCopyTotp}
-        disabled={isCopying}
+        disabled={busy}
         title={t("passwords.copyTotpCode")}
       >
-        {isCopying ? (
+        {busy ? (
           <Loader2 className="h-3 w-3 animate-spin" />
         ) : (
           <Copy className="h-3 w-3" />

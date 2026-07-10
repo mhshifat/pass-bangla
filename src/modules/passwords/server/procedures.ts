@@ -1220,14 +1220,19 @@ export const passwordsRouter = createTRPCRouter({
         })
       }
 
-      // Create audit log for password view
+      // Audit the view WITHOUT blocking the response. `after()` runs the DB write
+      // once the password has already been returned, so Copy is not delayed by an
+      // extra round-trip. (Vercel keeps the function alive for after() work.)
+      const { after } = await import("next/server")
       const { createAuditLog } = await import("@/lib/audit-log")
-      await createAuditLog({
-        action: "PASSWORD_VIEWED",
-        resource: "Password",
-        resourceId: password.id,
-        userId: ctx.userId,
-      })
+      after(() =>
+        createAuditLog({
+          action: "PASSWORD_VIEWED",
+          resource: "Password",
+          resourceId: password.id,
+          userId: ctx.userId,
+        }).catch((e) => console.error("[getPassword] audit log failed:", e))
+      )
 
       // Decrypt the at-rest ciphertext on the SERVER and return plaintext to the
       // authenticated client over HTTPS. v2 storage is encrypted with a server-only
