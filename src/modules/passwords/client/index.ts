@@ -1,6 +1,7 @@
 export { PasswordsTable } from "./passwords-table"
 export { PasswordFormDialog } from "./password-form-dialog"
 export { PasswordDetailsDialog } from "./password-details-dialog"
+export { InstantSearchDialog } from "./instant-search-dialog"
 export { SecurityAlerts } from "./security-alerts"
 export { PasswordsTableSkeleton } from "./passwords-table-skeleton"
 export { PasswordsEmptyState } from "./passwords-empty-state"

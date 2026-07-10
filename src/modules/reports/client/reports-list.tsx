@@ -28,6 +28,7 @@ import { Download, Trash2, FileText } from "lucide-react"
 import { format } from "date-fns"
 import { toast } from "sonner"
 import { usePermissions } from "@/hooks/use-permissions"
+import { downloadBase64File } from "@/lib/download-file"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { Card } from "@/components/ui/card"
 import { showErrorFromException } from "@/lib/error-toast"
@@ -62,20 +63,13 @@ export function ReportsList() {
   const canDownload = hasPermission("report.view")
 
   const downloadMutation = trpc.reports.download.useMutation({
-    onSuccess: (data) => {
-      // Create blob from base64 content
-      const blob = new Blob(
-        [Uint8Array.from(atob(data.content), (c) => c.charCodeAt(0))],
-        { type: data.mimeType }
-      )
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement("a")
-      link.href = url
-      link.download = `${data.fileName}.${data.fileExtension}`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      URL.revokeObjectURL(url)
+    onSuccess: async (data) => {
+      // Decode off the main thread (worker) so large reports don't hitch the UI.
+      await downloadBase64File({
+        base64: data.content,
+        mimeType: data.mimeType,
+        fileName: `${data.fileName}.${data.fileExtension}`,
+      })
       toast.success(t("reports.downloadSuccess", { defaultValue: "Report downloaded successfully" }))
     },
     onError: (error) => {

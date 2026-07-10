@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import z from "zod"
 import { trpc } from "@/trpc/client"
+import { downloadBase64File } from "@/lib/download-file"
 import {
   Dialog,
   DialogContent,
@@ -170,20 +171,13 @@ export function ReportBuilderDialog({
     onSuccess: async (data) => {
       toast.success(t("reports.generateSuccess"))
       
-      // Download the file
+      // Download the file (decode off the main thread via worker when possible).
       if (data.content) {
-        const blob = new Blob(
-          [Uint8Array.from(atob(data.content), (c) => c.charCodeAt(0))],
-          { type: data.mimeType }
-        )
-        const url = URL.createObjectURL(blob)
-        const link = document.createElement("a")
-        link.href = url
-        link.download = `${data.report.name}.${data.fileExtension}`
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-        URL.revokeObjectURL(url)
+        await downloadBase64File({
+          base64: data.content,
+          mimeType: data.mimeType,
+          fileName: `${data.report.name}.${data.fileExtension}`,
+        })
       }
 
       utils.reports.list.invalidate()

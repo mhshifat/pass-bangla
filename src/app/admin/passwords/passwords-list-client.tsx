@@ -15,7 +15,10 @@ import {
   BulkShareDialog,
   BulkStrengthDialog,
   BulkDeleteDialog,
+  InstantSearchDialog,
 } from "@/modules/passwords/client"
+import { Button } from "@/components/ui/button"
+import { Zap } from "lucide-react"
 import { updatePasswordAction, deletePasswordAction } from "@/app/admin/passwords/actions"
 import { trpc } from "@/trpc/client"
 import { toast } from "sonner"
@@ -151,6 +154,20 @@ export function PasswordsListClient({ passwords, pagination }: PasswordsListClie
   // Use a key to reset the dialog component when needed
   const [editKey, setEditKey] = useState(0)
 
+  // Instant (client-side, worker-powered) full-vault search
+  const [isInstantSearchOpen, setIsInstantSearchOpen] = useState(false)
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === "k" || e.key === "K")) {
+        e.preventDefault()
+        setIsInstantSearchOpen(true)
+      }
+    }
+    window.addEventListener("keydown", handler)
+    return () => window.removeEventListener("keydown", handler)
+  }, [])
+
   // Listen for command palette events to open password details
   useEffect(() => {
     const handleOpenPasswordDetails = (event: CustomEvent<{ passwordId: string }>) => {
@@ -260,6 +277,20 @@ export function PasswordsListClient({ passwords, pagination }: PasswordsListClie
 
   return (
     <>
+      <div className="mb-4 flex justify-end">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setIsInstantSearchOpen(true)}
+          className="gap-2"
+        >
+          <Zap className="h-4 w-4 text-primary" />
+          Instant search
+          <kbd className="ml-1 hidden rounded bg-muted px-1.5 py-0.5 text-[10px] font-mono sm:inline">
+            ⌘⇧K
+          </kbd>
+        </Button>
+      </div>
       <div className="pb-20">
         <PasswordsTable
           passwords={optimisticPasswords}
@@ -395,6 +426,11 @@ export function PasswordsListClient({ passwords, pagination }: PasswordsListClie
         onOpenChange={setIsBulkStrengthOpen}
         passwordIds={selectedIds}
         onSuccess={handleBulkSuccess}
+      />
+
+      <InstantSearchDialog
+        open={isInstantSearchOpen}
+        onOpenChange={setIsInstantSearchOpen}
       />
     </>
   )

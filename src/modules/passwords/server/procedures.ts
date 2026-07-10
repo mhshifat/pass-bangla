@@ -336,6 +336,100 @@ export const passwordsRouter = createTRPCRouter({
       }
     }),
 
+  /**
+   * Returns lightweight metadata for ALL passwords the user can see (no secrets),
+   * for instant client-side fuzzy search. Same access rules as `list`
+   * (owned OR shared with the user's teams, company-scoped). Capped for safety.
+   */
+  searchIndex: protectedProcedure("password.view")
+    .input(z.object({ limit: z.number().min(1).max(10000).default(5000) }).optional())
+    .query(async ({ input, ctx }) => {
+      const limit = input?.limit ?? 5000
+      const teamIds = ctx.userTeams
+
+      // Visibility: owned by the user OR shared with a team they belong to.
+      const visibility: Prisma.PasswordWhereInput = {
+        OR: [
+          { ownerId: ctx.userId },
+          ...(teamIds && teamIds.length > 0
+            ? [{ sharedWith: { some: { teamId: { in: teamIds } } } }]
+            : []),
+        ],
+      }
+      const where: Prisma.PasswordWhereInput = ctx.companyId
+        ? { AND: [{ companyId: ctx.companyId }, visibility] }
+        : visibility
+
+      const [passwords, total] = await Promise.all([
+        prisma.password.findMany({
+          where,
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            url: true,
+            folderId: true,
+            strength: true,
+            hasTotp: true,
+            expiresAt: true,
+            isFavorite: true,
+            createdAt: true,
+            updatedAt: true,
+            ownerId: true,
+            folder: { select: { id: true, name: true } },
+            tags: { select: { tag: { select: { id: true, name: true, color: true, icon: true } } } },
+            sharedWith: {
+              select: {
+                id: true,
+                teamId: true,
+                expiresAt: true,
+                team: { select: { id: true, name: true } },
+              },
+            },
+          },
+          orderBy: { updatedAt: "desc" },
+          take: limit,
+        }),
+        prisma.password.count({ where }),
+      ])
+
+      return {
+        passwords: passwords.map((pwd) => ({
+          id: pwd.id,
+          name: pwd.name,
+          username: pwd.username,
+          url: pwd.url,
+          folder: pwd.folder?.name || null,
+          folderId: pwd.folderId,
+          strength: pwd.strength.toLowerCase() as "strong" | "medium" | "weak",
+          hasTotp: pwd.hasTotp,
+          shared: pwd.sharedWith.length > 0,
+          sharedWith: pwd.sharedWith.map((share) => ({
+            shareId: share.id,
+            teamId: share.teamId,
+            teamName: share.team?.name || "",
+            expiresAt: share.expiresAt,
+          })),
+          isOwner: pwd.ownerId === ctx.userId,
+          isFavorite: pwd.isFavorite,
+          tags: pwd.tags.map((pt) => ({
+            id: pt.tag.id,
+            name: pt.tag.name,
+            color: pt.tag.color,
+            icon: pt.tag.icon,
+          })),
+          lastModified: pwd.updatedAt.toISOString().split("T")[0],
+          expiresIn: pwd.expiresAt
+            ? Math.ceil((pwd.expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+            : null,
+          createdAt: pwd.createdAt,
+        })),
+        total,
+        // True when the vault exceeds the cap and search covers only the newest `limit`.
+        truncated: total > passwords.length,
+      }
+    }),
+
   create: protectedProcedure("password.create")
     .input(
       z.object({

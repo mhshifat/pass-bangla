@@ -81,10 +81,12 @@ export function CTASection() {
             {t("landing.cta.subtitle")}
           </p>
 
-          {/* Subscription Note */}
+          {/* Subscription Note — pricing/billing hidden for now */}
+          {/*
           <p className="text-sm text-muted-foreground">
             {t("landing.cta.subscriptionNote")}
           </p>
+          */}
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
