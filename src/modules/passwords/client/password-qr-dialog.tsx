@@ -46,10 +46,18 @@ export function PasswordQrDialog({ passwordId, open, onOpenChange }: PasswordQrD
   React.useEffect(() => {
     if (password && open && user?.id) {
       setIsLoading(true)
-      Promise.all([
-        decryptPasswordClient(password.password, user.id),
-        password.totpSecret ? decryptPasswordClient(password.totpSecret, user.id) : Promise.resolve(undefined)
-      ]).then(([decryptedPassword, decryptedTotp]) => {
+      // getById returns server-decrypted plaintext (passwordEncrypted:false). Only
+      // run client-side decryption if the payload is actually flagged encrypted
+      // (legacy transport) — otherwise decrypting plaintext throws "invalid format".
+      const resolvePassword = password.passwordEncrypted
+        ? decryptPasswordClient(password.password, user.id)
+        : Promise.resolve(password.password)
+      const resolveTotp = password.totpSecret
+        ? (password.totpEncrypted
+            ? decryptPasswordClient(password.totpSecret, user.id)
+            : Promise.resolve(password.totpSecret))
+        : Promise.resolve(undefined)
+      Promise.all([resolvePassword, resolveTotp]).then(([decryptedPassword, decryptedTotp]) => {
         setDecryptedData({
           username: password.username,
           url: password.url ?? undefined,
