@@ -15,12 +15,44 @@ interface PasswordInputProps extends React.InputHTMLAttributes<HTMLInputElement>
 }
 
 /**
+ * Cryptographically-secure random integer in [0, max) using rejection sampling
+ * to avoid modulo bias. Falls back to Math.random only if Web Crypto is
+ * unavailable (should never happen in a supported browser).
+ */
+function secureRandomInt(max: number): number {
+  if (typeof crypto !== "undefined" && crypto.getRandomValues) {
+    // Largest multiple of `max` that fits in a uint32 — reject values above it.
+    const limit = Math.floor(0x100000000 / max) * max
+    const buf = new Uint32Array(1)
+    let x = 0
+    do {
+      crypto.getRandomValues(buf)
+      x = buf[0]
+    } while (x >= limit)
+    return x % max
+  }
+  return Math.floor(Math.random() * max)
+}
+
+/** Cryptographically-secure Fisher–Yates shuffle (in place). */
+function secureShuffle<T>(arr: T[]): T[] {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = secureRandomInt(i + 1)
+    ;[arr[i], arr[j]] = [arr[j], arr[i]]
+  }
+  return arr
+}
+
+/**
  * Generates a strong password with:
  * - At least one lowercase letter
  * - At least one uppercase letter
  * - At least one number
  * - At least one special character
  * - Default length: 16 characters
+ *
+ * Uses a cryptographically-secure RNG (Web Crypto) with unbiased selection —
+ * critical for a password manager.
  */
 export function generateStrongPassword(length: number = 16): string {
   const lowercase = "abcdefghijklmnopqrstuvwxyz"
@@ -29,26 +61,21 @@ export function generateStrongPassword(length: number = 16): string {
   const special = "!@#$%^&*()_+-=[]{}|;:,.<>?"
   const allChars = lowercase + uppercase + numbers + special
 
-  let password = ""
+  const chars: string[] = []
 
   // Ensure at least one of each type
-  password += lowercase[Math.floor(Math.random() * lowercase.length)]
-  password += uppercase[Math.floor(Math.random() * uppercase.length)]
-  password += numbers[Math.floor(Math.random() * numbers.length)]
-  password += special[Math.floor(Math.random() * special.length)]
+  chars.push(lowercase[secureRandomInt(lowercase.length)])
+  chars.push(uppercase[secureRandomInt(uppercase.length)])
+  chars.push(numbers[secureRandomInt(numbers.length)])
+  chars.push(special[secureRandomInt(special.length)])
 
-  // Fill the rest randomly
-  for (let i = password.length; i < length; i++) {
-    password += allChars[Math.floor(Math.random() * allChars.length)]
+  // Fill the rest
+  for (let i = chars.length; i < length; i++) {
+    chars.push(allChars[secureRandomInt(allChars.length)])
   }
 
-  // Shuffle the password to avoid predictable pattern
-  password = password
-    .split("")
-    .sort(() => Math.random() - 0.5)
-    .join("")
-
-  return password
+  // Unbiased shuffle so the guaranteed-type characters aren't at fixed positions.
+  return secureShuffle(chars).join("")
 }
 
 export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(

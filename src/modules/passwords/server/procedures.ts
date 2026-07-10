@@ -1,5 +1,5 @@
 import { decryptPassword } from "@/lib/crypto"
-import { decryptPasswordWithUserKey } from "@/lib/server-crypto-migration"
+import { decryptFromStorage } from "@/lib/server-crypto-migration"
 import prisma from "@/lib/prisma"
 import { createTRPCRouter, protectedProcedure, baseProcedure } from "@/trpc/init"
 import z from "zod"
@@ -473,17 +473,16 @@ export const passwordsRouter = createTRPCRouter({
         }
       }
 
-      // CLIENT-SIDE ENCRYPTION: Encrypt using user-specific key (new method)
-      // This matches the client-side encryption method
-      const { encryptPasswordWithUserKey } = await import("@/lib/server-crypto-migration")
-      const encryptedPassword = encryptPasswordWithUserKey(input.password, ctx.userId)
+      // AT-REST ENCRYPTION: hardened storage key (master secret + owner id)
+      const { encryptForStorage } = await import("@/lib/server-crypto-migration")
+      const encryptedPassword = encryptForStorage(input.password, ctx.userId)
 
       // Encrypt TOTP secret if provided (using same method)
       // Normalize TOTP secret: remove spaces and convert to uppercase (Google format)
       let encryptedTotpSecret: string | null = null
       if (input.totpSecret) {
         const normalizedSecret = input.totpSecret.replace(/\s+/g, "").toUpperCase().trim()
-        encryptedTotpSecret = encryptPasswordWithUserKey(normalizedSecret, ctx.userId)
+        encryptedTotpSecret = encryptForStorage(normalizedSecret, ctx.userId)
       }
 
       // Calculate password strength (simple implementation)
@@ -651,17 +650,16 @@ export const passwordsRouter = createTRPCRouter({
         "UPDATE"
       )
 
-      // CLIENT-SIDE ENCRYPTION: Encrypt using user-specific key (new method)
-      // This matches the client-side encryption method
-      const { encryptPasswordWithUserKey } = await import("@/lib/server-crypto-migration")
-      const encryptedPassword = encryptPasswordWithUserKey(input.password, ctx.userId)
+      // AT-REST ENCRYPTION: hardened storage key (master secret + owner id)
+      const { encryptForStorage } = await import("@/lib/server-crypto-migration")
+      const encryptedPassword = encryptForStorage(input.password, ctx.userId)
 
       // Encrypt TOTP secret if provided (using same method)
       // Normalize TOTP secret: remove spaces and convert to uppercase (Google format)
       let encryptedTotpSecret: string | null = null
       if (input.totpSecret) {
         const normalizedSecret = input.totpSecret.replace(/\s+/g, "").toUpperCase().trim()
-        encryptedTotpSecret = encryptPasswordWithUserKey(normalizedSecret, ctx.userId)
+        encryptedTotpSecret = encryptForStorage(normalizedSecret, ctx.userId)
       }
 
       // Calculate password strength
@@ -898,7 +896,7 @@ export const passwordsRouter = createTRPCRouter({
       // This ensures nothing is ever transmitted in plain text, even for owners
       // Security: Server acts as secure intermediary, re-encrypting for the requesting user
       try {
-        const { decryptPasswordWithUserKey, encryptPasswordWithUserKey } = await import("@/lib/server-crypto-migration")
+        const { decryptFromStorage, encryptPasswordWithUserKey } = await import("@/lib/server-crypto-migration")
         
         // Step 1: Decrypt with owner's key
         let plainPassword: string
@@ -906,9 +904,9 @@ export const passwordsRouter = createTRPCRouter({
         
         if (password.ownerId) {
           try {
-            plainPassword = decryptPasswordWithUserKey(password.password, password.ownerId)
+            plainPassword = decryptFromStorage(password.password, password.ownerId)
             if (password.totpSecret) {
-              plainTotpSecret = decryptPasswordWithUserKey(password.totpSecret, password.ownerId)
+              plainTotpSecret = decryptFromStorage(password.totpSecret, password.ownerId)
             }
           } catch {
             // Try old encryption method
@@ -1125,11 +1123,11 @@ export const passwordsRouter = createTRPCRouter({
       
       // Try new encryption method first (user-specific key)
       try {
-        const { decryptPasswordWithUserKey } = await import("@/lib/server-crypto-migration")
+        const { decryptFromStorage } = await import("@/lib/server-crypto-migration")
         if (!password.ownerId) {
           throw new Error("Password ownerId is missing")
         }
-        decryptedTotpSecret = decryptPasswordWithUserKey(password.totpSecret, password.ownerId)
+        decryptedTotpSecret = decryptFromStorage(password.totpSecret, password.ownerId)
       } catch (error) {
         // Can't decrypt with new method - might be old encryption
         newEncryptionError = error instanceof Error ? error : new Error(String(error))
@@ -1246,12 +1244,12 @@ export const passwordsRouter = createTRPCRouter({
       let isNewEncryption = false
       let newEncryptionError: Error | null = null
       try {
-        const { decryptPasswordWithUserKey } = await import("@/lib/server-crypto-migration")
+        const { decryptFromStorage } = await import("@/lib/server-crypto-migration")
         // Try to decrypt with new method - if it works, it's new encryption
         if (!password.ownerId) {
           throw new Error("Password ownerId is missing")
         }
-        decryptPasswordWithUserKey(password.password, password.ownerId)
+        decryptFromStorage(password.password, password.ownerId)
         isNewEncryption = true
       } catch (error) {
         // Can't decrypt with new method - might be old encryption or error
@@ -1530,14 +1528,14 @@ export const passwordsRouter = createTRPCRouter({
             continue
           }
 
-          // Encrypt the password using user-specific key (new method)
-          const { encryptPasswordWithUserKey } = await import("@/lib/server-crypto-migration")
-          const encryptedPassword = encryptPasswordWithUserKey(item.password, ctx.userId)
+          // AT-REST ENCRYPTION: hardened storage key (master secret + owner id)
+          const { encryptForStorage } = await import("@/lib/server-crypto-migration")
+          const encryptedPassword = encryptForStorage(item.password, ctx.userId)
 
           // Encrypt TOTP secret if provided (using same method)
           let encryptedTotpSecret: string | null = null
           if (item.totpSecret) {
-            encryptedTotpSecret = encryptPasswordWithUserKey(item.totpSecret, ctx.userId)
+            encryptedTotpSecret = encryptForStorage(item.totpSecret, ctx.userId)
           }
 
           // Calculate password strength
@@ -1687,7 +1685,7 @@ export const passwordsRouter = createTRPCRouter({
           // Try new user-specific encryption first, fallback to old method
           let decryptedPassword: string
           try {
-            decryptedPassword = decryptPasswordWithUserKey(pwd.password, pwd.ownerId)
+            decryptedPassword = decryptFromStorage(pwd.password, pwd.ownerId)
           } catch {
             // Fallback to old server-side encryption
             decryptedPassword = decryptPassword(pwd.password)
@@ -1700,7 +1698,7 @@ export const passwordsRouter = createTRPCRouter({
           if (pwd.hasTotp && pwd.totpSecret) {
             try {
               // Try new user-specific encryption first
-              decryptedTotpSecret = decryptPasswordWithUserKey(pwd.totpSecret, pwd.ownerId)
+              decryptedTotpSecret = decryptFromStorage(pwd.totpSecret, pwd.ownerId)
             } catch {
               // Fallback to old server-side encryption
               try {
@@ -2673,7 +2671,7 @@ export const passwordsRouter = createTRPCRouter({
           // Try new user-specific encryption first
           let decrypted: string
           try {
-            decrypted = decryptPasswordWithUserKey(pwd.password, pwd.ownerId)
+            decrypted = decryptFromStorage(pwd.password, pwd.ownerId)
           } catch {
             // Fallback to old server-side encryption
             decrypted = decryptPassword(pwd.password)
@@ -2761,7 +2759,7 @@ export const passwordsRouter = createTRPCRouter({
           // Try new user-specific encryption first
           let decrypted: string
           try {
-            decrypted = decryptPasswordWithUserKey(pwd.password, pwd.ownerId)
+            decrypted = decryptFromStorage(pwd.password, pwd.ownerId)
           } catch {
             // Fallback to old server-side encryption
             decrypted = decryptPassword(pwd.password)
@@ -2852,7 +2850,7 @@ export const passwordsRouter = createTRPCRouter({
             // Try new user-specific encryption first
             let decrypted: string
             try {
-              decrypted = decryptPasswordWithUserKey(pwd.password, pwd.ownerId)
+              decrypted = decryptFromStorage(pwd.password, pwd.ownerId)
             } catch {
               // Fallback to old server-side encryption
               decrypted = decryptPassword(pwd.password)
@@ -3064,8 +3062,8 @@ export const passwordsRouter = createTRPCRouter({
       let decryptedPassword: string
       try {
         // Try new user-specific encryption first
-        const { decryptPasswordWithUserKey } = await import("@/lib/server-crypto-migration")
-        decryptedPassword = decryptPasswordWithUserKey(password.password, password.ownerId)
+        const { decryptFromStorage } = await import("@/lib/server-crypto-migration")
+        decryptedPassword = decryptFromStorage(password.password, password.ownerId)
       } catch {
         // Fallback to old server-side encryption
         try {
@@ -3143,8 +3141,8 @@ export const passwordsRouter = createTRPCRouter({
           let decryptedPassword: string
           try {
             // Try new user-specific encryption first
-            const { decryptPasswordWithUserKey } = await import("@/lib/server-crypto-migration")
-            decryptedPassword = decryptPasswordWithUserKey(pwd.password, pwd.ownerId)
+            const { decryptFromStorage } = await import("@/lib/server-crypto-migration")
+            decryptedPassword = decryptFromStorage(pwd.password, pwd.ownerId)
           } catch {
             // Fallback to old server-side encryption
             try {
@@ -4704,17 +4702,17 @@ export const passwordsRouter = createTRPCRouter({
       
       // Try new encryption method first (user-specific key)
       try {
-        const { decryptPasswordWithUserKey } = await import("@/lib/server-crypto-migration")
+        const { decryptFromStorage } = await import("@/lib/server-crypto-migration")
         const passwordOwner = await prisma.password.findUnique({
           where: { id: temporaryShare.passwordId },
           select: { ownerId: true },
         })
         
         if (passwordOwner?.ownerId) {
-          decryptedPassword = decryptPasswordWithUserKey(temporaryShare.password.password, passwordOwner.ownerId)
+          decryptedPassword = decryptFromStorage(temporaryShare.password.password, passwordOwner.ownerId)
           // Only decrypt TOTP secret if includeTotp is true
           if (temporaryShare.includeTotp && temporaryShare.password.totpSecret) {
-            decryptedTotpSecret = decryptPasswordWithUserKey(temporaryShare.password.totpSecret, passwordOwner.ownerId)
+            decryptedTotpSecret = decryptFromStorage(temporaryShare.password.totpSecret, passwordOwner.ownerId)
           }
         } else {
           throw new Error("Password owner not found")

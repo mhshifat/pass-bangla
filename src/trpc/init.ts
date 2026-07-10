@@ -16,6 +16,8 @@ export type Context = {
   userTeams: string[];
   sessionToken: string | null; // Session token for client-side decryption
   correlationId: string; // Correlation ID for request tracking
+  mfaVerified: boolean; // Whether MFA has been completed for this session
+  mfaRequired: boolean; // Whether MFA is required but not yet satisfied
 };
 
 export const createTRPCContext = cache(async (): Promise<Context> => {
@@ -93,6 +95,8 @@ export const createTRPCContext = cache(async (): Promise<Context> => {
       userTeams: [],
       sessionToken: null,
       correlationId,
+      mfaVerified: false,
+      mfaRequired: false,
     };
   }
   
@@ -133,7 +137,7 @@ export const createTRPCContext = cache(async (): Promise<Context> => {
   // Generate correlation ID for request tracking
   const correlationId = generateCorrelationId();
   
-  return { 
+  return {
     userId,
     userRole,
     permissions,
@@ -142,6 +146,8 @@ export const createTRPCContext = cache(async (): Promise<Context> => {
     userTeams,
     sessionToken,
     correlationId,
+    mfaVerified: (session.mfaVerified as boolean) ?? true,
+    mfaRequired: (session.mfaRequired as boolean) ?? false,
   };
 });
 // Avoid exporting the entire t-object
@@ -211,11 +217,25 @@ export const baseProcedure = t.procedure.use(errorHandlingMiddleware);
  */
 export const requirePermission = (permissionKey: string | string[]) => {
   return t.middleware(async ({ ctx, next }) => {
-    const requiredPermissions = Array.isArray(permissionKey) 
-      ? permissionKey 
+    // Enforce MFA server-side: a session that still requires MFA (correct password
+    // entered but second factor not yet verified) must NOT reach protected data.
+    // The client-side redirect to /mfa-verify is not a security control on its own.
+    if (ctx.mfaRequired && !ctx.mfaVerified) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: formatErrorWithCorrelationId(
+          "Multi-factor authentication is required. Please complete MFA verification.",
+          ctx.correlationId
+        ),
+        cause: { correlationId: ctx.correlationId, mfaRequired: true },
+      });
+    }
+
+    const requiredPermissions = Array.isArray(permissionKey)
+      ? permissionKey
       : [permissionKey];
-    
-    const hasPermission = requiredPermissions.some(key => 
+
+    const hasPermission = requiredPermissions.some(key =>
       ctx.permissions.includes(key)
     );
     

@@ -86,10 +86,10 @@ export function RecoverViaQuestionsPage() {
 
   const verifyAnswersMutation = trpc.auth.verifySecurityQuestions.useMutation({
     onSuccess: (data) => {
-      if (data.success && data.userId) {
+      if (data.success && data.resetToken) {
         toast.success(t("auth.securityQuestions.verificationSuccess"))
-        // Redirect to reset password page with userId
-        router.push(`/reset-password-via-questions?userId=${data.userId}`)
+        // Carry the single-use reset token (not a userId) to the reset step.
+        router.push(`/reset-password-via-questions?token=${encodeURIComponent(data.resetToken)}`)
       }
     },
     onError: (error) => {

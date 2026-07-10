@@ -562,9 +562,9 @@ export const passwordRotationRouter = createTRPCRouter({
         })
       }
 
-      // Encrypt new password using user-specific key (new method)
-      const { encryptPasswordWithUserKey } = await import("@/lib/server-crypto-migration")
-      const encryptedPassword = encryptPasswordWithUserKey(input.newPassword, ctx.userId)
+      // AT-REST ENCRYPTION: hardened storage key (master secret + owner id)
+      const { encryptForStorage } = await import("@/lib/server-crypto-migration")
+      const encryptedPassword = encryptForStorage(input.newPassword, ctx.userId)
 
       // Save old password to rotation record
       const oldPassword = rotation.password.password
@@ -684,9 +684,9 @@ export const passwordRotationRouter = createTRPCRouter({
 
       const newPassword = generateStrongPassword(16)
 
-      // Encrypt new password using user-specific key (new method)
-      const { encryptPasswordWithUserKey } = await import("@/lib/server-crypto-migration")
-      const encryptedPassword = encryptPasswordWithUserKey(newPassword, ctx.userId)
+      // AT-REST ENCRYPTION: hardened storage key (master secret + owner id)
+      const { encryptForStorage } = await import("@/lib/server-crypto-migration")
+      const encryptedPassword = encryptForStorage(newPassword, ctx.userId)
 
       // Save old password
       const oldPassword = password.password

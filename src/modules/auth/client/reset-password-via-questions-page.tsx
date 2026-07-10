@@ -40,7 +40,7 @@ export function ResetPasswordViaQuestionsPage() {
   const { t } = useTranslation()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const userId = searchParams.get("userId")
+  const token = searchParams.get("token")
   const [resetSuccess, setResetSuccess] = React.useState(false)
 
   const form = useForm<ResetPasswordFormValues>({
@@ -62,23 +62,23 @@ export function ResetPasswordViaQuestionsPage() {
   })
 
   const onSubmit = (values: ResetPasswordFormValues) => {
-    if (!userId) {
+    if (!token) {
       toast.error(t("auth.resetPassword.invalidRequest"))
       return
     }
     resetPasswordMutation.mutate({
-      userId,
+      resetToken: token,
       newPassword: values.newPassword,
     })
   }
 
-  // Redirect if no userId
+  // Redirect if no token
   React.useEffect(() => {
-    if (!userId) {
+    if (!token) {
       toast.error(t("auth.resetPassword.invalidRequest"))
       router.push("/forgot-password")
     }
-  }, [userId, router, t])
+  }, [token, router, t])
 
   if (resetSuccess) {
     return (
@@ -105,7 +105,7 @@ export function ResetPasswordViaQuestionsPage() {
     )
   }
 
-  if (!userId) {
+  if (!token) {
     return null // Will redirect
   }
 

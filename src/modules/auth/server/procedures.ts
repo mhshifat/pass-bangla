@@ -1362,7 +1362,7 @@ export const authRouter = createTRPCRouter({
                 }
             } else if (method === "SMS") {
                 const { verifyMfaCode } = await import("@/lib/mfa-codes")
-                const isValid = verifyMfaCode(user.id, "SMS", input.code)
+                const isValid = await verifyMfaCode(user.id, "SMS", input.code)
                 if (!isValid) {
                     throw new TRPCError({
                         code: "BAD_REQUEST",
@@ -1371,7 +1371,7 @@ export const authRouter = createTRPCRouter({
                 }
             } else if (method === "EMAIL") {
                 const { verifyMfaCode } = await import("@/lib/mfa-codes")
-                const isValid = verifyMfaCode(user.id, "EMAIL", input.code)
+                const isValid = await verifyMfaCode(user.id, "EMAIL", input.code)
                 if (!isValid) {
                     throw new TRPCError({
                         code: "BAD_REQUEST",
@@ -1527,7 +1527,7 @@ export const authRouter = createTRPCRouter({
                     });
                 }
                 const { verifyMfaCode } = await import("@/lib/mfa-codes")
-                const isValid = verifyMfaCode(user.id, "SMS", input.code)
+                const isValid = await verifyMfaCode(user.id, "SMS", input.code)
                 if (!isValid) {
                     throw new TRPCError({
                         code: "BAD_REQUEST",
@@ -1542,7 +1542,7 @@ export const authRouter = createTRPCRouter({
                     });
                 }
                 const { verifyMfaCode } = await import("@/lib/mfa-codes")
-                const isValid = verifyMfaCode(user.id, "EMAIL", input.code)
+                const isValid = await verifyMfaCode(user.id, "EMAIL", input.code)
                 if (!isValid) {
                     throw new TRPCError({
                         code: "BAD_REQUEST",
@@ -1621,7 +1621,7 @@ export const authRouter = createTRPCRouter({
             const { sendSmsCode } = await import("@/lib/sms")
             
             const code = generateMfaCode()
-            storeMfaCode(user.id, "SMS", code)
+            await storeMfaCode(user.id, "SMS", code)
             
             const result = await sendSmsCode(user.phoneNumber, code)
             if (!result.success) {
@@ -1655,7 +1655,7 @@ export const authRouter = createTRPCRouter({
             }
 
             const { verifyMfaCode } = await import("@/lib/mfa-codes")
-            const isValid = verifyMfaCode(user.id, "SMS", input.code)
+            const isValid = await verifyMfaCode(user.id, "SMS", input.code)
             
             if (!isValid) {
                 throw new TRPCError({
@@ -1712,7 +1712,7 @@ export const authRouter = createTRPCRouter({
             )
 
             const code = generateMfaCode()
-            storeMfaCode(user.id, "EMAIL", code)
+            await storeMfaCode(user.id, "EMAIL", code)
 
             const result = await sendEmail({
                 to: user.email,
@@ -1763,7 +1763,7 @@ export const authRouter = createTRPCRouter({
             }
 
             const { verifyMfaCode } = await import("@/lib/mfa-codes")
-            const isValid = verifyMfaCode(user.id, "EMAIL", input.code)
+            const isValid = await verifyMfaCode(user.id, "EMAIL", input.code)
             
             if (!isValid) {
                 throw new TRPCError({
@@ -2764,7 +2764,7 @@ export const authRouter = createTRPCRouter({
                     ],
                     companyId: companyId || undefined, // Respect multi-tenancy
                 },
-                select: { id: true },
+                select: { id: true, email: true },
             })
 
             if (!user) {
@@ -2802,7 +2802,13 @@ export const authRouter = createTRPCRouter({
                 userId: user.id,
             })
 
-            return { success: true, userId: user.id }
+            // Issue a single-use, short-lived reset token that proves the answers
+            // were verified server-side. The client carries THIS (not a raw userId)
+            // to the reset step, which consumes it — preventing unauthenticated resets.
+            const { createPasswordResetToken } = await import("@/lib/password-reset")
+            const resetToken = await createPasswordResetToken(user.id, user.email)
+
+            return { success: true, resetToken }
         }),
 
     // Get security questions for recovery (without authentication)
@@ -2868,11 +2874,26 @@ export const authRouter = createTRPCRouter({
     resetPasswordViaSecurityQuestions: baseProcedure
         .input(
             z.object({
-                userId: z.string(),
+                // Single-use token issued by verifySecurityQuestions (NOT a raw userId).
+                resetToken: z.string().min(1),
                 newPassword: z.string().min(8, "Password must be at least 8 characters"),
             })
         )
         .mutation(async ({ input }) => {
+            // Authorization: the reset is only allowed with a valid, unexpired,
+            // single-use token proving the security questions were just answered.
+            const { verifyPasswordResetToken, markPasswordResetTokenAsUsed } = await import(
+                "@/lib/password-reset"
+            )
+            const tokenResult = await verifyPasswordResetToken(input.resetToken)
+            if (!tokenResult.valid || !tokenResult.userId) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "Invalid or expired reset request. Please verify your security questions again.",
+                })
+            }
+            const userId = tokenResult.userId
+
             // Validate password
             const { validatePassword } = await import("@/lib/password-validation")
             const validation = await validatePassword(input.newPassword)
@@ -2888,13 +2909,14 @@ export const authRouter = createTRPCRouter({
 
             // Update user password
             await prisma.user.update({
-                where: { id: input.userId },
+                where: { id: userId },
                 data: { password: hashedPassword },
             })
 
-            // Invalidate all sessions for security
+            // Consume the token (single-use) and invalidate all sessions.
+            await markPasswordResetTokenAsUsed(input.resetToken)
             await prisma.session.deleteMany({
-                where: { userId: input.userId },
+                where: { userId },
             })
 
             // Create audit log
@@ -2902,8 +2924,8 @@ export const authRouter = createTRPCRouter({
             await createAuditLog({
                 action: "PASSWORD_RESET_VIA_SECURITY_QUESTIONS",
                 resource: "User",
-                resourceId: input.userId,
-                userId: input.userId,
+                resourceId: userId,
+                userId,
             })
 
             return { success: true }

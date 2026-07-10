@@ -15,7 +15,11 @@
  *   tsx scripts/migrate-passwords-to-client-encryption.ts
  */
 
-import { migrateAllPasswords } from "../src/lib/server-crypto-migration"
+// Load env BEFORE importing modules that read process.env (a standalone tsx
+// script does not auto-load .env the way Next.js does). The crypto module is
+// then imported dynamically inside main(), after env is loaded.
+import { loadEnvConfig } from "@next/env"
+loadEnvConfig(process.cwd())
 
 async function main() {
   console.log("=".repeat(60))
@@ -38,6 +42,18 @@ async function main() {
 
   console.log("Starting migration...")
   console.log("")
+
+  if (!process.env.DATABASE_URL) {
+    console.error("ERROR: DATABASE_URL is not set (checked .env / .env.local / environment).")
+    process.exit(1)
+  }
+  if (!process.env.PASSWORD_ENCRYPTION_KEY) {
+    console.error("ERROR: PASSWORD_ENCRYPTION_KEY is required.")
+    process.exit(1)
+  }
+
+  // Imported after env is loaded so its module-level env reads are correct.
+  const { migrateAllPasswords } = await import("../src/lib/server-crypto-migration")
 
   const startTime = Date.now()
 
