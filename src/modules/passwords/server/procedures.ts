@@ -886,68 +886,59 @@ export const passwordsRouter = createTRPCRouter({
       // because the client can't decrypt with the owner's key
       // const isSharedWithUser = !isOwner && password.sharedWith.length > 0
       
-      // Determine encryption method and handle decryption
+      // Decrypt the at-rest (v2 GCM / legacy) ciphertext on the SERVER and return
+      // plaintext to the authenticated client over HTTPS. We previously re-encrypted
+      // with a key derived from the public `userId` and made the browser re-decrypt
+      // it — but that provided no real confidentiality (the key material is not
+      // secret) and its fragile handoff was surfacing "Invalid encrypted password
+      // format" errors whenever it misaligned. Real protection = v2 at-rest
+      // encryption (kept) + auth + TLS. `passwordEncrypted: false` tells the client
+      // to use the value directly (all consumers already handle this flag).
       let finalPassword = password.password
       let finalTotpSecret = password.totpSecret
-      let passwordEncrypted = true
-      let totpEncrypted = password.totpSecret ? true : false
-      
-      // ALWAYS encrypt passwords and TOTP secrets with the requesting user's key
-      // This ensures nothing is ever transmitted in plain text, even for owners
-      // Security: Server acts as secure intermediary, re-encrypting for the requesting user
-      try {
-        const { decryptFromStorage, encryptPasswordWithUserKey, storageKeyFingerprint } = await import("@/lib/server-crypto-migration")
+      let passwordEncrypted = false
+      let totpEncrypted = false
 
-        // Step 1: Decrypt with owner's key
-        let plainPassword: string
-        let plainTotpSecret: string | null = null
+      if (password.ownerId) {
+        const { decryptFromStorage, storageKeyFingerprint } = await import("@/lib/server-crypto-migration")
 
-        if (password.ownerId) {
+        const recover = (cipher: string, label: "password" | "totpSecret"): string => {
           try {
-            plainPassword = decryptFromStorage(password.password, password.ownerId)
-            if (password.totpSecret) {
-              plainTotpSecret = decryptFromStorage(password.totpSecret, password.ownerId)
-            }
+            return decryptFromStorage(cipher, password.ownerId!)
           } catch (v2Error) {
-            // Try old encryption method
+            // Fall back to the very-old server-side scheme, if any row predates v2/legacy-user.
             try {
-              plainPassword = decryptPassword(password.password)
-              if (password.totpSecret) {
-                plainTotpSecret = decryptPassword(password.totpSecret)
-              }
+              return decryptPassword(cipher)
             } catch (oldError) {
-              // If both fail, keep original encrypted (will show error on client).
-              // Rich diagnostic (no secrets) so the RUNTIME cause is visible in logs.
               console.error(
                 "[getPassword] decrypt FAILED",
                 JSON.stringify({
                   passwordId: password.id,
                   ownerId: password.ownerId,
-                  fmt: password.password.slice(0, 3),
+                  field: label,
+                  fmt: cipher.slice(0, 3),
                   keyfp: storageKeyFingerprint(),
                   v2Err: v2Error instanceof Error ? v2Error.message : String(v2Error),
                   legacyErr: oldError instanceof Error ? oldError.message : String(oldError),
                 })
               )
-              throw oldError
+              // Surface a REAL error to the client instead of silently returning an
+              // unreadable ciphertext blob (which used to read as "Invalid format").
+              throw new TRPCError({
+                code: "INTERNAL_SERVER_ERROR",
+                message:
+                  "This password could not be decrypted on the server. The at-rest encryption key may be misconfigured — contact support.",
+              })
             }
           }
-          
-          // Step 2: Re-encrypt with requesting user's key (owner or team member)
-          // This ensures the password is always encrypted when transmitted to the client
-          finalPassword = encryptPasswordWithUserKey(plainPassword, ctx.userId)
-          if (plainTotpSecret) {
-            finalTotpSecret = encryptPasswordWithUserKey(plainTotpSecret, ctx.userId)
-          }
-          
-          // Mark as encrypted so client knows to decrypt
-          passwordEncrypted = true
-          totpEncrypted = password.totpSecret ? true : false
         }
-      } catch (error) {
-        // If decryption/re-encryption fails, keep original encrypted (will show error on client)
-        console.error("Failed to re-encrypt password for user:", error)
-        // Keep encrypted - client will try to decrypt with their key and fail gracefully
+
+        finalPassword = recover(password.password, "password")
+        if (password.totpSecret) {
+          finalTotpSecret = recover(password.totpSecret, "totpSecret")
+        }
+        passwordEncrypted = false
+        totpEncrypted = false
       }
 
       return {
@@ -1164,24 +1155,12 @@ export const passwordsRouter = createTRPCRouter({
       const { authenticator } = await import("otplib")
       const totpCode = authenticator.generate(normalizedSecret)
 
-      // ALWAYS encrypt TOTP code with the requesting user's key
-      // This ensures nothing is ever transmitted in plain text, even for owners
-      // Security: Even though TOTP codes are time-limited (30 seconds), we encrypt them
-      // to maintain consistency and prevent any potential interception
-      try {
-        const { encryptPasswordWithUserKey } = await import("@/lib/server-crypto-migration")
-        const encryptedTotpCode = encryptPasswordWithUserKey(totpCode, ctx.userId)
-        return {
-          totpCode: encryptedTotpCode, // Always encrypted with requesting user's key
-          totpEncrypted: true, // Flag to indicate it's encrypted
-        }
-      } catch (error) {
-        console.error("Failed to encrypt TOTP code:", error)
-        // Fallback: return plain text if encryption fails (shouldn't happen)
-        return {
-          totpCode,
-          totpEncrypted: false,
-        }
+      // Return the (time-limited, 30s) TOTP code as plaintext to the authenticated
+      // client over HTTPS. The previous userId-keyed re-encryption added no real
+      // confidentiality and caused client-side "invalid format" decrypt failures.
+      return {
+        totpCode,
+        totpEncrypted: false,
       }
     }),
 
