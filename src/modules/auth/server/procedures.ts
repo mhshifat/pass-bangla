@@ -1096,7 +1096,11 @@ export const authRouter = createTRPCRouter({
             // MFA is required if device requires it OR if enforced by settings
             const finalMfaRequired = deviceRequiresMfa || enforceMfa;
 
-            const payload = { userId: user.id, email: user.email, isLoggedIn: true, mfaVerified: true, mfaSetupRequired: false, mfaRequired: finalMfaRequired };
+            // When MFA is required, issue a PENDING token (mfaVerified:false).
+            // The extension must complete extensionVerifyMfa to obtain a verified
+            // token before it can access protected data (enforced server-side).
+            const mfaVerified = !finalMfaRequired
+            const payload = { userId: user.id, email: user.email, isLoggedIn: true, mfaVerified, mfaSetupRequired: false, mfaRequired: finalMfaRequired };
             const sessionToken = await new SignJWT(payload)
                 .setProtectedHeader({ alg: "HS256" })
                 .setExpirationTime(expirationTime)
@@ -1152,6 +1156,10 @@ export const authRouter = createTRPCRouter({
 
             return {
                 success: true,
+                // If true, the extension must call extensionVerifyMfa with a code
+                // before the token grants access to protected data.
+                mfaRequired: finalMfaRequired,
+                mfaMethod: finalMfaRequired ? (user.mfaMethod || "TOTP") : null,
                 user: {
                     id: user.id,
                     name: user.name,
@@ -1167,6 +1175,171 @@ export const authRouter = createTRPCRouter({
                 sessionToken: sessionToken || undefined,
             };
         }),
+
+    /**
+     * Extension MFA: send an SMS/EMAIL code for the pending (mfaVerified:false)
+     * extension session. Identifies the user from the x-session-token header
+     * (ctx.userId), so it works without a browser cookie.
+     */
+    extensionSendMfaCode: baseProcedure
+        .input(z.object({ method: z.enum(["SMS", "EMAIL"]) }))
+        .mutation(async ({ input, ctx }) => {
+            if (!ctx.userId) {
+                throw new TRPCError({ code: "UNAUTHORIZED", message: "Not authenticated" });
+            }
+            const user = await prisma.user.findUnique({ where: { id: ctx.userId } })
+            if (!user) {
+                throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+            }
+
+            const { generateMfaCode, storeMfaCode } = await import("@/lib/mfa-codes")
+            const code = generateMfaCode()
+
+            if (input.method === "SMS") {
+                if (!user.phoneNumber) {
+                    throw new TRPCError({ code: "BAD_REQUEST", message: "Phone number not set on your account." });
+                }
+                const { checkSmsCredentials, sendSmsCode } = await import("@/lib/sms")
+                const credentialsCheck = await checkSmsCredentials()
+                if (!credentialsCheck.configured) {
+                    throw new TRPCError({ code: "BAD_REQUEST", message: credentialsCheck.error || "SMS is not configured." });
+                }
+                await storeMfaCode(user.id, "SMS", code)
+                const result = await sendSmsCode(user.phoneNumber, code)
+                if (!result.success) {
+                    throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: result.error || "Failed to send SMS code" });
+                }
+            } else {
+                if (!user.email) {
+                    throw new TRPCError({ code: "BAD_REQUEST", message: "Email not found" });
+                }
+                await storeMfaCode(user.id, "EMAIL", code)
+                const { sendEmail } = await import("@/lib/mailer")
+                const { renderEmailLayout, emailCodeBlock, APP_NAME } = await import("@/lib/email-template")
+                const result = await sendEmail({
+                    to: user.email,
+                    subject: `Your ${APP_NAME} verification code`,
+                    html: renderEmailLayout({
+                        title: `Your ${APP_NAME} verification code`,
+                        heading: "Verification code",
+                        preview: "Your one-time verification code.",
+                        bodyHtml: `
+                            <p style="margin: 0 0 8px;">Use the verification code below to sign in to the browser extension:</p>
+                            ${emailCodeBlock(code)}
+                            <p style="font-size: 14px; color: #737373; margin: 0;">
+                                This code will expire in 10 minutes. If you didn't request it, you can safely ignore this email.
+                            </p>
+                        `,
+                    }),
+                    text: `Your ${APP_NAME} verification code is: ${code}. It expires in 10 minutes.`,
+                })
+                if (!result.success) {
+                    throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: result.error || "Failed to send email code" });
+                }
+            }
+
+            return { success: true };
+        }),
+
+    /**
+     * Extension MFA: verify a code for the pending extension session and, on
+     * success, issue a NEW verified (mfaVerified:true) session token that the
+     * extension stores in place of the pending one.
+     */
+    extensionVerifyMfa: baseProcedure
+        .input(z.object({
+            code: z.string().min(6).max(6),
+            method: z.enum(["TOTP", "SMS", "EMAIL"]).optional(),
+        }))
+        .mutation(async ({ input, ctx }) => {
+            if (!ctx.userId) {
+                throw new TRPCError({ code: "UNAUTHORIZED", message: "Not authenticated" });
+            }
+            const user = await prisma.user.findUnique({ where: { id: ctx.userId } })
+            if (!user) {
+                throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+            }
+
+            const method = input.method || user.mfaMethod || "TOTP"
+
+            if (method === "TOTP") {
+                if (!user.mfaSecret) {
+                    throw new TRPCError({ code: "BAD_REQUEST", message: "TOTP is not set up on your account." });
+                }
+                const decryptedSecret = decrypt(user.mfaSecret)
+                const authenticator = await import("otplib").then(mod => mod.authenticator)
+                if (!authenticator.check(input.code, decryptedSecret)) {
+                    throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid MFA code" });
+                }
+            } else if (method === "SMS" || method === "EMAIL") {
+                const { verifyMfaCode } = await import("@/lib/mfa-codes")
+                const isValid = await verifyMfaCode(user.id, method, input.code)
+                if (!isValid) {
+                    throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid or expired code" });
+                }
+            } else {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: `MFA method "${method}" is not supported in the extension. Please use the web app.`,
+                });
+            }
+
+            // Issue a NEW verified session token (replaces the pending one).
+            const { SignJWT } = await import("jose")
+            const SESSION_SECRET = process.env.SESSION_SECRET || "default-secret-change-in-production"
+            const secret = new TextEncoder().encode(SESSION_SECRET)
+            const sessionTimeoutSetting = await prisma.settings.findUnique({
+                where: { key: "security.session.timeout_minutes" },
+            })
+            const timeoutMinutes = (sessionTimeoutSetting?.value as number) ?? 30
+            const maxAge = timeoutMinutes * 60
+            const newToken = await new SignJWT({
+                userId: user.id,
+                email: user.email,
+                isLoggedIn: true,
+                mfaVerified: true,
+                mfaSetupRequired: false,
+                mfaRequired: true,
+            })
+                .setProtectedHeader({ alg: "HS256" })
+                .setExpirationTime(`${timeoutMinutes}m`)
+                .sign(secret)
+
+            // Swap the pending DB session's token for the verified one (keeps the
+            // device metadata from the pending session).
+            if (ctx.sessionToken) {
+                try {
+                    await prisma.session.update({
+                        where: { sessionToken: ctx.sessionToken },
+                        data: { sessionToken: newToken, lastActiveAt: new Date() },
+                    })
+                } catch (error) {
+                    console.error("Failed to upgrade extension session after MFA:", error)
+                }
+            }
+
+            // Update the cookie too (web-browser compatibility).
+            const cookieStore = await cookies()
+            cookieStore.set("session", newToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "lax",
+                maxAge,
+                path: "/",
+            })
+
+            const { createAuditLog } = await import("@/lib/audit-log")
+            await createAuditLog({
+                action: "MFA_VERIFIED",
+                resource: "User",
+                resourceId: user.id,
+                details: { method, source: "extension" },
+                userId: user.id,
+            })
+
+            return { success: true, sessionToken: newToken };
+        }),
+
     logout: baseProcedure
         .mutation(async () => {
             await destroySession();
