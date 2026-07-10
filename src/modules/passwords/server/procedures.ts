@@ -896,19 +896,19 @@ export const passwordsRouter = createTRPCRouter({
       // This ensures nothing is ever transmitted in plain text, even for owners
       // Security: Server acts as secure intermediary, re-encrypting for the requesting user
       try {
-        const { decryptFromStorage, encryptPasswordWithUserKey } = await import("@/lib/server-crypto-migration")
-        
+        const { decryptFromStorage, encryptPasswordWithUserKey, storageKeyFingerprint } = await import("@/lib/server-crypto-migration")
+
         // Step 1: Decrypt with owner's key
         let plainPassword: string
         let plainTotpSecret: string | null = null
-        
+
         if (password.ownerId) {
           try {
             plainPassword = decryptFromStorage(password.password, password.ownerId)
             if (password.totpSecret) {
               plainTotpSecret = decryptFromStorage(password.totpSecret, password.ownerId)
             }
-          } catch {
+          } catch (v2Error) {
             // Try old encryption method
             try {
               plainPassword = decryptPassword(password.password)
@@ -916,8 +916,19 @@ export const passwordsRouter = createTRPCRouter({
                 plainTotpSecret = decryptPassword(password.totpSecret)
               }
             } catch (oldError) {
-              // If both fail, keep original encrypted (will show error on client)
-              console.error("Failed to decrypt password:", oldError)
+              // If both fail, keep original encrypted (will show error on client).
+              // Rich diagnostic (no secrets) so the RUNTIME cause is visible in logs.
+              console.error(
+                "[getPassword] decrypt FAILED",
+                JSON.stringify({
+                  passwordId: password.id,
+                  ownerId: password.ownerId,
+                  fmt: password.password.slice(0, 3),
+                  keyfp: storageKeyFingerprint(),
+                  v2Err: v2Error instanceof Error ? v2Error.message : String(v2Error),
+                  legacyErr: oldError instanceof Error ? oldError.message : String(oldError),
+                })
+              )
               throw oldError
             }
           }

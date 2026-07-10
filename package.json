@@ -9,6 +9,7 @@
     "lint": "eslint",
     "db:seed": "tsx prisma/seed.ts",
     "migrate-passwords": "tsx scripts/migrate-passwords-to-client-encryption.ts",
+    "diagnose-encryption": "tsx scripts/diagnose-encryption.ts",
     "backfill-encryption": "tsx scripts/backfill-storage-encryption.ts",
     "rollback-encryption": "tsx scripts/rollback-storage-encryption.ts",
     "generate-pwa-icons": "node scripts/generate-pwa-icons.js",

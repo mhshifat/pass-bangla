@@ -221,6 +221,10 @@ export function decryptPasswordWithUserKey(encryptedPassword: string, userId: st
 
 const STORAGE_KEY_VERSION = "v2"
 
+/**
+ * The master key used to ENCRYPT new v2 data. Always the primary
+ * PASSWORD_ENCRYPTION_KEY.
+ */
 function getStorageMasterKey(): string {
   const key = process.env.PASSWORD_ENCRYPTION_KEY?.trim()
   if (!key) {
@@ -231,9 +235,61 @@ function getStorageMasterKey(): string {
   return key
 }
 
+/**
+ * All master keys to TRY when decrypting v2 data, in priority order:
+ *   1. the current PASSWORD_ENCRYPTION_KEY (primary)
+ *   2. any keys listed in PASSWORD_ENCRYPTION_KEY_FALLBACKS (comma/newline
+ *      separated) — previous key values kept ONLY so rows written under an old
+ *      key remain readable after a key rotation.
+ *
+ * This is what makes a key change survivable: if prod is redeployed with a new
+ * PASSWORD_ENCRYPTION_KEY, set the OLD value in PASSWORD_ENCRYPTION_KEY_FALLBACKS
+ * and existing v2 rows decrypt again. Run the backfill to re-key everything onto
+ * the primary, then the fallback can be dropped.
+ */
+function getStorageMasterKeys(): string[] {
+  const keys: string[] = []
+  const primary = process.env.PASSWORD_ENCRYPTION_KEY?.trim()
+  if (primary) keys.push(primary)
+
+  const fallbacksRaw = process.env.PASSWORD_ENCRYPTION_KEY_FALLBACKS?.trim()
+  if (fallbacksRaw) {
+    for (const k of fallbacksRaw.split(/[,\n]/)) {
+      const trimmed = k.trim()
+      if (trimmed && !keys.includes(trimmed)) keys.push(trimmed)
+    }
+  }
+
+  if (keys.length === 0) {
+    throw new Error(
+      "PASSWORD_ENCRYPTION_KEY is required for at-rest password encryption. Set it in the environment."
+    )
+  }
+  return keys
+}
+
+/**
+ * Non-secret fingerprint of the configured master key(s) — safe to log. Lets us
+ * confirm at RUNTIME (e.g. in Vercel logs) that the deployed function actually
+ * received the expected PASSWORD_ENCRYPTION_KEY, without ever exposing it.
+ */
+export function storageKeyFingerprint(): string {
+  try {
+    const keys = getStorageMasterKeys()
+    return keys
+      .map((k, i) => {
+        const fp = crypto.createHash("sha256").update(k).digest("hex").slice(0, 12)
+        return `${i === 0 ? "primary" : `fallback${i}`}=len:${k.length}/sha:${fp}`
+      })
+      .join(" ")
+  } catch (e) {
+    return `NO_KEY(${e instanceof Error ? e.message : "unset"})`
+  }
+}
+
 /** Hardened storage key = PBKDF2(masterKey + ":" + ownerId). */
-function deriveStorageKey(ownerId: string): Buffer {
-  const keyMaterial = `${getStorageMasterKey()}:${ownerId}`
+function deriveStorageKey(ownerId: string, masterKey: string = getStorageMasterKey()): Buffer {
+  const keyMaterial = `${masterKey}:${ownerId}`
   return crypto.pbkdf2Sync(
     keyMaterial,
     "password_storage_salt_v2",
@@ -270,13 +326,29 @@ export function decryptFromStorage(cipherText: string, ownerId: string): string 
   const parts = cipherText.split(":")
 
   if (parts.length === 4 && parts[0] === STORAGE_KEY_VERSION) {
-    const key = deriveStorageKey(ownerId)
     const iv = Buffer.from(parts[1]!, "hex")
     const authTag = Buffer.from(parts[2]!, "hex")
     const encryptedText = Buffer.from(parts[3]!, "hex")
-    const decipher = crypto.createDecipheriv("aes-256-gcm", key, iv)
-    decipher.setAuthTag(authTag) // verified on final(); tampering throws
-    return Buffer.concat([decipher.update(encryptedText), decipher.final()]).toString("utf8")
+
+    // Try the primary master key first, then any rotation fallbacks. GCM auth
+    // fails cleanly on the wrong key, so we can safely try each in turn.
+    const masterKeys = getStorageMasterKeys()
+    let lastErr: unknown
+    for (const masterKey of masterKeys) {
+      try {
+        const key = deriveStorageKey(ownerId, masterKey)
+        const decipher = crypto.createDecipheriv("aes-256-gcm", key, iv)
+        decipher.setAuthTag(authTag) // verified on final(); wrong key/tamper throws
+        return Buffer.concat([decipher.update(encryptedText), decipher.final()]).toString("utf8")
+      } catch (err) {
+        lastErr = err
+      }
+    }
+    throw new Error(
+      `v2 decryption failed: none of the ${masterKeys.length} configured master key(s) ` +
+        `could authenticate this record. If PASSWORD_ENCRYPTION_KEY was changed, add the ` +
+        `previous value to PASSWORD_ENCRYPTION_KEY_FALLBACKS. (${lastErr instanceof Error ? lastErr.message : "auth failed"})`
+    )
   }
 
   // Legacy format ("iv:ct") — decrypt with the old userId-only CBC key.
