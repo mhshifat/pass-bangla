@@ -1819,9 +1819,13 @@ export const passwordsRouter = createTRPCRouter({
     }),
 
   getExportFilters: protectedProcedure("password.view")
-    .query(async () => {
-      // Get folders accessible to user
+    .query(async ({ ctx }) => {
+      // Scope folders + tags to the caller's company (multi-tenant isolation) so
+      // filter option lists never surface another company's folder/tag names.
+      const companyId = ctx.companyId
+
       const folders = await prisma.folder.findMany({
+        where: companyId ? { companyId } : undefined,
         select: {
           id: true,
           name: true,
@@ -1833,6 +1837,7 @@ export const passwordsRouter = createTRPCRouter({
 
       // Get tags (if tags are used)
       const tags = await prisma.tag.findMany({
+        where: companyId ? { companyId } : undefined,
         select: {
           id: true,
           name: true,
