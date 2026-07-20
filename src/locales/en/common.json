@@ -66,6 +66,7 @@
     "email": "Email address",
     "password": "Password",
     "forgotPasswordLink": "Forgot password?",
+    "useDifferentAccount": "Use a different account",
     "forgotPassword": {
       "title": "Forgot Password",
       "description": "Enter your email address and we'll send you a link to reset your password.",

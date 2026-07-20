@@ -45,6 +45,20 @@ export function CompanyVerifyFields({ formAction, isPending, state }: CompanyVer
   const rootError = form.formState.errors.root?.message
   const correlation = useCorrelationIdError(rootError)
 
+  // Remember the last company entered so returning users don't retype it.
+  const LAST_COMPANY_KEY = "pb:lastCompany"
+  useEffect(() => {
+    try {
+      const remembered = localStorage.getItem(LAST_COMPANY_KEY)
+      if (remembered && !form.getValues("company")) {
+        form.setValue("company", remembered)
+      }
+    } catch {
+      /* ignore */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   // Sync server errors to form
   useEffect(() => {
     if (state?.error) {
@@ -68,6 +82,14 @@ export function CompanyVerifyFields({ formAction, isPending, state }: CompanyVer
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
+    try {
+      const company = formData.get("company")
+      if (typeof company === "string" && company.trim()) {
+        localStorage.setItem(LAST_COMPANY_KEY, company.trim())
+      }
+    } catch {
+      /* ignore */
+    }
     startTransition(() => {
       formAction(formData)
     })

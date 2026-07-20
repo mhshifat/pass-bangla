@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useTransition } from "react"
+import { useEffect, useState, useTransition } from "react"
 import { useTranslation } from "react-i18next"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -58,6 +58,39 @@ export function LoginFormFields({ formAction, isPending, state }: LoginFormField
   const rootError = form.formState.errors.root?.message
   const correlation = useCorrelationIdError(rootError)
 
+  // Remember the last email used on THIS company subdomain (localStorage is
+  // per-origin, so each company is scoped automatically). On return visits we
+  // prefill it and jump straight to the password field — daily logins become
+  // "type password + enter". Email is not sensitive (the extension does the same).
+  const LAST_EMAIL_KEY = "pb:lastEmail"
+  const [prefilledEmail, setPrefilledEmail] = useState(false)
+
+  useEffect(() => {
+    try {
+      const remembered = localStorage.getItem(LAST_EMAIL_KEY)
+      if (remembered && !form.getValues("email")) {
+        form.setValue("email", remembered)
+        setPrefilledEmail(true)
+        // Focus the password field so the user can type it immediately.
+        setTimeout(() => form.setFocus("password"), 0)
+      }
+    } catch {
+      /* localStorage unavailable — ignore */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const useDifferentAccount = () => {
+    try {
+      localStorage.removeItem(LAST_EMAIL_KEY)
+    } catch {
+      /* ignore */
+    }
+    form.setValue("email", "")
+    setPrefilledEmail(false)
+    form.setFocus("email")
+  }
+
   // Sync server errors to form
   useEffect(() => {
     if (state?.error) {
@@ -91,6 +124,15 @@ export function LoginFormFields({ formAction, isPending, state }: LoginFormField
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
+    // Remember this email for next time so returning users only type a password.
+    try {
+      const email = formData.get("email")
+      if (typeof email === "string" && email.trim()) {
+        localStorage.setItem(LAST_EMAIL_KEY, email.trim())
+      }
+    } catch {
+      /* ignore */
+    }
     if (captchaToken) {
       formData.append("captchaToken", captchaToken)
     }
@@ -133,6 +175,15 @@ export function LoginFormFields({ formAction, isPending, state }: LoginFormField
                   </div>
                 </FormControl>
                 <FormMessage />
+                {prefilledEmail && (
+                  <button
+                    type="button"
+                    onClick={useDifferentAccount}
+                    className="text-xs text-muted-foreground hover:text-primary hover:underline mt-1"
+                  >
+                    {t("auth.useDifferentAccount")}
+                  </button>
+                )}
               </FormItem>
             )}
           />
