@@ -211,6 +211,7 @@ export const passwordsRouter = createTRPCRouter({
                         },
                         ...searchConditions,
                         ...passwordFilterConditions,
+                        ...tagFilterConditions,
                         ...folderFilterConditions,
                       },
                       // Shared passwords that haven't expired

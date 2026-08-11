@@ -104,10 +104,14 @@ export function TagFilter() {
                         onSelect={() => handleTagToggle(tag.id)}
                         className="cursor-pointer"
                       >
+                        {/* Presentational only — the CommandItem's onSelect
+                            handles toggling. Wiring onCheckedChange here too made
+                            a checkbox click fire handleTagToggle twice, cancelling
+                            the toggle so the filter appeared to do nothing. */}
                         <Checkbox
                           checked={selectedTagIds.includes(tag.id)}
-                          onCheckedChange={() => handleTagToggle(tag.id)}
-                          className="mr-2"
+                          className="mr-2 pointer-events-none"
+                          tabIndex={-1}
                         />
                         <div className="flex items-center gap-2 flex-1">
                           {tag.color && (
