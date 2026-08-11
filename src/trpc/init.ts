@@ -254,6 +254,21 @@ export const baseProcedure = t.procedure.use(errorHandlingMiddleware);
  */
 export const requirePermission = (permissionKey: string | string[]) => {
   return t.middleware(async ({ ctx, next }) => {
+    // No authenticated user = the session is missing or expired. Return a clean
+    // UNAUTHORIZED (not "insufficient permissions"): the user IS authorized, their
+    // session just ended. Clients treat this as "sign in again" and can transition
+    // to the login screen smoothly instead of flashing a scary permissions error.
+    if (!ctx.userId) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: formatErrorWithCorrelationId(
+          "Your session has expired. Please sign in again.",
+          ctx.correlationId
+        ),
+        cause: { correlationId: ctx.correlationId, sessionExpired: true },
+      });
+    }
+
     // Enforce MFA server-side: a session that still requires MFA (correct password
     // entered but second factor not yet verified) must NOT reach protected data.
     // The client-side redirect to /mfa-verify is not a security control on its own.
