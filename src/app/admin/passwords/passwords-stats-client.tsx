@@ -2,7 +2,7 @@
 
 import { useTranslation } from "react-i18next"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { SecurityAlerts } from "@/modules/passwords/client"
+import { SecurityAlerts } from "@/modules/passwords/client/security-alerts"
 import { Star } from "lucide-react"
 
 interface PasswordsStatsClientProps {

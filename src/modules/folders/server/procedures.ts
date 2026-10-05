@@ -12,11 +12,11 @@ export const foldersRouter = createTRPCRouter({
 
       // Get folders belonging to the company
       // Now folders have a direct companyId field, so we can filter directly
-      const where: Prisma.FolderWhereInput = {}
-      if (companyId) {
-        where.companyId = companyId
+      // Without a company there is no tenant to list: return nothing
+      if (!companyId) {
+        return { folders: [] }
       }
-      // If companyId is null, return all folders (for super admin or initial setup)
+      const where: Prisma.FolderWhereInput = { companyId }
 
       const folders = await prisma.folder.findMany({
         where,
@@ -48,12 +48,15 @@ export const foldersRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       // Use companyId from context (already fetched, no extra query needed)
       const companyId = ctx.companyId
+      if (!companyId) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "A company is required to create folders" })
+      }
 
       // Check if folder with same name already exists in the same company (at same level if parentId provided)
       const where: Prisma.FolderWhereInput = {
         name: input.name,
         parentId: input.parentId || null,
-        companyId: companyId || undefined,
+        companyId,
       }
 
       const existingFolder = await prisma.folder.findFirst({
@@ -71,7 +74,7 @@ export const foldersRouter = createTRPCRouter({
       if (input.parentId) {
         const parentWhere: Prisma.FolderWhereInput = { 
           id: input.parentId,
-          companyId: companyId || undefined,
+          companyId,
         }
 
         const parent = await prisma.folder.findFirst({
@@ -92,8 +95,8 @@ export const foldersRouter = createTRPCRouter({
           name: input.name,
           description: input.description || null,
           parentId: input.parentId || null,
-          ...(companyId ? { companyId } : {}),
-        } as Prisma.FolderUncheckedCreateInput,
+          companyId,
+        },
         select: {
           id: true,
           name: true,

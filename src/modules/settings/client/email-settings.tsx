@@ -225,6 +225,7 @@ export function EmailSettings({ config }: EmailSettingsProps) {
                     <FormControl>
                       <PasswordInput
                         placeholder="••••••••"
+                        storedSecret
                         {...field}
                         onGenerate={() => {
                           const generated = generateStrongPassword(16)

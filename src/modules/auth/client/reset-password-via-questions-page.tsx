@@ -141,6 +141,7 @@ export function ResetPasswordViaQuestionsPage() {
                         <PasswordInput
                           {...field}
                           placeholder={t("auth.newPasswordPlaceholder")}
+                          autoComplete="new-password"
                           className="pl-10"
                           disabled={resetPasswordMutation.isPending}
                           showToggleButton={true}
@@ -168,6 +169,7 @@ export function ResetPasswordViaQuestionsPage() {
                         <PasswordInput
                           {...field}
                           placeholder={t("auth.confirmPasswordPlaceholder")}
+                          autoComplete="new-password"
                           className="pl-10"
                           disabled={resetPasswordMutation.isPending}
                           showToggleButton={true}

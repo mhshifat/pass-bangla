@@ -2,13 +2,12 @@ import { Suspense } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { MfaSetupQr } from "@/modules/auth/client/mfa-setup/mfa-setup-qr"
 import { MfaSetupForm } from "@/modules/auth/client/mfa-setup/mfa-setup-form"
-import { serverTrpc } from "@/trpc/server-caller"
+import { serverTrpc, getCurrentUserData } from "@/trpc/server-caller"
 import { redirect } from "next/navigation"
 import { MfaSetupPageHeader } from "./mfa-setup-page-header"
 
 export default async function MfaSetupPage() {
-  const trpc = await serverTrpc();
-  const userData = await trpc.auth.getCurrentUser(); 
+  const userData = await getCurrentUserData();
   
   // If MFA is already verified, redirect to admin
   if (userData?.session?.mfaVerified === true) {
@@ -26,6 +25,7 @@ export default async function MfaSetupPage() {
   }
 
   // User needs MFA setup (either from session flag or user settings) - allow setup
+  const trpc = await serverTrpc();
   const { qr } = await trpc.auth.generateMfaQr();
 
   return (

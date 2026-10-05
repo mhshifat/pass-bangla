@@ -155,7 +155,15 @@ export function ImportPasswordDialog({
 
     startTransition(async () => {
       try {
-        const result = await commitImportAction(validPasswords, true)
+        // Send in chunks so no single request approaches the function time limit
+        const CHUNK = 500
+        const result = { success: true, created: 0, errors: 0 }
+        for (let start = 0; start < validPasswords.length; start += CHUNK) {
+          const part = await commitImportAction(validPasswords.slice(start, start + CHUNK), true)
+          result.created += part.created
+          result.errors += part.errors
+          if (!part.success) result.success = false
+        }
 
         if (result.success) {
           toast.success(

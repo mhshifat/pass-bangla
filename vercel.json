@@ -1,20 +1,4 @@
 {
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Forwarded-Host",
-          "value": ":host"
-        }
-      ]
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/:path*",
-      "destination": "/:path*"
-    }
-  ]
+  "regions": ["sin1"],
+  "crons": [{ "path": "/api/cron/cleanup", "schedule": "17 3 * * *" }]
 }
-

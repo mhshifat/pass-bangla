@@ -1,25 +1,27 @@
 import prisma from "@/lib/prisma"
+import { getSettings } from "@/lib/settings-cache"
 
 /**
  * Helper to check if MFA should be enforced for a user
  * Considers both user-specific settings and global enforcement policies
  */
-export async function shouldEnforceMfa(userId: string, userRole: string, userMfaEnabled: boolean): Promise<boolean> {
+export async function shouldEnforceMfa(
+  userId: string,
+  userRole: string,
+  userMfaEnabled: boolean,
+  companyId?: string | null
+): Promise<boolean> {
   // If user has explicitly enabled MFA, enforce it
   if (userMfaEnabled) {
     return true
   }
 
-  // Check global enforcement settings
-  const mfaSettings = await prisma.settings.findMany({
-    where: {
-      key: {
-        in: ["mfa.enforce_all_users", "mfa.enforce_admins"],
-      },
-    },
-  })
-
-  const settingsMap = new Map(mfaSettings.map((s) => [s.key, s.value]))
+  // Enforcement is per company; resolve the user's company when the caller did not
+  const resolvedCompanyId =
+    companyId !== undefined
+      ? companyId
+      : (await prisma.user.findUnique({ where: { id: userId }, select: { companyId: true } }))?.companyId ?? null
+  const settingsMap = await getSettings(["mfa.enforce_all_users", "mfa.enforce_admins"], resolvedCompanyId)
   const enforceAllUsers = settingsMap.get("mfa.enforce_all_users") === true
   const enforceAdmins = settingsMap.get("mfa.enforce_admins") === true
 
@@ -47,10 +49,11 @@ export async function determineMfaRequirement(
   userId: string,
   userRole: string,
   userMfaEnabled: boolean,
-  hasMfaMethod: boolean
+  hasMfaMethod: boolean,
+  companyId?: string | null
 ): Promise<{ mfaRequired: boolean; mfaSetupRequired: boolean }> {
   // Check if MFA should be enforced
-  const enforceMfa = await shouldEnforceMfa(userId, userRole, userMfaEnabled)
+  const enforceMfa = await shouldEnforceMfa(userId, userRole, userMfaEnabled, companyId)
 
   if (!enforceMfa) {
     // MFA not enforced, no requirement

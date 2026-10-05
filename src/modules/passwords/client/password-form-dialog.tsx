@@ -37,12 +37,20 @@ import {
 import { QrCode, FolderPlus, AlertCircle } from "lucide-react"
 import { trpc } from "@/trpc/client"
 import { CreateFolderDialog } from "@/modules/folders/client"
-import { TagAutocomplete, TemplateSelector } from "@/modules/passwords/client"
+import { TagAutocomplete } from "@/modules/passwords/client/tag-autocomplete"
+import { TemplateSelector } from "@/modules/passwords/client/template-selector"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { FormErrorDisplay } from "@/components/shared/form-error-display"
 import { useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { usePasswordDecryption } from "@/hooks/use-password-decryption"
+
+// "auth.buffer.com" → "https://auth.buffer.com"; values that already have a scheme are kept
+function withHttps(value: string): string {
+  const trimmed = value.trim()
+  if (!trimmed || /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed)) return trimmed
+  return `https://${trimmed}`
+}
 
 const passwordSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -50,7 +58,7 @@ const passwordSchema = z.object({
   password: z.string().min(1, "Password is required"),
   url: z
     .string()
-    .refine((val) => val === "" || z.string().url().safeParse(val).success, {
+    .refine((val) => val.trim() === "" || z.string().url().safeParse(withHttps(val)).success, {
       message: "Must be a valid URL",
     })
     .optional()
@@ -266,7 +274,7 @@ export function PasswordFormDialog({
         name: values.name,
         username: values.username,
         password: values.password,
-        url: values.url || null,
+        url: withHttps(values.url || "") || null,
         folderId: values.folderId || null,
         notes: values.notes || null,
         totpSecret: values.enableTotp && values.totpSecret ? values.totpSecret : null,
@@ -368,6 +376,7 @@ export function PasswordFormDialog({
                           <PasswordInput
                             {...field}
                             name="password"
+                            storedSecret
                             showGenerateButton={true}
                             onGenerate={() => {
                               const generated = generateStrongPassword(20)
@@ -391,7 +400,18 @@ export function PasswordFormDialog({
                     <FormItem>
                       <FormLabel>{t("passwords.url")} ({t("common.optional")})</FormLabel>
                       <FormControl>
-                        <Input placeholder={t("passwords.urlPlaceholder")} {...field} name="url" />
+                        <Input
+                          placeholder={t("passwords.urlPlaceholder")}
+                          {...field}
+                          name="url"
+                          onBlur={() => {
+                            const normalized = withHttps(field.value || "")
+                            if (normalized !== field.value) {
+                              form.setValue("url", normalized, { shouldValidate: true, shouldDirty: true })
+                            }
+                            field.onBlur()
+                          }}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

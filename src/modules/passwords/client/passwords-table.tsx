@@ -50,10 +50,10 @@ import { useCurrentUser } from "@/hooks/use-current-user"
 import { decryptPasswordClient } from "@/lib/client-crypto"
 import { toggleFavoriteAction } from "@/app/admin/passwords/favorite-actions"
 import { TagFilter } from "@/modules/passwords/client/tag-filter"
-import { AdvancedSearchDialog } from "./advanced-search-dialog"
+import dynamic from "next/dynamic"
+import { useEverOpened } from "./use-ever-opened"
 import { SearchHistory } from "./search-history"
 import { SavedSearches } from "./saved-searches"
-import { PasswordQrDialog } from "./password-qr-dialog"
 import {
   Popover,
   PopoverContent,
@@ -159,6 +159,7 @@ function PasswordCell({ passwordId }: { passwordId: string }) {
           resourceId: passwordId,
           resourceType: "password",
           actionType: "copy_password",
+          logToAudit: false, // getPassword already recorded this access
           successMessage: t("clipboard.passwordCopied"),
         })
       }
@@ -255,7 +256,18 @@ function TotpCell({ passwordId }: { passwordId: string }) {
   )
 }
 
-export function PasswordsTable({ 
+const AdvancedSearchDialog = dynamic(
+  () => import("./advanced-search-dialog").then((m) => m.AdvancedSearchDialog),
+  { ssr: false }
+)
+const PasswordQrDialog = dynamic(
+  () => import("./password-qr-dialog").then((m) => m.PasswordQrDialog),
+  { ssr: false }
+)
+
+const SEARCH_DEBOUNCE_MS = 300
+
+export function PasswordsTable({
   passwords, 
   onViewDetails, 
   onEdit, 
@@ -282,6 +294,11 @@ export function PasswordsTable({
   const [isSavedSearchesOpen, setIsSavedSearchesOpen] = React.useState(false)
   const [qrDialogPassword, setQrDialogPassword] = React.useState<string | null>(null)
   const [isQrDialogOpen, setIsQrDialogOpen] = React.useState(false)
+  const advancedSearchMounted = useEverOpened(isAdvancedSearchOpen)
+  const qrDialogMounted = useEverOpened(isQrDialogOpen)
+  const [, startSearchTransition] = React.useTransition()
+  const searchTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+  const lastPushedSearchRef = React.useRef(searchParams.get("search") || "")
 
   // Fetch rotation reminders to show indicators (uses SSR prefetch when available)
   const { data: reminders } = trpc.passwordRotation.getReminders.useQuery(
@@ -319,26 +336,54 @@ export function PasswordsTable({
   const allSelected = passwords.length > 0 && selectedIds.length === passwords.length
 
   React.useEffect(() => {
-    setSearchQuery(searchParams.get("search") || "")
+    // Adopt the URL value only when it changed from elsewhere (badge, clear,
+    // history), never while the user is mid-typing.
+    if (searchTimerRef.current) return
+    const urlValue = searchParams.get("search") || ""
+    if (urlValue === lastPushedSearchRef.current) return
+    lastPushedSearchRef.current = urlValue
+    setSearchQuery(urlValue)
   }, [searchParams])
+
+  React.useEffect(() => {
+    return () => {
+      if (searchTimerRef.current) clearTimeout(searchTimerRef.current)
+    }
+  }, [])
 
   const handleSearchChange = (value: string) => {
     setSearchQuery(value)
-    const params = new URLSearchParams(searchParams)
-    if (value) {
-      params.set("search", value)
-      params.set("page", "1") // Reset to first page on search
-    } else {
-      params.delete("search")
-    }
-    router.push(`?${params.toString()}`)
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current)
+    searchTimerRef.current = setTimeout(() => {
+      searchTimerRef.current = null
+      const params = new URLSearchParams(window.location.search)
+      const trimmed = value.trim()
+      if ((params.get("search") || "") === trimmed) return
+      if (trimmed) {
+        params.set("search", trimmed)
+        params.set("page", "1") // Reset to first page on search
+      } else {
+        params.delete("search")
+      }
+      lastPushedSearchRef.current = trimmed
+      startSearchTransition(() => {
+        router.replace(`?${params.toString()}`)
+      })
+    }, SEARCH_DEBOUNCE_MS)
   }
 
   const handleClearSearch = () => {
+    if (searchTimerRef.current) {
+      clearTimeout(searchTimerRef.current)
+      searchTimerRef.current = null
+    }
     setSearchQuery("")
+    lastPushedSearchRef.current = ""
     const params = new URLSearchParams()
     params.set("page", "1")
-    router.push(`?${params.toString()}`)
+    startSearchTransition(() => {
+      router.push(`?${params.toString()}`)
+    })
   }
 
   // Check if any filters are active
@@ -391,6 +436,7 @@ export function PasswordsTable({
           resourceId: passwordId,
           resourceType: "password",
           actionType: "copy_password",
+          logToAudit: false, // getPassword already recorded this access
           successMessage: t("clipboard.passwordCopied"),
         })
       }
@@ -454,9 +500,8 @@ export function PasswordsTable({
             ? t("passwords.favorites.added")
             : t("passwords.favorites.removed")
         )
-        await utils.passwords.list.invalidate()
-        await utils.passwords.getFavorites.invalidate()
-        router.refresh()
+        // The action revalidates the paths; only the favorites page's client query needs a nudge
+        void utils.passwords.getFavorites.invalidate()
       } else if (!result.success && "error" in result) {
         showErrorFromException(result.error, t("passwords.favorites.toggleError"))
       }
@@ -1081,19 +1126,23 @@ export function PasswordsTable({
         )}
       </CardContent>
 
-      <AdvancedSearchDialog
-        open={isAdvancedSearchOpen}
-        onOpenChange={setIsAdvancedSearchOpen}
-        onSearch={() => {
-          // Search is handled by the dialog via router.push
-        }}
-      />
+      {advancedSearchMounted && (
+        <AdvancedSearchDialog
+          open={isAdvancedSearchOpen}
+          onOpenChange={setIsAdvancedSearchOpen}
+          onSearch={() => {
+            // Search is handled by the dialog via router.push
+          }}
+        />
+      )}
 
-      <PasswordQrDialog
-        passwordId={qrDialogPassword}
-        open={isQrDialogOpen}
-        onOpenChange={setIsQrDialogOpen}
-      />
+      {qrDialogMounted && (
+        <PasswordQrDialog
+          passwordId={qrDialogPassword}
+          open={isQrDialogOpen}
+          onOpenChange={setIsQrDialogOpen}
+        />
+      )}
     </Card>
   )
 }

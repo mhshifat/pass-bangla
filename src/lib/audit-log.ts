@@ -1,6 +1,8 @@
+import { after } from "next/server"
 import prisma from "./prisma"
 import { Prisma } from "@/app/generated"
 import { getSession } from "./session"
+import { getUserCompanyId } from "./user-company"
 
 interface CreateAuditLogParams {
   action: string
@@ -14,29 +16,49 @@ interface CreateAuditLogParams {
   userAgent?: string | null
 }
 
-/**
- * Create an audit log entry
- * If userId is not provided, it will try to get it from the current session
- * If companyId is not provided, it will try to get it from the user
- */
-export async function createAuditLog(params: CreateAuditLogParams): Promise<void> {
-  try {
-    let userId = params.userId
-    let companyId = params.companyId
+export interface CreateAuditLogOptions {
+  /**
+   * true  – write before the returned promise resolves (the caller's `await` waits for the row).
+   * false – always hand the write to Next's `after()`, so it runs once the response has been sent.
+   * Omitted – deferred, except for the entries listed in `writesInlineByDefault`.
+   */
+  sync?: boolean
+}
 
-    // If userId is not provided, try to get it from session
-    if (!userId) {
-      const session = await getSession()
-      userId = session?.userId || null
-    }
+/**
+ * Entries that later security decisions read back (failed-login counts for
+ * brute-force and CAPTCHA checks, login history for anomaly detection, threat
+ * events) are written inline unless the caller says otherwise, so the next
+ * attempt is always judged against a complete log.
+ */
+function writesInlineByDefault(params: CreateAuditLogParams): boolean {
+  return (
+    (params.status !== undefined && params.status !== "SUCCESS") ||
+    params.action.startsWith("LOGIN") ||
+    params.action.startsWith("THREAT_") ||
+    params.action.endsWith("_FAILED")
+  )
+}
+
+function logAuditFailure(params: CreateAuditLogParams, error: unknown): void {
+  // Don't throw errors from audit logging - it shouldn't break the main operation
+  // But log it prominently so we can debug
+  console.error(`[Audit Log Error] ❌ Failed to create audit log for action: ${params.action}`, error)
+  if (error instanceof Error) {
+    console.error(`[Audit Log Error] Message: ${error.message}`)
+    console.error(`[Audit Log Error] Stack: ${error.stack}`)
+  }
+  // Also log the params that failed
+  console.error(`[Audit Log Error] Params:`, JSON.stringify(params, null, 2))
+}
+
+async function writeAuditLog(params: CreateAuditLogParams, userId: string | null): Promise<void> {
+  try {
+    let companyId = params.companyId
 
     // If companyId is not provided and we have a userId, get it from the user
     if (!companyId && userId) {
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { companyId: true },
-      })
-      companyId = user?.companyId || null
+      companyId = await getUserCompanyId(userId)
     }
 
     // Always log in development to help debug
@@ -44,7 +66,7 @@ export async function createAuditLog(params: CreateAuditLogParams): Promise<void
       console.log(`[Audit Log] Attempting to create: ${params.action} for ${params.resource}${params.resourceId ? ` (${params.resourceId})` : ""} by user ${userId || "unknown"} (company: ${companyId || "none"})`)
     }
 
-    const auditLog = await prisma.auditLog.create({
+    await prisma.auditLog.create({
       data: {
         userId: userId || null,
         companyId: companyId || null,
@@ -56,21 +78,53 @@ export async function createAuditLog(params: CreateAuditLogParams): Promise<void
         ipAddress: params.ipAddress || null,
         userAgent: params.userAgent || null,
       },
+      select: { id: true },
     })
-
-    // Log successful creation
-    console.log(`[Audit Log] ✅ Created: ${params.action} for ${params.resource}${params.resourceId ? ` (${params.resourceId})` : ""} by user ${userId || "unknown"} - ID: ${auditLog.id}`)
   } catch (error) {
-    // Don't throw errors from audit logging - it shouldn't break the main operation
-    // But log it prominently so we can debug
-    console.error(`[Audit Log Error] ❌ Failed to create audit log for action: ${params.action}`, error)
-    if (error instanceof Error) {
-      console.error(`[Audit Log Error] Message: ${error.message}`)
-      console.error(`[Audit Log Error] Stack: ${error.stack}`)
-    }
-    // Also log the params that failed
-    console.error(`[Audit Log Error] Params:`, JSON.stringify(params, null, 2))
+    logAuditFailure(params, error)
   }
+}
+
+/**
+ * Create an audit log entry
+ * If userId is not provided, it will try to get it from the current session
+ * If companyId is not provided, it will try to get it from the user
+ *
+ * By default the insert is scheduled with `after()` and does not delay the
+ * response; the returned promise then resolves as soon as it is scheduled.
+ * Pass `{ sync: true }` when the row must exist before the caller continues.
+ * Never throws.
+ */
+export async function createAuditLog(
+  params: CreateAuditLogParams,
+  options: CreateAuditLogOptions = {}
+): Promise<void> {
+  let userId = params.userId || null
+
+  // If userId is not provided, try to get it from session.
+  // Resolved now rather than in the deferred write: request cookies are not
+  // readable from an after() callback in every context.
+  if (!userId) {
+    try {
+      const session = await getSession()
+      userId = session?.userId || null
+    } catch (error) {
+      logAuditFailure(params, error)
+      return
+    }
+  }
+
+  const sync = options.sync ?? writesInlineByDefault(params)
+  if (!sync) {
+    try {
+      after(() => writeAuditLog(params, userId))
+      return
+    } catch {
+      // after() is unavailable outside a request scope (scripts, jobs) — write inline instead
+    }
+  }
+
+  await writeAuditLog(params, userId)
 }
 
 /**

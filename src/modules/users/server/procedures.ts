@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma"
 import { createTRPCRouter, protectedProcedure, baseProcedure } from "@/trpc/init"
 import z from "zod"
-import { hashPassword } from "@/lib/auth"
+import { hashPassword, verifyPassword } from "@/lib/auth"
 import { TRPCError } from "@trpc/server"
 import { Prisma } from '@/app/generated'
 import { getOrCreateCorrelationId } from "@/lib/correlation-id-util"
@@ -431,7 +431,6 @@ export const usersRouter = createTRPCRouter({
         })
       }
 
-      const { verifyPassword } = await import("@/lib/auth")
       const isCurrentPasswordValid = await verifyPassword(input.currentPassword, user.password)
 
       if (!isCurrentPasswordValid) {
@@ -443,8 +442,10 @@ export const usersRouter = createTRPCRouter({
         })
       }
 
-      // Check if new password is same as current
-      const isSamePassword = await verifyPassword(input.newPassword, user.password)
+      // The current password is already verified against the hash, so "same as current" is a
+      // plain comparison (bcrypt only reads the first 72 bytes) and needs no second bcrypt run
+      const isSamePassword =
+        Buffer.from(input.newPassword).subarray(0, 72).equals(Buffer.from(input.currentPassword).subarray(0, 72))
 
       if (isSamePassword) {
         const correlationId = getOrCreateCorrelationId(ctx)
@@ -546,7 +547,6 @@ export const usersRouter = createTRPCRouter({
 
       // Check if new password is same as current (if password exists)
       if (existingUser.password) {
-        const { verifyPassword } = await import("@/lib/auth")
         const isSamePassword = await verifyPassword(input.newPassword, existingUser.password)
 
         if (isSamePassword) {
@@ -793,12 +793,24 @@ export const usersRouter = createTRPCRouter({
         where.id = { not: input.excludeUserId };
       }
       const { limit } = await import("@/lib/p-limit");
-      const [total, active, mfa, admins] = await Promise.all([
-        limit(() => prisma.user.count({ where })),
-        limit(() => prisma.user.count({ where: { ...where, isActive: true } })),
-        limit(() => prisma.user.count({ where: { ...where, mfaEnabled: true } })),
-        limit(() => prisma.user.count({ where: { ...where, role: { in: ["ADMIN", "admin"] } } })),
-      ])
+      const groups = await limit(() =>
+        prisma.user.groupBy({
+          by: ["isActive", "mfaEnabled", "role"],
+          where,
+          _count: { _all: true },
+        })
+      )
+      let total = 0
+      let active = 0
+      let mfa = 0
+      let admins = 0
+      for (const g of groups) {
+        const n = g._count._all
+        total += n
+        if (g.isActive) active += n
+        if (g.mfaEnabled) mfa += n
+        if (g.role === "ADMIN" || g.role === "admin") admins += n
+      }
       return {
         total,
         active,
@@ -1072,12 +1084,14 @@ export const usersRouter = createTRPCRouter({
       const cookieStore = await cookies()
       const currentSessionToken = cookieStore.get("session")?.value
 
-      const sessions = await prisma.session.findMany({
+      const rows = await prisma.session.findMany({
         where: {
           userId: ctx.userId,
           expires: {
             gt: new Date(), // Only active sessions
           },
+          // OAuth hand-off placeholders are not real device sessions
+          NOT: { sessionToken: { startsWith: "oauth-handoff:" } },
         },
         orderBy: {
           lastActiveAt: "desc",
@@ -1098,10 +1112,13 @@ export const usersRouter = createTRPCRouter({
         },
       })
 
-      // Find current session ID by matching the session token
-      const currentSessionId = currentSessionToken
-        ? sessions.find((s) => s.sessionToken === currentSessionToken)?.id || null
-        : null
+      // The raw token never leaves the server; the current session is flagged here instead
+      let currentSessionId: string | null = null
+      const sessions = rows.map(({ sessionToken, ...session }) => {
+        const isCurrent = !!currentSessionToken && sessionToken === currentSessionToken
+        if (isCurrent) currentSessionId = session.id
+        return { ...session, isCurrent }
+      })
 
       return { sessions, currentSessionId }
     }),
@@ -1321,29 +1338,26 @@ export const usersRouter = createTRPCRouter({
       })
 
       // Get count of sessions per device
-      const deviceCounts = await Promise.all(
-        trustedSessions.map(async (session) => {
-          if (!session.deviceFingerprint) return { fingerprint: null, count: 0 }
-          const count = await prisma.session.count({
+      const fingerprints = trustedSessions
+        .map((s) => s.deviceFingerprint)
+        .filter((fp): fp is string => !!fp)
+      const grouped = fingerprints.length
+        ? await prisma.session.groupBy({
+            by: ["deviceFingerprint"],
             where: {
               userId: ctx.userId,
-              deviceFingerprint: session.deviceFingerprint,
+              deviceFingerprint: { in: fingerprints },
               isTrusted: true,
             },
+            _count: { _all: true },
           })
-          return { fingerprint: session.deviceFingerprint, count }
-        })
-      )
+        : []
+      const countByFingerprint = new Map(grouped.map((g) => [g.deviceFingerprint, g._count._all]))
 
-      const devicesWithCounts = trustedSessions.map((session) => {
-        const count = deviceCounts.find(
-          (c) => c.fingerprint === session.deviceFingerprint
-        )?.count || 0
-        return {
-          ...session,
-          sessionCount: count,
-        }
-      })
+      const devicesWithCounts = trustedSessions.map((session) => ({
+        ...session,
+        sessionCount: countByFingerprint.get(session.deviceFingerprint) || 0,
+      }))
 
       return { devices: devicesWithCounts }
     }),

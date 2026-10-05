@@ -160,6 +160,7 @@ export function MfaCredentialsSettings() {
                   <FormControl>
                     <PasswordInput
                       placeholder={t("settings.mfaCredentialsSettings.smsAuthTokenPlaceholder")}
+                      storedSecret
                       {...field}
                       disabled={!canEdit}
                       showToggleButton={true}

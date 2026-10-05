@@ -1,6 +1,7 @@
 import nodemailer from "nodemailer"
 import type { Transporter } from "nodemailer"
-import prisma from "@/lib/prisma"
+import { after } from "next/server"
+import { getSettings } from "@/lib/settings-cache"
 import {
   isBytloopMailConfigured,
   getBytloopMailFrom,
@@ -18,30 +19,42 @@ interface EmailConfig {
   from: string
 }
 
-let cachedTransporter: Transporter | null = null
+// One transporter per company (key "" = global/system config), bounded
+const MAX_TRANSPORTERS = 200
+// Each entry remembers the config it was built from; a changed config rebuilds it
+const transporters = new Map<string, { transporter: Transporter; configKey: string }>()
 
-async function getEmailConfig(): Promise<EmailConfig | null> {
+/**
+ * Run a task after the response is sent (Next.js after()); outside a request
+ * scope it simply runs inline. Never throws.
+ */
+export function runAfterResponse(task: () => Promise<unknown>): void {
+  const safe = () => task().catch((error) => console.error("Background task failed:", error))
+  try {
+    after(safe)
+  } catch {
+    void safe()
+  }
+}
+
+/** Fire-and-forget email send for callers that do not need the delivery result. */
+export function sendEmailInBackground(options: Parameters<typeof sendEmail>[0]): void {
+  runAfterResponse(() => sendEmail(options))
+}
+
+async function getEmailConfig(companyId?: string | null): Promise<EmailConfig | null> {
   try {
     // First, try to get from Settings table (user-configured)
-    const settings = await prisma.settings.findMany({
-      where: {
-        key: {
-          in: [
-            "smtp_host",
-            "smtp_port",
-            "smtp_secure",
-            "smtp_user",
-            "smtp_password",
-            "smtp_from_email",
-          ],
-        },
-      },
-    })
-
-    const settingsMap = settings.reduce((acc, setting) => {
-      acc[setting.key] = setting.value
-      return acc
-    }, {} as Record<string, unknown>)
+    const settingsMap = Object.fromEntries(
+      await getSettings([
+        "smtp_host",
+        "smtp_port",
+        "smtp_secure",
+        "smtp_user",
+        "smtp_password",
+        "smtp_from_email",
+      ], companyId)
+    ) as Record<string, unknown>
 
     // Check if Settings table has required config
     if (
@@ -102,15 +115,18 @@ async function getEmailConfig(): Promise<EmailConfig | null> {
   }
 }
 
-async function getTransporter(): Promise<Transporter | null> {
-  const config = await getEmailConfig()
+async function getTransporter(companyId?: string | null): Promise<Transporter | null> {
+  const config = await getEmailConfig(companyId)
   
   if (!config) {
     return null
   }
 
   // Create new transporter if config changed or doesn't exist
-  if (!cachedTransporter) {
+  const configKey = JSON.stringify(config)
+  const cacheKey = companyId ?? ""
+  const cached = transporters.get(cacheKey)
+  if (!cached || cached.configKey !== configKey) {
     // Auto-detect secure based on port for common providers
     // Port 465 = SSL (secure: true)
     // Port 587 = TLS/STARTTLS (secure: false)
@@ -125,7 +141,7 @@ async function getTransporter(): Promise<Transporter | null> {
     }
     // For other ports, use the configured value
 
-    cachedTransporter = nodemailer.createTransport({
+    const transporter = nodemailer.createTransport({
       host: config.host,
       port: config.port,
       secure: secure,
@@ -140,9 +156,17 @@ async function getTransporter(): Promise<Transporter | null> {
       // For port 587, require STARTTLS
       requireTLS: config.port === 587,
     })
+    transporters.delete(cacheKey)
+    transporters.set(cacheKey, { transporter, configKey })
+    while (transporters.size > MAX_TRANSPORTERS) {
+      const oldest = transporters.keys().next().value
+      if (oldest === undefined) break
+      transporters.delete(oldest)
+    }
+    return transporter
   }
 
-  return cachedTransporter
+  return cached.transporter
 }
 
 export async function sendEmail(options: {
@@ -152,6 +176,8 @@ export async function sendEmail(options: {
   text?: string
   replyTo?: string
   correlationId?: string
+  /** Company whose SMTP config to use; falls back to the global/system config */
+  companyId?: string | null
 }): Promise<{ success: boolean; error?: string }> {
   // Prefer the hosted Bytloop Mail HTTP API when an API key is configured.
   // Falls back to SMTP/nodemailer (below) when it is not.
@@ -159,7 +185,7 @@ export async function sendEmail(options: {
     try {
       // Resolve the From address: explicit Bytloop From env, else the
       // SMTP-configured From, else a last-resort default.
-      const config = await getEmailConfig().catch(() => null)
+      const config = await getEmailConfig(options.companyId).catch(() => null)
       const from =
         getBytloopMailFrom() ||
         config?.from ||
@@ -185,7 +211,7 @@ export async function sendEmail(options: {
   }
 
   try {
-    const transporter = await getTransporter()
+    const transporter = await getTransporter(options.companyId)
 
     if (!transporter) {
       return {
@@ -194,21 +220,13 @@ export async function sendEmail(options: {
       }
     }
 
-    const config = await getEmailConfig()
+    const config = await getEmailConfig(options.companyId)
     if (!config) {
       return {
         success: false,
         error: "Email configuration is incomplete.",
       }
     }
-
-    // Log configuration for debugging (without sensitive data)
-    console.log("Sending email with config:", {
-      host: config.host,
-      port: config.port,
-      secure: config.secure,
-      hasAuth: !!config.auth,
-    })
 
     const info = await transporter.sendMail({
       from: config.from,
@@ -218,7 +236,6 @@ export async function sendEmail(options: {
       text: options.text,
     })
 
-    console.log("Email sent successfully:", info.messageId)
     return { success: true }
   } catch (error) {
     console.error("Failed to send email:", error)
@@ -238,7 +255,7 @@ export async function sendEmail(options: {
 }
 
 // Helper to test email configuration
-export async function testEmailConfig(): Promise<{ success: boolean; error?: string }> {
+export async function testEmailConfig(companyId?: string | null): Promise<{ success: boolean; error?: string }> {
   try {
     // The Bytloop HTTP API has no connection to "verify"; if it's configured,
     // treat the configuration as valid (a real failure surfaces on send).
@@ -246,7 +263,7 @@ export async function testEmailConfig(): Promise<{ success: boolean; error?: str
       return { success: true }
     }
 
-    const transporter = await getTransporter()
+    const transporter = await getTransporter(companyId)
     
     if (!transporter) {
       return {
@@ -266,7 +283,8 @@ export async function testEmailConfig(): Promise<{ success: boolean; error?: str
   }
 }
 
-// Reset cached transporter (useful when settings are updated)
-export function resetEmailTransporter(): void {
-  cachedTransporter = null
+// Reset cached transporter(s) (useful when settings are updated): one company's, or all
+export function resetEmailTransporter(companyId?: string | null): void {
+  if (companyId) transporters.delete(companyId)
+  else transporters.clear()
 }

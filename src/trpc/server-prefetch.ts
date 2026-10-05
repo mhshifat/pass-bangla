@@ -1,7 +1,7 @@
 import 'server-only';
 import { dehydrate } from '@tanstack/react-query';
 import { makeQueryClient } from './query-client';
-import { serverTrpc } from './server-caller';
+import { serverTrpc, getCurrentUserData } from './server-caller';
 
 /**
  * Prefetch current user data for authenticated layouts
@@ -22,12 +22,11 @@ import { serverTrpc } from './server-caller';
  */
 export async function prefetchCurrentUser() {
   const queryClient = makeQueryClient();
-  const trpc = await serverTrpc();
-  
+
   try {
-    // Prefetch current user data
+    // Prefetch current user data (shared with the route guard: one execution per request)
     // The query key format for tRPC is: [['procedurePath'], { input, type: 'query' }]
-    const userData = await trpc.auth.getCurrentUser();
+    const userData = await getCurrentUserData();
     
     // Set the query data in the cache with the correct tRPC query key format
     queryClient.setQueryData(
@@ -87,75 +86,29 @@ export async function prefetchUserProfile() {
 }
 
 /**
- * Prefetch dashboard data for admin dashboard page
- * This prefetches all dashboard queries on the server to avoid client-side API calls
- * 
- * @example
- * ```tsx
- * export default async function DashboardPage() {
- *   const dehydratedState = await prefetchDashboardData()
- *   
- *   return (
- *     <HydrationBoundary state={dehydratedState}>
- *       <DashboardContent />
- *     </HydrationBoundary>
- *   )
- * }
- * ```
+ * Prefetch dashboard data for the admin dashboard page.
+ * The queries are started but not awaited: the dehydrated state carries them as
+ * pending promises, so the page streams and each card fills in as its own query
+ * finishes instead of waiting for the slowest one. A failed query is retried
+ * on the client.
  */
 export async function prefetchDashboardData() {
   const queryClient = makeQueryClient();
   const trpc = await serverTrpc();
-  
-  try {
-    // Prefetch all dashboard data in parallel
-    const [stats, activities, alerts, metrics, onboardingStatus] = await Promise.allSettled([
-      trpc.dashboard.stats(),
-      trpc.dashboard.recentActivities(),
-      trpc.dashboard.securityAlerts(),
-      trpc.dashboard.healthMetrics(),
-      trpc.users.getOnboardingStatus(),
-    ]);
 
-    // Set each query data in the cache with the correct tRPC query key format
-    if (stats.status === 'fulfilled') {
-      queryClient.setQueryData(
-        [['dashboard', 'stats'], { input: undefined, type: 'query' }],
-        stats.value
-      );
-    }
+  const start = (path: string[], run: () => Promise<unknown>) => {
+    void queryClient.prefetchQuery({
+      queryKey: [path, { input: undefined, type: 'query' }],
+      queryFn: run,
+      retry: false,
+    });
+  };
 
-    if (activities.status === 'fulfilled') {
-      queryClient.setQueryData(
-        [['dashboard', 'recentActivities'], { input: undefined, type: 'query' }],
-        activities.value
-      );
-    }
+  start(['dashboard', 'stats'], () => trpc.dashboard.stats());
+  start(['dashboard', 'recentActivities'], () => trpc.dashboard.recentActivities());
+  start(['dashboard', 'securityAlerts'], () => trpc.dashboard.securityAlerts());
+  start(['dashboard', 'healthMetrics'], () => trpc.dashboard.healthMetrics());
+  start(['users', 'getOnboardingStatus'], () => trpc.users.getOnboardingStatus());
 
-    if (alerts.status === 'fulfilled') {
-      queryClient.setQueryData(
-        [['dashboard', 'securityAlerts'], { input: undefined, type: 'query' }],
-        alerts.value
-      );
-    }
-
-    if (metrics.status === 'fulfilled') {
-      queryClient.setQueryData(
-        [['dashboard', 'healthMetrics'], { input: undefined, type: 'query' }],
-        metrics.value
-      );
-    }
-
-    if (onboardingStatus.status === 'fulfilled') {
-      queryClient.setQueryData(
-        [['users', 'getOnboardingStatus'], { input: undefined, type: 'query' }],
-        onboardingStatus.value
-      );
-    }
-  } catch (error) {
-    // If there's an error, the client will handle it
-    console.debug('Could not prefetch dashboard data:', error);
-  }
-  
   return dehydrate(queryClient);
 }

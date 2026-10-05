@@ -1,26 +1,37 @@
 /**
- * Simple CAPTCHA implementation
- * Generates and verifies math-based CAPTCHA challenges
+ * Simple math CAPTCHA.
+ * The challenge token is a signed, short-lived JWT that carries a keyed hash of
+ * the answer (never the answer itself), so it works across serverless instances.
  */
+import { createHmac, randomBytes, timingSafeEqual } from "crypto"
+import { SignJWT, jwtVerify } from "jose"
+
+const secret = new TextEncoder().encode(
+  process.env.SESSION_SECRET || "default-secret-change-in-production"
+)
+const CAPTCHA_TTL_SECONDS = 5 * 60
 
 export interface CaptchaChallenge {
   question: string
-  answer: number
   token: string
 }
 
+function answerHash(nonce: string, answer: number, binding: string): string {
+  return createHmac("sha256", secret).update(`${nonce}:${answer}:${binding}`).digest("hex")
+}
+
 /**
- * Generate a simple math CAPTCHA challenge
+ * Generate a math CAPTCHA challenge. `binding` (e.g. the client IP) ties the
+ * token to the requester that received it.
  */
-export function generateCaptchaChallenge(): CaptchaChallenge {
+export async function createCaptchaChallenge(binding = ""): Promise<CaptchaChallenge> {
   const num1 = Math.floor(Math.random() * 10) + 1
   const num2 = Math.floor(Math.random() * 10) + 1
-  const operation = Math.random() > 0.5 ? "+" : "-"
-  
+
   let question: string
   let answer: number
-  
-  if (operation === "+") {
+
+  if (Math.random() > 0.5) {
     question = `${num1} + ${num2}`
     answer = num1 + num2
   } else {
@@ -30,81 +41,26 @@ export function generateCaptchaChallenge(): CaptchaChallenge {
     question = `${max} - ${min}`
     answer = max - min
   }
-  
-  // Generate a simple token (in production, use a more secure method)
-  const token = Buffer.from(`${question}:${answer}:${Date.now()}`).toString("base64")
-  
-  return {
-    question,
-    answer,
-    token,
-  }
+
+  const nonce = randomBytes(12).toString("hex")
+  const token = await new SignJWT({ n: nonce, h: answerHash(nonce, answer, binding) })
+    .setProtectedHeader({ alg: "HS256" })
+    .setAudience("captcha")
+    .setExpirationTime(`${CAPTCHA_TTL_SECONDS}s`)
+    .sign(secret)
+
+  return { question, token }
 }
 
-/**
- * Verify CAPTCHA answer
- */
-export function verifyCaptchaAnswer(token: string, userAnswer: number): boolean {
+/** Verify a CAPTCHA answer against a token issued by createCaptchaChallenge. */
+export async function verifyCaptchaToken(token: string, userAnswer: number, binding = ""): Promise<boolean> {
   try {
-    const decoded = Buffer.from(token, "base64").toString("utf-8")
-    const parts = decoded.split(":")
-    if (parts.length < 2) return false
-    
-    const expectedAnswer = parseInt(parts[1], 10)
-    
-    // Check if token is not too old (5 minutes)
-    const timestamp = parseInt(parts[2] || "0", 10)
-    const now = Date.now()
-    if (now - timestamp > 5 * 60 * 1000) {
-      return false // Token expired
-    }
-    
-    return userAnswer === expectedAnswer
+    const { payload } = await jwtVerify(token, secret, { audience: "captcha" })
+    if (typeof payload.n !== "string" || typeof payload.h !== "string") return false
+    const expected = Buffer.from(payload.h, "hex")
+    const actual = Buffer.from(answerHash(payload.n, userAnswer, binding), "hex")
+    return expected.length === actual.length && timingSafeEqual(expected, actual)
   } catch {
     return false
   }
-}
-
-/**
- * Store CAPTCHA challenge in session (for server-side verification)
- * In a real implementation, you'd store this in Redis or session storage
- */
-const captchaStore = new Map<string, { answer: number; expires: number }>()
-
-export function storeCaptchaChallenge(token: string, answer: number): void {
-  captchaStore.set(token, {
-    answer,
-    expires: Date.now() + 5 * 60 * 1000, // 5 minutes
-  })
-  
-  // Clean up expired challenges
-  setTimeout(() => {
-    captchaStore.delete(token)
-  }, 5 * 60 * 1000)
-}
-
-export function getCaptchaChallenge(token: string): { answer: number } | null {
-  const challenge = captchaStore.get(token)
-  if (!challenge) return null
-  
-  if (Date.now() > challenge.expires) {
-    captchaStore.delete(token)
-    return null
-  }
-  
-  return { answer: challenge.answer }
-}
-
-export function verifyCaptchaFromStore(token: string, userAnswer: number): boolean {
-  const challenge = getCaptchaChallenge(token)
-  if (!challenge) return false
-  
-  const isValid = challenge.answer === userAnswer
-  
-  // Remove challenge after verification (one-time use)
-  if (isValid) {
-    captchaStore.delete(token)
-  }
-  
-  return isValid
 }

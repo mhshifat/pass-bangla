@@ -2,10 +2,11 @@ import { initTRPC, TRPCError } from '@trpc/server';
 import { cache } from 'react';
 import superjson from 'superjson';
 import { headers } from 'next/headers';
-import { getSession } from "@/lib/session";
-import { getUserPermissions, getUserRoleName } from "@/lib/permissions";
+import { getSessionWithUser, verifySessionToken, findSessionUser } from "@/lib/session";
+import type { SessionData, SessionUser } from "@/lib/session";
+import { getCachedRolePermissions } from "@/lib/permissions";
+import { rememberUserCompany } from "@/lib/user-company";
 import { generateCorrelationId, logError, formatErrorWithCorrelationId, sanitizeClientErrorMessage } from "@/lib/correlation-id-util";
-import prisma from "@/lib/prisma";
 
 export type Context = {
   userId: string;
@@ -18,6 +19,12 @@ export type Context = {
   correlationId: string; // Correlation ID for request tracking
   mfaVerified: boolean; // Whether MFA has been completed for this session
   mfaRequired: boolean; // Whether MFA is required but not yet satisfied
+  // The validated session and the acting user, already loaded for this request.
+  // Procedures should read these instead of calling getSession() or re-querying
+  // the user. Both are null when the request is not authenticated; `user` is
+  // also null if the session's user no longer exists.
+  session: SessionData | null;
+  user: SessionUser | null;
 };
 
 export const createTRPCContext = cache(async (): Promise<Context> => {
@@ -47,33 +54,23 @@ export const createTRPCContext = cache(async (): Promise<Context> => {
   // Check for session token in header (for extensions)
   const sessionTokenFromHeader = headersList.get("x-session-token");
   
-  let session = await getSession();
-  
+  // One query validates the session row and loads the acting user with it
+  const cookieAuth = await getSessionWithUser();
+  let session = cookieAuth.session;
+  let user = cookieAuth.user;
+  let userLoaded = cookieAuth.userLoaded;
+
   // If we have a token in header but no session from cookie, try to verify the token
   if (sessionTokenFromHeader && (!session?.isLoggedIn || !session.userId)) {
     try {
-      const { jwtVerify } = await import("jose");
-      const SESSION_SECRET = process.env.SESSION_SECRET || "default-secret-change-in-production";
-      const secret = new TextEncoder().encode(SESSION_SECRET);
-      const { payload } = await jwtVerify(sessionTokenFromHeader, secret);
-      
-      // Verify session exists in database
-      const prisma = (await import("@/lib/prisma")).default;
-      const dbSession = await prisma.session.findUnique({
-        where: { sessionToken: sessionTokenFromHeader },
-        select: { id: true, expires: true, userId: true },
-      });
+      // Verifies the JWT and that the session exists in the database
+      const headerAuth = await verifySessionToken(sessionTokenFromHeader);
 
-      if (dbSession && new Date(dbSession.expires) > new Date()) {
+      if (headerAuth) {
         // Valid token - create session data
-        session = {
-          userId: dbSession.userId,
-          email: (payload.email as string) || "",
-          isLoggedIn: true,
-          mfaVerified: (payload.mfaVerified as boolean) ?? true,
-          mfaSetupRequired: (payload.mfaSetupRequired as boolean) ?? false,
-          mfaRequired: (payload.mfaRequired as boolean) ?? false,
-        };
+        session = headerAuth.session;
+        user = headerAuth.user;
+        userLoaded = true;
       }
     } catch (error) {
       // Invalid token - session remains invalid
@@ -97,28 +94,24 @@ export const createTRPCContext = cache(async (): Promise<Context> => {
       correlationId,
       mfaVerified: false,
       mfaRequired: false,
+      session: null,
+      user: null,
     };
   }
-  
-  // Get user role and permissions with concurrency control
-  // If user doesn't exist in database, these will return null/empty
-  const { limit } = await import("@/lib/p-limit");
-  
-  // Fetch user info once, with company and teams
-  const userWithTeams = await limit(() =>
-    prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        companyId: true,
-        teamMemberships: {
-          select: { teamId: true },
-        },
-      },
-    })
-  );
 
-  const companyId = userWithTeams?.companyId || null;
-  const userTeams = userWithTeams?.teamMemberships?.map((tm: { teamId: string }) => tm.teamId) || [];
+  // Get user role and permissions
+  // If user doesn't exist in database, these will return null/empty
+  // The user normally arrives with the session; it is only missing when the
+  // session check fell back to JWT-only, so look it up separately then.
+  if (!userLoaded) {
+    user = await findSessionUser(userId);
+  }
+
+  const companyId = user?.companyId || null;
+  const userRole = user?.role || null;
+  // Later lookups in this request (audit logs etc.) reuse this instead of re-querying
+  if (user) rememberUserCompany(userId, companyId);
+  const userTeams = user?.teamIds || [];
 
   // Fetch role + permissions with a small retry. A TRANSIENT DB failure (Neon
   // pooler cold-start / dropped connection) must NOT be silently turned into an
@@ -134,7 +127,7 @@ export const createTRPCContext = cache(async (): Promise<Context> => {
     let lastErr: unknown;
     for (let attempt = 1; attempt <= 3; attempt++) {
       try {
-        return await limit(fn);
+        return await fn();
       } catch (err) {
         lastErr = err;
         // brief backoff before retrying a transient DB error
@@ -148,10 +141,12 @@ export const createTRPCContext = cache(async (): Promise<Context> => {
     return fallback;
   };
 
-  const [userRole, permissions] = await Promise.all([
-    withRetry("getUserRoleName", () => getUserRoleName(userId), null as string | null),
-    withRetry("getUserPermissions", () => getUserPermissions(userId), [] as string[]),
-  ]);
+  // Role → permission keys are cached in memory for 60s per role|companyId
+  // (see getCachedRolePermissions for the trade-off), so a warm instance
+  // builds the whole context with the single session query above.
+  const permissions = userRole
+    ? await withRetry("getRolePermissions", () => getCachedRolePermissions(userRole, companyId), [] as string[])
+    : [];
 
   // Distinguish "genuinely has no permissions" from a masked failure so it's
   // visible in logs when a normally-privileged user resolves to zero perms.
@@ -164,12 +159,7 @@ export const createTRPCContext = cache(async (): Promise<Context> => {
   
   // Get session token for client-side decryption
   // Try header first (for extensions), then cookie (for web)
-  let sessionToken: string | null = sessionTokenFromHeader || null;
-  if (!sessionToken) {
-    const { cookies } = await import("next/headers");
-    const cookieStore = await cookies();
-    sessionToken = cookieStore.get("session")?.value || null;
-  }
+  const sessionToken: string | null = sessionTokenFromHeader || cookieAuth.token || null;
   
   // Generate correlation ID for request tracking
   const correlationId = generateCorrelationId();
@@ -185,6 +175,8 @@ export const createTRPCContext = cache(async (): Promise<Context> => {
     correlationId,
     mfaVerified: (session.mfaVerified as boolean) ?? true,
     mfaRequired: (session.mfaRequired as boolean) ?? false,
+    session,
+    user,
   };
 });
 // Avoid exporting the entire t-object
@@ -204,14 +196,15 @@ export const createCallerFactory = t.createCallerFactory;
 /**
  * Middleware to add correlation ID to all errors
  */
-const errorHandlingMiddleware = t.middleware(async ({ ctx, next }) => {
+const errorHandlingMiddleware = t.middleware(async ({ ctx, next, path }) => {
   try {
     return await next({ ctx });
   } catch (error) {
-    // Log error with correlation ID
+    // Log error with correlation ID. Never log the context itself: it holds the
+    // session token and the user's personal details.
     logError(ctx.correlationId, error, {
       userId: ctx.userId,
-      path: ctx,
+      path,
     });
 
     // If it's a TRPCError, enhance it with correlation ID

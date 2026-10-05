@@ -11,7 +11,7 @@ import { OnboardingProvider } from "@/modules/onboarding/client"
 import { CommandPaletteProvider } from "@/modules/quick-actions/client"
 import { useCurrentUser } from "@/hooks/use-current-user"
 import { usePathname } from "next/navigation"
-import { PageTransition } from "@/components/motion"
+import { MotionProvider, PageTransition } from "@/components/motion"
 
 export function AdminLayoutClient({
   children,
@@ -43,7 +43,9 @@ export function AdminLayoutClient({
     return null
   }
 
+  // Framer Motion is only used inside the app shell (tour, table rows), so its config lives here
   return (
+    <MotionProvider>
     <CommandPaletteProvider>
       <div className="flex h-screen overflow-hidden bg-background">
         {/* Desktop Sidebar */}
@@ -105,5 +107,6 @@ export function AdminLayoutClient({
         </div>
       </div>
     </CommandPaletteProvider>
+    </MotionProvider>
   )
 }

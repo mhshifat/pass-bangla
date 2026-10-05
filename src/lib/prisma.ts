@@ -7,8 +7,13 @@ const globalForPrisma = global as unknown as {
     prisma: PrismaClient;
 }
 
+// pg defaults drop idle connections after 10s, which forces a new TCP+TLS+auth
+// handshake on most requests. The Neon pooler sits in front, so a small pool is enough.
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL,
+  max: 5,
+  idleTimeoutMillis: 60_000,
+  connectionTimeoutMillis: 5_000,
 })
 
 const prisma = globalForPrisma.prisma || new PrismaClient({

@@ -87,6 +87,7 @@ export function ResetPasswordDialog({
             <Label htmlFor="newPassword">{t("users.newPassword")}</Label>
             <PasswordInput
               id="newPassword"
+              storedSecret
               placeholder="••••••••"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
@@ -104,6 +105,7 @@ export function ResetPasswordDialog({
             <Label htmlFor="confirmPassword">{t("users.confirmPassword")}</Label>
             <PasswordInput
               id="confirmPassword"
+              storedSecret
               placeholder="••••••••"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}

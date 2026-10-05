@@ -7,15 +7,13 @@ import { TRPCReactProvider } from "@/trpc/client";
 import { Toaster } from "@/components/ui/sonner";
 import { NavigationProgress } from "@/components/providers/navigation-progress";
 import { ThemeProvider } from "@/components/providers/theme-provider";
-import { ThemeInitializer } from "@/components/providers/theme-initializer";
 import { I18nProvider } from "@/components/providers/i18n-provider";
 import { AccessibilityProvider } from "@/components/providers/accessibility-provider";
-import { MotionProvider } from "@/components/motion";
 import { AccessibilityInitializer } from "@/components/providers/accessibility-initializer";
 import { InstallPrompt } from "@/components/pwa/install-prompt";
+import { KeepWarm } from "@/components/providers/keep-warm";
 import { ServiceWorkerRegistration } from "@/components/pwa/service-worker-registration";
 import { OrganizationStructuredData, WebSiteStructuredData, SoftwareApplicationStructuredData } from "@/components/seo/structured-data";
-import { getServerLanguage } from "@/lib/i18n-server";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,12 +23,18 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  // Only used on a few admin screens; let it load when first referenced
+  preload: false,
 });
 
+// Only applied when the UI is in Bangla (body.font-bengali), so never preload it.
+// Weights match the font-normal/medium/semibold/bold utilities in use; nothing uses 300.
 const hindSiliguri = Hind_Siliguri({
   variable: "--font-hind-siliguri",
   subsets: ["latin", "bengali"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+  preload: false,
 });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://passbangla.com";
@@ -137,16 +141,15 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Get language from cookies for SSR
-  const language = await getServerLanguage()
-  
+  // No cookie read here so public pages can be statically rendered. Segments that need a
+  // Bangla server render (admin, auth, share) wrap their children in a nested I18nProvider.
   return (
-    <html lang={language} suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
         <meta name="msvalidate.01" content="6FDB602163A60B7F0ABA4A29B9153BC2" />
         <meta name="yandex-verification" content="f179c8429f117666" />
@@ -171,6 +174,7 @@ export default async function RootLayout({
                 
                 // Set initial language for i18n initialization
                 window.__I18N_INITIAL_LANGUAGE__ = lang;
+                document.documentElement.lang = lang;
                 
                 // Only set cookie if it doesn't already exist (preserves user's explicit choice)
                 if (!cookieMatch) {
@@ -196,8 +200,15 @@ export default async function RootLayout({
         <SoftwareApplicationStructuredData />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${hindSiliguri.variable} antialiased ${language === "bn" ? "font-bengali" : ""}`}
+        className={`${geistSans.variable} ${geistMono.variable} ${hindSiliguri.variable} antialiased`}
+        suppressHydrationWarning
       >
+        {/* Body exists now: apply the Bengali font class before first paint, from the cookie */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `if (window.__I18N_INITIAL_LANGUAGE__ === 'bn') document.body.classList.add('font-bengali');`,
+          }}
+        />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -205,17 +216,17 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <AccessibilityProvider>
-          <I18nProvider>
+          <I18nProvider initialLanguage="en">
             <TRPCReactProvider>
-              <ThemeInitializer />
-                <AccessibilityInitializer />
+              <AccessibilityInitializer />
               <Suspense fallback={null}>
                 <NavigationProgress showFullPageLoader={false} />
               </Suspense>
-              <MotionProvider>{children}</MotionProvider>
+              {children}
             </TRPCReactProvider>
             <Toaster />
             <ServiceWorkerRegistration />
+            <KeepWarm />
             <InstallPrompt />
           </I18nProvider>
           </AccessibilityProvider>

@@ -4,11 +4,25 @@ import * as React from "react"
 import { useTranslation } from "react-i18next"
 import { PasswordHealthScore } from "./password-health-score"
 import { SecurityPosture } from "./security-posture"
-import { UserEngagement } from "./user-engagement"
-import { TeamCollaboration } from "./team-collaboration"
-import { TrendAnalysis } from "./trend-analysis"
+import dynamic from "next/dynamic"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Shield, Users, Activity, TrendingUp } from "lucide-react"
+
+// Tabs other than the default load their code (and charts) only when opened
+const tabFallback = () => <Skeleton className="h-96 w-full" />
+const UserEngagement = dynamic(() => import("./user-engagement").then((m) => m.UserEngagement), {
+  ssr: false,
+  loading: tabFallback,
+})
+const TeamCollaboration = dynamic(
+  () => import("./team-collaboration").then((m) => m.TeamCollaboration),
+  { ssr: false, loading: tabFallback }
+)
+const TrendAnalysis = dynamic(() => import("./trend-analysis").then((m) => m.TrendAnalysis), {
+  ssr: false,
+  loading: tabFallback,
+})
 
 export function InsightsContent() {
   const { t } = useTranslation()

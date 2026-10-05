@@ -1,266 +1,79 @@
 import prisma from "@/lib/prisma";
 import { baseProcedure, createTRPCRouter, protectedProcedure } from "@/trpc/init";
 import z from "zod";
-import { hashPassword, verifyPassword } from "@/lib/auth";
-import { createSession, destroySession, getSession } from "@/lib/session";
+import { hashPassword } from "@/lib/auth";
+import { createSession, destroySession } from "@/lib/session";
 import { TRPCError } from "@trpc/server";
 import { decrypt } from "@/lib/crypto";
 import { getRequestMetadata } from "@/lib/audit-log";
 import { headers, cookies } from "next/headers";
+import { after } from "next/server";
+import { ensureSystemRolesExist } from "./system-roles";
+import { authenticateWithPassword, enforceAccessRules, createExtensionSession, runAfter, createVerifiedSession, requireSession, requireUser, getMfaSecret } from "./login-helpers";
+import { SignJWT } from "jose";
+import { setSignedCookie, takeSignedCookie } from "@/lib/signed-cookie";
+import { getSetting, getSettings } from "@/lib/settings-cache";
+import { createAuditLog } from "@/lib/audit-log";
+import { generateMfaCode, storeMfaCode, verifyMfaCode } from "@/lib/mfa-codes";
+import { getThreatDetectionConfig, detectAnomalies, checkRateLimit } from "@/lib/threat-detection";
+import { createGeoResolver, checkSuspiciousLocation } from "@/lib/ip-whitelist";
+import { generateClientDeviceFingerprint, isDeviceTrusted } from "@/lib/device-fingerprint";
+import { shouldEnforceMfa, determineMfaRequirement } from "@/lib/mfa-enforcement";
+import { parseUserAgent } from "@/lib/device-parser";
+import { getEnabledOAuthProviders, redeemHandoffToken } from "@/lib/oauth";
+
+const LOGIN_SETTING_KEYS = [
+    "security.session.timeout_minutes",
+    "security.device.require_mfa_untrusted",
+    "security.vpn_detection_enabled",
+    "security.suspicious_location_alerts_enabled",
+] as const;
 import type { AuthenticationResponseJSON, RegistrationResponseJSON } from "@/lib/webauthn";
 
-const globalWithPasskeys = globalThis as typeof globalThis & {
-    passkeyRegistrationChallenges?: Map<string, string>
-    passkeyAuthenticationChallenges?: Map<string, { challenge: string; userId: string }>
+// WebAuthn challenges live in short-lived signed httpOnly cookies, so they work across serverless instances
+const WEBAUTHN_REG_COOKIE = "pb_wa_reg"
+const WEBAUTHN_AUTH_COOKIE = "pb_wa_auth"
+const PASSKEY_REG_COOKIE = "pb_pk_reg"
+const PASSKEY_AUTH_COOKIE = "pb_pk_auth"
+const CHALLENGE_TTL_SECONDS = 300
+
+/** Read and clear a challenge cookie; the challenge only counts when issued to this user. */
+async function takeChallenge(cookieName: string, userId: string): Promise<string | undefined> {
+    const stored = await takeSignedCookie<{ userId: string; challenge: string }>(cookieName)
+    return stored && stored.userId === userId ? stored.challenge : undefined
 }
 
-type WebAuthnDeviceType = "singleDevice" | "multiDevice" | null
+/**
+ * Rate limit an unauthenticated recovery action per IP and, when given, per target email.
+ * Both counters are bumped on every call regardless of whether the account exists, so the
+ * outcome never depends on account existence.
+ */
+async function enforceRecoveryRateLimit(action: string, email?: string) {
+    const threatConfig = await getThreatDetectionConfig()
+    if (!threatConfig.enabled || !threatConfig.rateLimiting.enabled) return
+
+    const limit = threatConfig.rateLimiting.passwordReset
+    const { ipAddress } = getRequestMetadata(await headers())
+    const checks = await Promise.all([
+        ipAddress ? checkRateLimit(ipAddress, "IP", action, limit) : null,
+        email ? checkRateLimit(email.trim().toLowerCase(), "USER", `${action}:email`, limit) : null,
+    ])
+    const exceeded = checks.find((check) => check?.exceeded)
+    if (exceeded) {
+        throw new TRPCError({
+            code: "TOO_MANY_REQUESTS",
+            message: `Too many attempts. Please try again after ${exceeded.resetAt.toLocaleTimeString()}.`,
+        })
+    }
+}
+
+type WebAuthnDeviceType ="singleDevice" | "multiDevice" | null
 
 function normalizeWebAuthnDeviceType(value: string | null): WebAuthnDeviceType {
     if (value === "singleDevice" || value === "multiDevice") {
         return value
     }
     return null
-}
-
-/**
- * Ensure system roles and permissions exist in the database
- */
-async function ensureSystemRolesExist() {
-  // Always ensure all default permissions exist (create missing ones)
-  const defaultPermissions = [
-    { key: "user.create", name: "Create Users", description: "Create new user accounts", category: "User Management" },
-    { key: "user.edit", name: "Edit Users", description: "Modify user information", category: "User Management" },
-    { key: "user.delete", name: "Delete Users", description: "Remove user accounts", category: "User Management" },
-    { key: "user.view", name: "View Users", description: "View user information", category: "User Management" },
-    { key: "password.create", name: "Create Passwords", description: "Create new password entries", category: "Password Management" },
-    { key: "password.edit", name: "Edit Passwords", description: "Modify password entries", category: "Password Management" },
-    { key: "password.delete", name: "Delete Passwords", description: "Remove password entries", category: "Password Management" },
-    { key: "password.view", name: "View Passwords", description: "View password entries", category: "Password Management" },
-    { key: "password.share", name: "Share Passwords", description: "Share passwords with others", category: "Password Management" },
-    { key: "team.create", name: "Create Teams", description: "Create new teams", category: "Team Management" },
-    { key: "team.edit", name: "Edit Teams", description: "Modify team settings", category: "Team Management" },
-    { key: "team.delete", name: "Delete Teams", description: "Remove teams", category: "Team Management" },
-    { key: "team.view", name: "View Teams", description: "View team information", category: "Team Management" },
-    { key: "settings.view", name: "View Settings", description: "View system settings", category: "System Settings" },
-    { key: "settings.edit", name: "Edit Settings", description: "Modify system settings", category: "System Settings" },
-    { key: "audit.view", name: "View Audit Logs", description: "Access audit logs", category: "System Settings" },
-    { key: "role.manage", name: "Manage Roles", description: "Create and edit roles", category: "System Settings" },
-    { key: "report.view", name: "View Reports", description: "View and access reports", category: "Reports" },
-    { key: "report.create", name: "Create Reports", description: "Create and generate reports", category: "Reports" },
-    { key: "report.update", name: "Update Reports", description: "Modify report configurations", category: "Reports" },
-    { key: "report.delete", name: "Delete Reports", description: "Remove reports", category: "Reports" },
-  ];
-
-  // Create missing permissions (skipDuplicates ensures existing ones aren't recreated)
-  await prisma.permission.createMany({
-    data: defaultPermissions,
-    skipDuplicates: true,
-  });
-
-  // Always ensure all system roles exist with their permissions
-  // This ensures all 5 system roles are created, not just the one being assigned
-  await ensureAllSystemRoles();
-}
-
-/**
- * Ensure all system roles exist with their permissions
- */
-async function ensureAllSystemRoles() {
-  // Get all permissions
-  const allPermissions = await prisma.permission.findMany();
-  const permissionMap = new Map(allPermissions.map((p) => [p.key, p.id]));
-
-  // Define all system roles with their permissions
-  const systemRoles = [
-    {
-      name: "SUPER_ADMIN",
-      description: "Super Administrator with ultimate system control - can manage roles and system settings",
-      permissions: [
-        "user.create", "user.edit", "user.delete", "user.view",
-        "password.create", "password.edit", "password.delete", "password.view", "password.share",
-        "team.create", "team.edit", "team.delete", "team.view",
-        "settings.view", "settings.edit", "audit.view", "role.manage",
-        "report.view", "report.create", "report.update", "report.delete",
-      ],
-    },
-    {
-      name: "ADMIN",
-      description: "Administrator with elevated permissions - can manage users and content, but cannot manage roles or edit system settings",
-      permissions: [
-        "user.create", "user.edit", "user.delete", "user.view",
-        "password.create", "password.edit", "password.delete", "password.view", "password.share",
-        "team.create", "team.edit", "team.delete", "team.view",
-        "settings.view", "audit.view",
-        "report.view", "report.create",
-      ],
-    },
-    {
-      name: "MANAGER",
-      description: "Manager with management permissions",
-      permissions: [
-        "user.view", "user.edit",
-        "password.create", "password.edit", "password.delete", "password.view", "password.share",
-        "team.create", "team.edit", "team.delete", "team.view",
-        "settings.view", "audit.view",
-        "report.view", "report.create",
-      ],
-    },
-    {
-      name: "USER",
-      description: "Standard user with basic permissions",
-      permissions: [
-        "user.view",
-        "password.create", "password.edit", "password.delete", "password.view", "password.share",
-        "team.view",
-      ],
-    },
-    {
-      name: "AUDITOR",
-      description: "Auditor with read-only access to audit logs",
-      permissions: [
-        "user.view",
-        "password.view",
-        "team.view",
-        "settings.view",
-        "audit.view",
-        "report.view",
-      ],
-    },
-  ];
-
-  // Create or update each system role
-  for (const roleData of systemRoles) {
-    const { permissions, ...roleInfo } = roleData;
-
-    // Find existing system role (system roles have null companyId)
-    const existingRole = await prisma.role.findFirst({
-      where: { name: roleInfo.name, companyId: null, isSystem: true },
-    });
-
-    // Create or update the role
-    const role = existingRole
-      ? await prisma.role.update({
-          where: { id: existingRole.id },
-          data: {
-            description: roleInfo.description,
-            isSystem: true,
-          },
-        })
-      : await prisma.role.create({
-          data: {
-            name: roleInfo.name,
-            description: roleInfo.description,
-            isSystem: true,
-            createdById: null,
-          },
-        });
-
-    // Get permission IDs for this role
-    const permissionIds = permissions
-      .map((key) => permissionMap.get(key))
-      .filter((id): id is string => id !== undefined);
-
-    // Delete existing permissions for this role (to ensure correct permissions)
-    await prisma.rolePermission.deleteMany({
-      where: { roleId: role.id },
-    });
-
-    // Assign permissions
-    if (permissionIds.length > 0) {
-      await prisma.rolePermission.createMany({
-        data: permissionIds.map((permissionId) => ({
-          roleId: role.id,
-          permissionId,
-        })),
-        skipDuplicates: true,
-      });
-    }
-  }
-}
-
-/**
- * Create a system role with appropriate permissions
- */
-async function createSystemRoleWithPermissions(roleName: string, isFirstUser: boolean) {
-  // Get all permissions
-  const allPermissions = await prisma.permission.findMany();
-  const permissionMap = new Map(allPermissions.map((p) => [p.key, p.id]));
-
-  // Define role permissions based on role name
-  let rolePermissions: string[] = [];
-  
-  if (roleName === "SUPER_ADMIN" || (roleName === "ADMIN" && isFirstUser)) {
-    // First user gets all permissions (SUPER_ADMIN level)
-    rolePermissions = [
-      "user.create", "user.edit", "user.delete", "user.view",
-      "password.create", "password.edit", "password.delete", "password.view", "password.share",
-      "team.create", "team.edit", "team.delete", "team.view",
-      "settings.view", "settings.edit", "audit.view", "role.manage",
-    ];
-  } else if (roleName === "ADMIN") {
-    rolePermissions = [
-      "user.create", "user.edit", "user.delete", "user.view",
-      "password.create", "password.edit", "password.delete", "password.view", "password.share",
-      "team.create", "team.edit", "team.delete", "team.view",
-      "settings.view", "audit.view",
-    ];
-  } else if (roleName === "USER") {
-    rolePermissions = [
-      "user.view",
-      "password.create", "password.edit", "password.delete", "password.view", "password.share",
-      "team.view",
-    ];
-  }
-
-  // Find existing system role (system roles have null companyId)
-  const existingRole = await prisma.role.findFirst({
-    where: { name: roleName, companyId: null, isSystem: true },
-  });
-
-  const roleDescription = isFirstUser 
-    ? "Super Administrator with ultimate system control - can manage roles and system settings"
-    : roleName === "ADMIN"
-    ? "Administrator with elevated permissions"
-    : "Standard user with basic permissions";
-
-  // Create or update the role
-  const role = existingRole
-    ? await prisma.role.update({
-        where: { id: existingRole.id },
-        data: {
-          description: roleDescription,
-          isSystem: true, // Ensure it stays as system role
-        },
-      })
-    : await prisma.role.create({
-        data: {
-          name: roleName,
-          description: roleDescription,
-          isSystem: true,
-          createdById: null,
-        },
-      });
-
-  // Delete existing permissions for this role (to ensure correct permissions are set)
-  await prisma.rolePermission.deleteMany({
-    where: { roleId: role.id },
-  });
-
-  // Assign permissions
-  const permissionIds = rolePermissions
-    .map((key) => permissionMap.get(key))
-    .filter((id): id is string => id !== undefined);
-
-  if (permissionIds.length > 0) {
-    await prisma.rolePermission.createMany({
-      data: permissionIds.map((permissionId) => ({
-        roleId: role.id,
-        permissionId,
-      })),
-      skipDuplicates: true,
-    });
-  }
 }
 
 export const authRouter = createTRPCRouter({
@@ -335,10 +148,14 @@ export const authRouter = createTRPCRouter({
                 });
             }
 
-            // Check if company/subdomain already exists
-            const existingCompany = await prisma.company.findUnique({
-                where: { subdomain },
-            });
+            // Company, email and password-policy checks are independent, so run them together
+            const { validatePassword } = await import("@/lib/password-validation");
+            const [existingCompany, existingUser, validation] = await Promise.all([
+                prisma.company.findUnique({ where: { subdomain }, select: { id: true } }),
+                // Email should be unique per company, but registration checks globally
+                prisma.user.findFirst({ where: { email: input.email }, select: { id: true } }),
+                validatePassword(input.password),
+            ]);
 
             if (existingCompany) {
                 throw new TRPCError({
@@ -347,12 +164,6 @@ export const authRouter = createTRPCRouter({
                 });
             }
 
-            // Check if user already exists globally (email should be unique per company, but we check globally for registration)
-            // Note: After migration, email+companyId will be unique, but during registration we check globally
-            const existingUser = await prisma.user.findFirst({
-                where: { email: input.email },
-            });
-
             if (existingUser) {
                 throw new TRPCError({
                     code: "CONFLICT",
@@ -360,9 +171,6 @@ export const authRouter = createTRPCRouter({
                 });
             }
 
-            // Validate password against security policies
-            const { validatePassword } = await import("@/lib/password-validation");
-            const validation = await validatePassword(input.password);
             if (!validation.isValid) {
                 throw new TRPCError({
                     code: "BAD_REQUEST",
@@ -370,36 +178,13 @@ export const authRouter = createTRPCRouter({
                 });
             }
 
-            // Hash password
-            const hashedPassword = await hashPassword(input.password);
-
-            // All users who register from /register get SUPER_ADMIN role
-            // This gives them full control over their company and system
-            // When admins create users from the admin panel, they can select the role
+            // Hash password while the system roles are checked
             const role = "SUPER_ADMIN";
-            const isFirstUser = false; // Not used for role assignment, but kept for permission setup
-
-            // Ensure ALL system roles and permissions exist (auto-seed if needed)
-            // This creates all 5 system roles (SUPER_ADMIN, ADMIN, MANAGER, USER, AUDITOR)
-            await ensureSystemRolesExist();
-
-            // Verify the assigned role exists and has permissions (should exist after ensureSystemRolesExist)
-            const roleExists = await prisma.role.findFirst({
-                where: { name: role, companyId: null, isSystem: true },
-                include: {
-                    permissions: {
-                      include: {
-                        permission: true,
-                      },
-                    },
-                },
-            });
-
-            // If the role still doesn't exist or has no permissions, create it
-            // This is a fallback in case ensureSystemRolesExist didn't create it
-            if (!roleExists || roleExists.permissions.length === 0) {
-                await createSystemRoleWithPermissions(role, isFirstUser);
-            }
+            const [hashedPassword] = await Promise.all([
+                hashPassword(input.password),
+                // Seeds the global system roles only when they are missing (no-op after the first signup)
+                ensureSystemRolesExist(),
+            ]);
 
             // Create company first
             const company = await prisma.company.create({
@@ -423,17 +208,22 @@ export const authRouter = createTRPCRouter({
                 },
             });
 
-            // Create and send verification email
-            const { createVerificationToken, sendVerificationEmail } = await import("@/lib/email-verification");
-            const token = await createVerificationToken(user.id, user.email);
-            
             // Get base URL for verification link
             const headersList = await headers();
             const protocol = headersList.get("x-forwarded-proto") || "http";
             const host = headersList.get("host") || "localhost:3000";
             const baseUrl = `${protocol}://${host}`;
-            
-            await sendVerificationEmail(user.id, user.email, token, baseUrl);
+
+            // The email is sent after the response; the user can resend it from the verify page
+            after(async () => {
+                try {
+                    const { createVerificationToken, sendVerificationEmail } = await import("@/lib/email-verification");
+                    const token = await createVerificationToken(user.id, user.email);
+                    await sendVerificationEmail(user.id, user.email, token, baseUrl);
+                } catch (error) {
+                    console.error("Failed to send verification email after registration:", error);
+                }
+            });
 
             // Get request metadata (IP and user agent)
             const { ipAddress, userAgent } = getRequestMetadata(headersList);
@@ -443,6 +233,7 @@ export const authRouter = createTRPCRouter({
             await createSession(user.id, user.email, {
                 ipAddress,
                 userAgent,
+                companyId: company.id,
                 mfaSetupRequired: true, // Require MFA setup for new registrations
                 mfaVerified: false, // Not verified until MFA is set up
             });
@@ -460,6 +251,117 @@ export const authRouter = createTRPCRouter({
                     name: company.name,
                     subdomain: company.subdomain,
                 },
+            };
+        }),
+
+    // Finish a Google / GitHub sign-up: the provider already confirmed the email,
+    // the user only chooses their name and company.
+    completeOAuthSignup: baseProcedure
+        .input(
+            z.object({
+                name: z.string().min(2, "Name must be at least 2 characters"),
+                companyName: z.string().min(2, "Company name must be at least 2 characters").regex(/^[a-z0-9-]+$/, "Company name can only contain lowercase letters, numbers, and hyphens"),
+            })
+        )
+        .mutation(async ({ input, ctx }) => {
+            if (ctx.subdomain) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "Registration is only available on the main domain",
+                });
+            }
+
+            const {
+                OAUTH_SIGNUP_COOKIE,
+                verifyPendingSignup,
+                linkOAuthAccount,
+                createHandoffToken,
+                getRequestOrigin,
+                finishUrl,
+            } = await import("@/lib/oauth");
+
+            const cookieStore = await cookies();
+            const pending = await verifyPendingSignup(cookieStore.get(OAUTH_SIGNUP_COOKIE)?.value);
+            if (!pending) {
+                throw new TRPCError({
+                    code: "UNAUTHORIZED",
+                    message: "Your sign-up session has expired. Please start again.",
+                });
+            }
+
+            const subdomain = input.companyName.toLowerCase().trim().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "")
+            if (subdomain.length < 2) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: "Company name must contain at least 2 valid characters",
+                });
+            }
+
+            const existingCompany = await prisma.company.findUnique({
+                where: { subdomain },
+            });
+            if (existingCompany) {
+                throw new TRPCError({
+                    code: "CONFLICT",
+                    message: "A company with this name already exists. Please choose a different name.",
+                });
+            }
+
+            const existingUser = await prisma.user.findFirst({
+                where: { email: { equals: pending.email, mode: "insensitive" } },
+            });
+            if (existingUser) {
+                throw new TRPCError({
+                    code: "CONFLICT",
+                    message: "User with this email already exists",
+                });
+            }
+
+            // Same role setup as the password registration
+            const role = "SUPER_ADMIN";
+            await ensureSystemRolesExist();
+
+            const company = await prisma.company.create({
+                data: {
+                    name: input.companyName,
+                    subdomain,
+                },
+            });
+
+            const user = await prisma.user.create({
+                data: {
+                    name: input.name,
+                    email: pending.email,
+                    password: null, // Signs in through the provider
+                    role,
+                    companyId: company.id,
+                    emailVerified: new Date(), // Verified by the provider
+                    mfaEnabled: false,
+                },
+            });
+
+            await linkOAuthAccount(user.id, pending.provider, pending.providerAccountId);
+
+            const headersList = await headers();
+            const { ipAddress, userAgent } = getRequestMetadata(headersList);
+            await createAuditLog({
+                action: "USER_REGISTERED_OAUTH",
+                resource: "User",
+                resourceId: user.id,
+                userId: user.id,
+                companyId: company.id,
+                ipAddress,
+                userAgent,
+                details: { provider: pending.provider },
+            });
+
+            cookieStore.delete(OAUTH_SIGNUP_COOKIE);
+
+            // The session is created on the company's own address
+            const token = await createHandoffToken(user.id, company.id, pending.provider);
+            return {
+                success: true,
+                redirectUrl: finishUrl(getRequestOrigin(headersList), company.subdomain, token),
             };
         }),
     login: baseProcedure
@@ -482,7 +384,7 @@ export const authRouter = createTRPCRouter({
 
             // Find company by subdomain OR company name from input
             let company;
-            
+
             if (subdomain) {
                 // Login via subdomain (e.g., company.passbangla.com)
                 company = await prisma.company.findUnique({
@@ -514,238 +416,122 @@ export const authRouter = createTRPCRouter({
                 })
             }
 
-            // Get threat detection configuration
-            const {
-                getThreatDetectionConfig,
-                checkRateLimit,
-                checkBruteForce,
-                shouldRequireCaptcha,
-            } = await import("@/lib/threat-detection")
             const threatConfig = await getThreatDetectionConfig(company.id)
-
-            // Check rate limiting (IP-based) if enabled
-            if (threatConfig.enabled && threatConfig.rateLimiting.enabled && ipAddress) {
-                const rateLimitCheck = await checkRateLimit(
-                    ipAddress,
-                    "IP",
-                    "LOGIN",
-                    threatConfig.rateLimiting.login,
-                    company.id
-                )
-
-                if (rateLimitCheck.exceeded) {
-                    throw new TRPCError({
-                        code: "TOO_MANY_REQUESTS",
-                        message: `Too many login attempts. Please try again after ${new Date(rateLimitCheck.resetAt).toLocaleTimeString()}.`,
-                    })
-                }
-            }
-
-            // Find user in this company
-            const user = await prisma.user.findFirst({
-                where: { 
-                    email: input.email,
-                    companyId: company.id,
-                },
+            const user = await authenticateWithPassword({
+                companyId: company.id,
+                email: input.email,
+                password: input.password,
+                captchaToken: input.captchaToken,
+                captchaAnswer: input.captchaAnswer,
+                ipAddress,
+                threatConfig,
+                issueCaptchaChallenge: true,
             })
 
-            if (!user) {
-                // Don't reveal if user exists (security best practice)
-                throw new TRPCError({
-                    code: "UNAUTHORIZED",
-                    message: "Invalid email or password",
-                })
-            }
+            // The location is resolved at most once for this login and shared by every check
+            const resolveGeo = createGeoResolver(ipAddress ?? "")
+            const [settings, deviceIsTrusted] = await Promise.all([
+                getSettings(LOGIN_SETTING_KEYS, company.id),
+                isDeviceTrusted(generateClientDeviceFingerprint(userAgent, ipAddress), user.id),
+                // IP allow-list and geographic restrictions apply to MFA users too, before any session exists
+                enforceAccessRules({ user, ipAddress, userAgent, resolveGeo }),
+            ]);
 
-            // Check CAPTCHA requirement (for suspicious IPs) - after user is found
-            if (threatConfig.enabled && threatConfig.captcha.enabled && ipAddress) {
-                const requiresCaptcha = await shouldRequireCaptcha(
-                    ipAddress,
-                    "IP",
-                    "LOGIN",
-                    threatConfig.captcha,
-                    company.id
-                )
-                if (requiresCaptcha) {
-                    // Verify CAPTCHA if provided
-                    if (input.captchaToken && input.captchaAnswer !== undefined) {
-                        const { verifyCaptchaFromStore } = await import("@/lib/captcha")
-                        const isValid = verifyCaptchaFromStore(input.captchaToken, input.captchaAnswer)
-                        if (!isValid) {
-                            throw new TRPCError({
-                                code: "BAD_REQUEST",
-                                message: "Invalid CAPTCHA answer. Please try again.",
-                            })
-                        }
-                    } else {
-                        // Generate new CAPTCHA challenge
-                        const { generateCaptchaChallenge, storeCaptchaChallenge } = await import("@/lib/captcha")
-                        const challenge = generateCaptchaChallenge()
-                        storeCaptchaChallenge(challenge.token, challenge.answer)
-                        throw new TRPCError({
-                            code: "PRECONDITION_FAILED",
-                            message: "CAPTCHA verification required",
-                            cause: { 
-                                requiresCaptcha: true,
-                                captchaToken: challenge.token,
-                                captchaQuestion: challenge.question,
-                            },
-                        })
-                    }
-                }
-            }
+            const sessionOptions = {
+                ipAddress,
+                userAgent,
+                companyId: user.companyId,
+                deviceIsTrusted,
+                timeoutMinutes: settings.get("security.session.timeout_minutes") as number | undefined,
+                requireMfaForUntrustedDevices: settings.get("security.device.require_mfa_untrusted") === true,
+            };
 
-            // Check brute force protection if enabled
-            if (threatConfig.enabled && threatConfig.bruteForceProtection.enabled) {
-                const bruteForceCheck = await checkBruteForce(
-                    user.id,
-                    threatConfig.bruteForceProtection,
-                    company.id
-                )
+            const hasMfaMethod =
+                (user.mfaMethod === "TOTP" && user.mfaSecret !== null) ||
+                (user.mfaMethod === "SMS" && user.phoneNumber !== null) ||
+                (user.mfaMethod === "EMAIL" && user.email !== null) ||
+                (user.mfaMethod === "WEBAUTHN" && user._count.mfaCredentials > 0);
 
-                if (bruteForceCheck.locked) {
-                    throw new TRPCError({
-                        code: "FORBIDDEN",
-                        message: `Account locked due to too many failed login attempts. Please try again ${bruteForceCheck.unlockAt ? `after ${bruteForceCheck.unlockAt.toLocaleTimeString()}` : "later"}.`,
-                    })
-                }
-            }
-
-            // Check if user has a password (might be null for OAuth users)
-            if (!user.password) {
-                // Log failed attempt
-                await prisma.auditLog.create({
-                    data: {
-                        userId: user.id,
-                        action: "LOGIN_FAILED",
-                        resource: "User",
-                        resourceId: user.id,
-                        status: "FAILED",
-                        details: "No password set for user",
-                    },
-                })
-                throw new TRPCError({
-                    code: "UNAUTHORIZED",
-                    message: "Invalid email or password",
-                })
-            }
-
-            // Verify password
-            const isValid = await verifyPassword(input.password, user.password)
-
-            if (!isValid) {
-                // Log failed attempt
-                await prisma.auditLog.create({
-                    data: {
-                        userId: user.id,
-                        action: "LOGIN_FAILED",
-                        resource: "User",
-                        resourceId: user.id,
-                        status: "FAILED",
-                        details: "Invalid password",
-                    },
-                })
-                throw new TRPCError({
-                    code: "UNAUTHORIZED",
-                    message: "Invalid email or password",
-                })
-            }
-
-            // Check if MFA is enabled and what method is configured
+            // MFA is enabled: require setup or verification
             if (user.mfaEnabled) {
-                const hasMfaMethod = 
-                    (user.mfaMethod === "TOTP" && user.mfaSecret !== null) ||
-                    (user.mfaMethod === "SMS" && user.phoneNumber !== null) ||
-                    (user.mfaMethod === "EMAIL" && user.email !== null) ||
-                    (user.mfaMethod === "WEBAUTHN" && (await prisma.mfaCredential.count({ where: { userId: user.id } })) > 0);
-
                 if (!hasMfaMethod) {
-                    // MFA is enabled but not configured, require setup
-                    await createSession(user.id, user.email, { mfaVerified: false, mfaSetupRequired: true });
+                    await createSession(user.id, user.email, { ...sessionOptions, mfaVerified: false, mfaSetupRequired: true });
                     return { success: true, mfaSetupRequired: true };
-                } else {
-                    // MFA is enabled and configured, require verification
-                    await createSession(user.id, user.email, { mfaVerified: false, mfaRequired: true });
+                }
+                await createSession(user.id, user.email, { ...sessionOptions, mfaVerified: false, mfaRequired: true });
+                return { success: true, mfaRequired: true };
+            }
+
+            // If the device is untrusted and device MFA is on, enforce MFA regardless of other settings
+            if (sessionOptions.requireMfaForUntrustedDevices && !deviceIsTrusted) {
+                if (hasMfaMethod) {
+                    await createSession(user.id, user.email, { ...sessionOptions, mfaVerified: false, mfaRequired: true });
+                    return { success: true, mfaRequired: true, deviceRequiresMfa: true };
+                }
+                await createSession(user.id, user.email, {
+                    ...sessionOptions,
+                    mfaVerified: false,
+                    mfaSetupRequired: true,
+                    mfaRequired: false,
+                });
+                return { success: true, mfaSetupRequired: true, deviceRequiresMfa: true };
+            }
+
+            // MFA enforced by global settings or role
+            if (await shouldEnforceMfa(user.id, user.role, user.mfaEnabled, company.id)) {
+                const mfaRequirement = await determineMfaRequirement(user.id, user.role, user.mfaEnabled, hasMfaMethod, company.id)
+
+                if (mfaRequirement.mfaSetupRequired) {
+                    await createSession(user.id, user.email, {
+                        ...sessionOptions,
+                        mfaVerified: false,
+                        mfaSetupRequired: true,
+                        mfaRequired: false,
+                    });
+                    return { success: true, mfaSetupRequired: true };
+                } else if (mfaRequirement.mfaRequired) {
+                    await createSession(user.id, user.email, { ...sessionOptions, mfaVerified: false, mfaRequired: true });
                     return { success: true, mfaRequired: true };
                 }
             }
 
-            // Check IP whitelist if enabled
-            if (ipAddress) {
-                const { isIpWhitelisted } = await import("@/lib/ip-whitelist");
-                const ipCheck = await isIpWhitelisted(ipAddress, user.id, user.companyId || undefined);
-                
-                if (!ipCheck.allowed) {
-                    // Create audit log for blocked login attempt
-                    const { createAuditLog } = await import("@/lib/audit-log");
-                    await createAuditLog({
-                        action: "LOGIN_BLOCKED_IP",
-                        resource: "User",
-                        resourceId: user.id,
-                        userId: user.id,
-                        ipAddress,
-                        userAgent,
-                        status: "BLOCKED",
-                        details: { reason: ipCheck.reason },
-                    });
+            await createSession(user.id, user.email, sessionOptions);
 
-                    throw new TRPCError({
-                        code: "FORBIDDEN",
-                        message: ipCheck.reason || "Access denied from this IP address",
-                    });
-                }
-            }
+            // Bookkeeping that nothing in this response depends on runs after it is sent
+            const vpnDetectionEnabled = settings.get("security.vpn_detection_enabled") === true
+            const suspiciousAlertsEnabled = settings.get("security.suspicious_location_alerts_enabled") === true
+            await runAfter(async () => {
+                let geo: Awaited<ReturnType<typeof resolveGeo>> = null
+                try {
+                    const [resolved] = await Promise.all([
+                        ipAddress ? resolveGeo() : null,
+                        prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } }),
+                    ])
+                    geo = resolved
 
-            // Check geographic restrictions if enabled
-            if (ipAddress) {
-                const { checkGeographicRestriction } = await import("@/lib/ip-whitelist");
-                const geoCheck = await checkGeographicRestriction(ipAddress, user.id, user.companyId || undefined);
-                
-                if (!geoCheck.allowed) {
-                    // Create audit log for blocked login attempt
-                    const { createAuditLog } = await import("@/lib/audit-log");
-                    await createAuditLog({
-                        action: "LOGIN_BLOCKED_GEO",
-                        resource: "User",
-                        resourceId: user.id,
-                        userId: user.id,
-                        ipAddress,
-                        userAgent,
-                        status: "BLOCKED",
-                        details: { reason: geoCheck.reason, countryCode: geoCheck.countryCode },
-                    });
-
-                    throw new TRPCError({
-                        code: "FORBIDDEN",
-                        message: geoCheck.reason || "Access denied from this location",
-                    });
-                }
-            }
-
-            // Check for suspicious location and VPN detection
-            if (ipAddress) {
-                const { checkSuspiciousLocation } = await import("@/lib/ip-whitelist");
-                const suspiciousCheck = await checkSuspiciousLocation(ipAddress, user.id);
-                
-                // Check VPN detection setting
-                const vpnDetectionEnabled = await prisma.settings.findUnique({
-                    where: { key: "security.vpn_detection_enabled" },
-                });
-
-                if (vpnDetectionEnabled?.value === true && suspiciousCheck.geo) {
-                    // Type guard for geo object - check if it has the expected properties
-                    const geo = suspiciousCheck.geo as {
-                        isVpn?: boolean
-                        isProxy?: boolean
-                        country?: string
-                        countryCode?: string
+                    // Anomaly detection compares with earlier logins, so it runs before this one is recorded
+                    if (threatConfig.enabled && threatConfig.anomalyDetection.enabled) {
+                        const anomalyCheck = await detectAnomalies(
+                            user.id,
+                            ipAddress,
+                            userAgent,
+                            threatConfig.anomalyDetection,
+                            company.id,
+                            resolveGeo
+                        )
+                        // The threat event has already been created by detectAnomalies; the login is not blocked
+                        if (anomalyCheck.isAnomaly) {
+                            console.warn(`[Threat Detection] Anomaly detected for user ${user.id}:`, anomalyCheck.reasons)
+                        }
                     }
-                    if (geo && typeof geo === 'object' && ('isVpn' in geo || 'isProxy' in geo)) {
-                        const isVpn = 'isVpn' in geo ? geo.isVpn : false
-                        const isProxy = 'isProxy' in geo ? geo.isProxy : false
-                        if (isVpn || isProxy) {
-                            // Create audit log for VPN/proxy detection
-                            const { createAuditLog } = await import("@/lib/audit-log");
+
+                    if (ipAddress && (vpnDetectionEnabled || suspiciousAlertsEnabled)) {
+                        const suspiciousCheck = await checkSuspiciousLocation(ipAddress, user.id, resolveGeo)
+                        const suspiciousGeo = suspiciousCheck.geo as
+                            | { isVpn?: boolean; isProxy?: boolean; country?: string; countryCode?: string }
+                            | undefined
+
+                        if (vpnDetectionEnabled && suspiciousGeo && (suspiciousGeo.isVpn || suspiciousGeo.isProxy)) {
                             await createAuditLog({
                                 action: "LOGIN_VPN_DETECTED",
                                 resource: "User",
@@ -754,166 +540,47 @@ export const authRouter = createTRPCRouter({
                                 ipAddress,
                                 userAgent,
                                 status: "WARNING",
-                                details: { 
-                                    isVpn: isVpn || false,
-                                    isProxy: isProxy || false,
-                                    country: 'country' in geo ? geo.country || null : null,
+                                details: {
+                                    isVpn: suspiciousGeo.isVpn || false,
+                                    isProxy: suspiciousGeo.isProxy || false,
+                                    country: suspiciousGeo.country || null,
                                 },
-                            });
+                            })
+                        }
+
+                        // The login is allowed; the suspicious location is only logged
+                        if (suspiciousAlertsEnabled && suspiciousCheck.suspicious && suspiciousGeo) {
+                            await createAuditLog({
+                                action: "LOGIN_SUSPICIOUS_LOCATION",
+                                resource: "User",
+                                resourceId: user.id,
+                                userId: user.id,
+                                ipAddress,
+                                userAgent,
+                                status: "WARNING",
+                                details: {
+                                    reason: suspiciousCheck.reason || null,
+                                    country: suspiciousGeo.country || null,
+                                    countryCode: suspiciousGeo.countryCode || null,
+                                },
+                            })
                         }
                     }
-                }
-
-                // Check suspicious location alerts setting
-                const suspiciousAlertsEnabled = await prisma.settings.findUnique({
-                    where: { key: "security.suspicious_location_alerts_enabled" },
-                });
-
-                if (suspiciousAlertsEnabled?.value === true && suspiciousCheck.suspicious && suspiciousCheck.geo) {
-                    // Type guard for geo object - check if it has the expected properties
-                    const geo = suspiciousCheck.geo as {
-                        country?: string
-                        countryCode?: string
-                    }
-                    if (geo && typeof geo === 'object') {
-                        const country = 'country' in geo ? geo.country : null
-                        const countryCode = 'countryCode' in geo ? geo.countryCode : null
-                        // Create audit log for suspicious location
-                        const { createAuditLog } = await import("@/lib/audit-log");
-                        await createAuditLog({
-                            action: "LOGIN_SUSPICIOUS_LOCATION",
+                } finally {
+                    // The country is stored so later logins can be compared without another lookup
+                    await createAuditLog(
+                        {
+                            action: "LOGIN_SUCCESS",
                             resource: "User",
                             resourceId: user.id,
                             userId: user.id,
                             ipAddress,
                             userAgent,
-                            status: "WARNING",
-                            details: { 
-                                reason: suspiciousCheck.reason || null,
-                                country: country || null,
-                                countryCode: countryCode || null,
-                            },
-                        });
-
-                        // Note: We allow the login but log it as suspicious
-                        // You could also block it or require additional verification here
-                    }
+                            details: geo?.countryCode ? { countryCode: geo.countryCode, country: geo.country ?? null } : undefined,
+                        },
+                        { sync: true }
+                    )
                 }
-            }
-
-            // Generate device fingerprint to check if device-specific MFA is required
-            const { generateClientDeviceFingerprint, isDeviceTrusted } = await import("@/lib/device-fingerprint")
-            const deviceFingerprint = generateClientDeviceFingerprint(userAgent, ipAddress)
-            const deviceIsTrusted = await isDeviceTrusted(deviceFingerprint, user.id)
-
-            // Check if device-specific MFA is required for untrusted devices
-            const requireMfaForUntrustedDevices = await prisma.settings.findUnique({
-                where: { key: "security.device.require_mfa_untrusted" },
-            })
-            const deviceRequiresMfa = requireMfaForUntrustedDevices?.value === true && !deviceIsTrusted
-
-            // Check if MFA should be enforced (device-specific or global settings)
-            const { shouldEnforceMfa, determineMfaRequirement } = await import("@/lib/mfa-enforcement")
-            
-            // Check if user has MFA method configured
-            const hasMfaMethod = 
-                (user.mfaMethod === "TOTP" && user.mfaSecret !== null) ||
-                (user.mfaMethod === "SMS" && user.phoneNumber !== null) ||
-                (user.mfaMethod === "EMAIL" && user.email !== null) ||
-                (user.mfaMethod === "WEBAUTHN" && (await prisma.mfaCredential.count({ where: { userId: user.id } })) > 0);
-
-            // If device requires MFA (untrusted device), enforce MFA regardless of other settings
-            if (deviceRequiresMfa) {
-                if (hasMfaMethod) {
-                    // Device requires MFA and user has MFA configured, require verification
-                    await createSession(user.id, user.email, {
-                        mfaVerified: false,
-                        mfaRequired: true,
-                        ipAddress,
-                        userAgent,
-                    });
-                    return { success: true, mfaRequired: true, deviceRequiresMfa: true };
-                } else {
-                    // Device requires MFA but user doesn't have MFA configured, require setup
-                    await createSession(user.id, user.email, {
-                        mfaVerified: false,
-                        mfaSetupRequired: true,
-                        mfaRequired: false,
-                        ipAddress,
-                        userAgent,
-                    });
-                    return { success: true, mfaSetupRequired: true, deviceRequiresMfa: true };
-                }
-            }
-
-            // Check if MFA should be enforced based on user settings or global enforcement
-            const enforceMfa = await shouldEnforceMfa(user.id, user.role, user.mfaEnabled)
-            
-            if (enforceMfa) {
-                // MFA is enforced - determine if setup or verification is required
-                const mfaRequirement = await determineMfaRequirement(user.id, user.role, user.mfaEnabled, hasMfaMethod)
-                
-                if (mfaRequirement.mfaSetupRequired) {
-                    // User needs to set up MFA
-                    await createSession(user.id, user.email, {
-                        mfaVerified: false,
-                        mfaSetupRequired: true,
-                        mfaRequired: false,
-                        ipAddress,
-                        userAgent,
-                    });
-                    return { success: true, mfaSetupRequired: true };
-                } else if (mfaRequirement.mfaRequired) {
-                    // User needs to verify MFA
-                    await createSession(user.id, user.email, {
-                        mfaVerified: false,
-                        mfaRequired: true,
-                        ipAddress,
-                        userAgent,
-                    });
-                    return { success: true, mfaRequired: true };
-                }
-            }
-
-            // Update last login time
-            await prisma.user.update({
-                where: { id: user.id },
-                data: { lastLoginAt: new Date() },
-            });
-
-            // Create audit log for successful login
-            const { createAuditLog } = await import("@/lib/audit-log")
-            await createAuditLog({
-                action: "LOGIN_SUCCESS",
-                resource: "User",
-                resourceId: user.id,
-                userId: user.id,
-                ipAddress,
-                userAgent,
-            });
-
-            // Run anomaly detection if enabled (after successful login)
-            if (threatConfig.enabled && threatConfig.anomalyDetection.enabled) {
-                const { detectAnomalies } = await import("@/lib/threat-detection")
-                const anomalyCheck = await detectAnomalies(
-                    user.id,
-                    ipAddress,
-                    userAgent,
-                    threatConfig.anomalyDetection,
-                    company.id
-                )
-
-                // If anomaly detected, log it but don't block login
-                // The threat event has already been created by detectAnomalies
-                if (anomalyCheck.isAnomaly) {
-                    console.warn(`[Threat Detection] Anomaly detected for user ${user.id}:`, anomalyCheck.reasons)
-                }
-            }
-
-            // Create session with device info
-            await createSession(user.id, user.email, {
-                ipAddress,
-                userAgent,
             });
 
             return {
@@ -953,184 +620,49 @@ export const authRouter = createTRPCRouter({
                 });
             }
 
-            // Get threat detection configuration
-            const {
-                getThreatDetectionConfig,
-                checkRateLimit,
-                checkBruteForce,
-                shouldRequireCaptcha,
-            } = await import("@/lib/threat-detection");
             const threatConfig = await getThreatDetectionConfig(company.id);
-
-            // Check rate limiting if enabled
-            if (threatConfig.enabled && threatConfig.rateLimiting.enabled && ipAddress) {
-                const rateLimitCheck = await checkRateLimit(
-                    ipAddress,
-                    "IP",
-                    "LOGIN",
-                    threatConfig.rateLimiting.login,
-                    company.id
-                );
-
-                if (rateLimitCheck.exceeded) {
-                    throw new TRPCError({
-                        code: "TOO_MANY_REQUESTS",
-                        message: `Too many login attempts. Please try again after ${new Date(rateLimitCheck.resetAt).toLocaleTimeString()}.`,
-                    });
-                }
-            }
-
-            // Find user in this company
-            const user = await prisma.user.findFirst({
-                where: {
-                    email: input.email,
-                    companyId: company.id,
-                },
+            const user = await authenticateWithPassword({
+                companyId: company.id,
+                email: input.email,
+                password: input.password,
+                captchaToken: input.captchaToken,
+                captchaAnswer: input.captchaAnswer,
+                ipAddress,
+                threatConfig,
+                issueCaptchaChallenge: false,
             });
 
-            if (!user) {
-                throw new TRPCError({
-                    code: "UNAUTHORIZED",
-                    message: "Invalid email or password",
-                });
-            }
-
-            // Check CAPTCHA requirement
-            if (threatConfig.enabled && threatConfig.captcha.enabled && ipAddress) {
-                const requiresCaptcha = await shouldRequireCaptcha(
-                    ipAddress,
-                    "IP",
-                    "LOGIN",
-                    threatConfig.captcha,
-                    company.id
-                );
-                if (requiresCaptcha) {
-                    if (input.captchaToken && input.captchaAnswer !== undefined) {
-                        const { verifyCaptchaFromStore } = await import("@/lib/captcha");
-                        const isValid = verifyCaptchaFromStore(input.captchaToken, input.captchaAnswer);
-                        if (!isValid) {
-                            throw new TRPCError({
-                                code: "BAD_REQUEST",
-                                message: "Invalid CAPTCHA answer. Please try again.",
-                            });
-                        }
-                    } else {
-                        throw new TRPCError({
-                            code: "BAD_REQUEST",
-                            message: "CAPTCHA required",
-                        });
-                    }
-                }
-            }
-
-            // Check brute force protection if enabled (before password verification)
-            if (threatConfig.enabled && threatConfig.bruteForceProtection.enabled) {
-                const bruteForceCheck = await checkBruteForce(
-                    user.id,
-                    threatConfig.bruteForceProtection,
-                    company.id
-                );
-
-                if (bruteForceCheck.locked) {
-                    throw new TRPCError({
-                        code: "FORBIDDEN",
-                        message: `Account locked due to too many failed login attempts. Please try again ${bruteForceCheck.unlockAt ? `after ${bruteForceCheck.unlockAt.toLocaleTimeString()}` : "later"}.`,
-                    });
-                }
-            }
-
-            // Check if user has a password (might be null for OAuth users)
-            if (!user.password) {
-                throw new TRPCError({
-                    code: "UNAUTHORIZED",
-                    message: "Invalid email or password",
-                });
-            }
-
-            // Verify password
-            const isValidPassword = await verifyPassword(input.password, user.password);
-            if (!isValidPassword) {
-                throw new TRPCError({
-                    code: "UNAUTHORIZED",
-                    message: "Invalid email or password",
-                });
-            }
-
-            // Check if user is active
-            if (!user.isActive) {
-                throw new TRPCError({
-                    code: "FORBIDDEN",
-                    message: "Your account has been deactivated. Please contact your administrator.",
-                });
-            }
-
-            // Create session and get the token
-            // We need to generate the token ourselves to return it
-            const { SignJWT } = await import("jose");
-            const SESSION_SECRET = process.env.SESSION_SECRET || "default-secret-change-in-production";
-            const secret = new TextEncoder().encode(SESSION_SECRET);
-            
-            // Get session timeout from settings
-            const sessionTimeoutSetting = await prisma.settings.findUnique({
-                where: { key: "security.session.timeout_minutes" },
-            });
-            const timeoutMinutes = (sessionTimeoutSetting?.value as number) ?? 30;
-            const expirationTime = `${timeoutMinutes}m`;
-            const maxAge = timeoutMinutes * 60;
-
-            // Generate device fingerprint
-            const { generateClientDeviceFingerprint, isDeviceTrusted } = await import("@/lib/device-fingerprint");
+            const resolveGeo = createGeoResolver(ipAddress ?? "");
             const deviceFingerprint = generateClientDeviceFingerprint(userAgent, ipAddress);
-            const deviceIsTrusted = await isDeviceTrusted(deviceFingerprint, user.id);
+            const [settings, deviceIsTrusted] = await Promise.all([
+                getSettings(LOGIN_SETTING_KEYS, company.id),
+                isDeviceTrusted(deviceFingerprint, user.id),
+                enforceAccessRules({ user, ipAddress, userAgent, resolveGeo, source: "extension" }),
+            ]);
+
+            const timeoutMinutes = (settings.get("security.session.timeout_minutes") as number | undefined) ?? 30;
 
             // Check if device-specific MFA is required
-            const requireMfaForUntrustedDevices = await prisma.settings.findUnique({
-                where: { key: "security.device.require_mfa_untrusted" },
-            });
-            const deviceRequiresMfa = requireMfaForUntrustedDevices?.value === true && !deviceIsTrusted;
-            
-            // Check if MFA should be enforced based on settings
-            const { shouldEnforceMfa } = await import("@/lib/mfa-enforcement")
-            const enforceMfa = await shouldEnforceMfa(user.id, user.role, user.mfaEnabled)
-            
+            const deviceRequiresMfa = settings.get("security.device.require_mfa_untrusted") === true && !deviceIsTrusted;
+
             // MFA is required if device requires it OR if enforced by settings
+            const enforceMfa = await shouldEnforceMfa(user.id, user.role, user.mfaEnabled, company.id)
             const finalMfaRequired = deviceRequiresMfa || enforceMfa;
 
-            // When MFA is required, issue a PENDING token (mfaVerified:false).
+            // When MFA is required, a PENDING token (mfaVerified:false) is issued.
             // The extension must complete extensionVerifyMfa to obtain a verified
             // token before it can access protected data (enforced server-side).
-            const mfaVerified = !finalMfaRequired
-            const payload = { userId: user.id, email: user.email, isLoggedIn: true, mfaVerified, mfaSetupRequired: false, mfaRequired: finalMfaRequired };
-            const sessionToken = await new SignJWT(payload)
-                .setProtectedHeader({ alg: "HS256" })
-                .setExpirationTime(expirationTime)
-                .sign(secret);
-
-            // Create session in database and set cookie
-            const expires = new Date(Date.now() + maxAge * 1000);
-            const { parseUserAgent } = await import("@/lib/device-parser");
-            const deviceInfo = parseUserAgent(userAgent);
-
-            try {
-                await prisma.session.create({
-                    data: {
-                        sessionToken: sessionToken,
-                        userId: user.id,
-                        companyId: user.companyId || null,
-                        expires,
-                        ipAddress: ipAddress || null,
-                        userAgent: userAgent || null,
-                        deviceName: deviceInfo.deviceName,
-                        deviceType: deviceInfo.deviceType,
-                        deviceFingerprint,
-                        isTrusted: deviceIsTrusted,
-                        requireMfa: finalMfaRequired || false,
-                        lastActiveAt: new Date(),
-                    },
-                });
-            } catch (error) {
-                console.error("Failed to create database session record:", error);
-            }
+            const { sessionToken, maxAge } = await createExtensionSession({
+                userId: user.id,
+                email: user.email,
+                companyId: user.companyId || null,
+                timeoutMinutes,
+                mfaRequired: finalMfaRequired,
+                ipAddress,
+                userAgent,
+                deviceFingerprint,
+                deviceIsTrusted,
+            });
 
             // Also set the cookie (for web browser compatibility)
             const cookieStore = await cookies();
@@ -1142,16 +674,20 @@ export const authRouter = createTRPCRouter({
                 path: "/",
             });
 
-            // Create audit log
-            const { createAuditLog } = await import("@/lib/audit-log");
-            await createAuditLog({
-                action: "LOGIN_SUCCESS",
-                resource: "User",
-                resourceId: user.id,
-                userId: user.id,
-                ipAddress: ipAddress || null,
-                userAgent: userAgent || null,
-                details: { source: "extension" },
+            await runAfter(async () => {
+                const geo = ipAddress ? await resolveGeo() : null
+                await createAuditLog(
+                    {
+                        action: "LOGIN_SUCCESS",
+                        resource: "User",
+                        resourceId: user.id,
+                        userId: user.id,
+                        ipAddress: ipAddress || null,
+                        userAgent: userAgent || null,
+                        details: { source: "extension", ...(geo?.countryCode ? { countryCode: geo.countryCode, country: geo.country ?? null } : {}) },
+                    },
+                    { sync: true }
+                )
             });
 
             return {
@@ -1176,6 +712,124 @@ export const authRouter = createTRPCRouter({
             };
         }),
 
+    /** Which social sign-in buttons the extension may show (providers with credentials configured) */
+    getOAuthProviders: baseProcedure.query(() => ({ providers: getEnabledOAuthProviders() })),
+
+    /**
+     * Extension social sign-in, last step. The handoff token minted by the OAuth
+     * callback only proves WHO signed in; every access rule and the MFA decision
+     * run again here, with the same outcome shape as extensionLogin.
+     */
+    extensionOAuthExchange: baseProcedure
+        .input(z.object({ token: z.string().min(1).max(4096) }))
+        .mutation(async ({ input }) => {
+            const { ipAddress, userAgent } = getRequestMetadata(await headers());
+
+            // Single use, and only tokens minted for the extension redeem here
+            const handoff = await redeemHandoffToken(input.token, "extension");
+            if (!handoff) {
+                throw new TRPCError({ code: "UNAUTHORIZED", message: "This sign-in link expired. Please try again." });
+            }
+
+            const user = await prisma.user.findUnique({
+                where: { id: handoff.userId },
+                include: {
+                    company: { select: { id: true, name: true, subdomain: true } },
+                    _count: { select: { mfaCredentials: true } },
+                },
+            });
+            if (!user || !user.company) {
+                throw new TRPCError({ code: "UNAUTHORIZED", message: "This sign-in link expired. Please try again." });
+            }
+            if (!user.isActive) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "Your account has been deactivated. Please contact your administrator.",
+                });
+            }
+            const company = user.company;
+
+            const resolveGeo = createGeoResolver(ipAddress ?? "");
+            const deviceFingerprint = generateClientDeviceFingerprint(userAgent, ipAddress);
+            const [settings, deviceIsTrusted] = await Promise.all([
+                getSettings(LOGIN_SETTING_KEYS, company.id),
+                isDeviceTrusted(deviceFingerprint, user.id),
+                enforceAccessRules({ user, ipAddress, userAgent, resolveGeo, source: "extension" }),
+            ]);
+
+            // The provider only releases verified addresses, so the email is proven
+            if (!user.emailVerified) {
+                await prisma.user.update({ where: { id: user.id }, data: { emailVerified: new Date() } });
+            }
+
+            const hasMfaMethod =
+                (user.mfaMethod === "TOTP" && user.mfaSecret !== null) ||
+                (user.mfaMethod === "SMS" && user.phoneNumber !== null) ||
+                (user.mfaMethod === "EMAIL" && user.email !== null) ||
+                (user.mfaMethod === "WEBAUTHN" && user._count.mfaCredentials > 0);
+
+            const deviceRequiresMfa = settings.get("security.device.require_mfa_untrusted") === true && !deviceIsTrusted;
+            const enforceMfa = await shouldEnforceMfa(user.id, user.role, user.mfaEnabled, company.id);
+            const finalMfaRequired = deviceRequiresMfa || enforceMfa;
+
+            const userInfo = { id: user.id, name: user.name, email: user.email, role: user.role };
+
+            // MFA is mandatory but nothing is set up: no session until it is configured in the web app
+            if (finalMfaRequired && !hasMfaMethod) {
+                return {
+                    success: true,
+                    mfaRequired: false,
+                    mfaSetupRequired: true,
+                    mfaMethod: null,
+                    user: userInfo,
+                    company,
+                    sessionToken: undefined,
+                };
+            }
+
+            const timeoutMinutes = (settings.get("security.session.timeout_minutes") as number | undefined) ?? 30;
+            const { sessionToken } = await createExtensionSession({
+                userId: user.id,
+                email: user.email,
+                companyId: user.companyId || null,
+                timeoutMinutes,
+                mfaRequired: finalMfaRequired,
+                ipAddress,
+                userAgent,
+                deviceFingerprint,
+                deviceIsTrusted,
+            });
+
+            if (!finalMfaRequired) {
+                await prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
+            }
+
+            await runAfter(async () => {
+                await createAuditLog(
+                    {
+                        action: "LOGIN_OAUTH",
+                        resource: "User",
+                        resourceId: user.id,
+                        userId: user.id,
+                        ipAddress: ipAddress || null,
+                        userAgent: userAgent || null,
+                        details: { provider: handoff.provider, client: "extension", ...(finalMfaRequired ? { mfaPending: true } : {}) },
+                    },
+                    { sync: true }
+                );
+            });
+
+            return {
+                success: true,
+                mfaRequired: finalMfaRequired,
+                mfaSetupRequired: false,
+                mfaMethod: finalMfaRequired ? (user.mfaMethod || "TOTP") : null,
+                user: userInfo,
+                company,
+                sessionToken,
+            };
+        }),
+
     /**
      * Extension MFA: send an SMS/EMAIL code for the pending (mfaVerified:false)
      * extension session. Identifies the user from the x-session-token header
@@ -1187,12 +841,11 @@ export const authRouter = createTRPCRouter({
             if (!ctx.userId) {
                 throw new TRPCError({ code: "UNAUTHORIZED", message: "Not authenticated" });
             }
-            const user = await prisma.user.findUnique({ where: { id: ctx.userId } })
+            const user = ctx.user
             if (!user) {
                 throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
             }
 
-            const { generateMfaCode, storeMfaCode } = await import("@/lib/mfa-codes")
             const code = generateMfaCode()
 
             if (input.method === "SMS") {
@@ -1200,12 +853,12 @@ export const authRouter = createTRPCRouter({
                     throw new TRPCError({ code: "BAD_REQUEST", message: "Phone number not set on your account." });
                 }
                 const { checkSmsCredentials, sendSmsCode } = await import("@/lib/sms")
-                const credentialsCheck = await checkSmsCredentials()
+                const credentialsCheck = await checkSmsCredentials(ctx.companyId)
                 if (!credentialsCheck.configured) {
                     throw new TRPCError({ code: "BAD_REQUEST", message: credentialsCheck.error || "SMS is not configured." });
                 }
                 await storeMfaCode(user.id, "SMS", code)
-                const result = await sendSmsCode(user.phoneNumber, code)
+                const result = await sendSmsCode(user.phoneNumber, code, ctx.companyId)
                 if (!result.success) {
                     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: result.error || "Failed to send SMS code" });
                 }
@@ -1255,7 +908,7 @@ export const authRouter = createTRPCRouter({
             if (!ctx.userId) {
                 throw new TRPCError({ code: "UNAUTHORIZED", message: "Not authenticated" });
             }
-            const user = await prisma.user.findUnique({ where: { id: ctx.userId } })
+            const user = ctx.user
             if (!user) {
                 throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
             }
@@ -1263,16 +916,16 @@ export const authRouter = createTRPCRouter({
             const method = input.method || user.mfaMethod || "TOTP"
 
             if (method === "TOTP") {
-                if (!user.mfaSecret) {
+                const encryptedSecret = await getMfaSecret(user.id)
+                if (!encryptedSecret) {
                     throw new TRPCError({ code: "BAD_REQUEST", message: "TOTP is not set up on your account." });
                 }
-                const decryptedSecret = decrypt(user.mfaSecret)
+                const decryptedSecret = decrypt(encryptedSecret)
                 const authenticator = await import("otplib").then(mod => mod.authenticator)
                 if (!authenticator.check(input.code, decryptedSecret)) {
                     throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid MFA code" });
                 }
             } else if (method === "SMS" || method === "EMAIL") {
-                const { verifyMfaCode } = await import("@/lib/mfa-codes")
                 const isValid = await verifyMfaCode(user.id, method, input.code)
                 if (!isValid) {
                     throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid or expired code" });
@@ -1288,10 +941,7 @@ export const authRouter = createTRPCRouter({
             const { SignJWT } = await import("jose")
             const SESSION_SECRET = process.env.SESSION_SECRET || "default-secret-change-in-production"
             const secret = new TextEncoder().encode(SESSION_SECRET)
-            const sessionTimeoutSetting = await prisma.settings.findUnique({
-                where: { key: "security.session.timeout_minutes" },
-            })
-            const timeoutMinutes = (sessionTimeoutSetting?.value as number) ?? 30
+            const timeoutMinutes = (await getSetting<number>("security.session.timeout_minutes")) ?? 30
             const maxAge = timeoutMinutes * 60
             const newToken = await new SignJWT({
                 userId: user.id,
@@ -1328,7 +978,6 @@ export const authRouter = createTRPCRouter({
                 path: "/",
             })
 
-            const { createAuditLog } = await import("@/lib/audit-log")
             await createAuditLog({
                 action: "MFA_VERIFIED",
                 resource: "User",
@@ -1347,64 +996,47 @@ export const authRouter = createTRPCRouter({
         }),
     getCurrentUser: baseProcedure
         .query(async ({ ctx }) => {
-            const session = await getSession();
-            
-            if (!session) {
-                throw new TRPCError({
-                    code: "UNAUTHORIZED",
-                    message: "Not authenticated",
-                });
-            }
+            // The context already validated the session and loaded the user in
+            // one query, so nothing is re-read here.
+            const { session, user: ctxUser } = ctx;
 
-            const userRes = await prisma.user.findUnique({
-                where: { id: session.userId },
-                select: {
-                    id: true,
-                    name: true,
-                    email: true,
-                    emailVerified: true,
-                    image: true,
-                    role: true,
-                    mfaEnabled: true,
-                    mfaSecret: true,
-                    mfaMethod: true,
-                    phoneNumber: true,
-                    createdById: true,
-                    _count: {
-                        select: {
-                            mfaCredentials: true,
-                        },
-                    },
-                },
-            });
-
-            if (!userRes) {
+            if (!session || !ctxUser) {
                 throw new TRPCError({
                     code: "NOT_FOUND",
                     message: "User not found",
                 });
             }
 
-            const { mfaSecret, _count, ...rest } = userRes;
+            const rest = {
+                id: ctxUser.id,
+                name: ctxUser.name,
+                email: ctxUser.email,
+                emailVerified: ctxUser.emailVerified,
+                image: ctxUser.image,
+                role: ctxUser.role,
+                mfaEnabled: ctxUser.mfaEnabled,
+                mfaMethod: ctxUser.mfaMethod,
+                phoneNumber: ctxUser.phoneNumber,
+                createdById: ctxUser.createdById,
+            };
 
             // Determine if MFA verification is needed
-            const hasMfaMethod = 
-                (rest.mfaMethod === "TOTP" && mfaSecret !== null) ||
+            const hasMfaMethod =
+                (rest.mfaMethod === "TOTP" && ctxUser.hasTotpSecret) ||
                 (rest.mfaMethod === "SMS" && rest.phoneNumber !== null) ||
                 (rest.mfaMethod === "EMAIL" && rest.email !== null) ||
-                (rest.mfaMethod === "WEBAUTHN" && _count.mfaCredentials > 0);
+                (rest.mfaMethod === "WEBAUTHN" && ctxUser.mfaCredentialCount > 0);
 
-            // Check if MFA should be enforced based on settings
-            const { shouldEnforceMfa, determineMfaRequirement } = await import("@/lib/mfa-enforcement")
-            const enforceMfa = await shouldEnforceMfa(rest.id, rest.role, rest.mfaEnabled)
-            
             // Determine MFA requirements
             // Priority: session flag (for device-specific requirements) > enforcement logic
             let mfaSetupRequired = session.mfaSetupRequired === true
             let shouldVerifyMfa = false
-            
-            if (!mfaSetupRequired && enforceMfa) {
-                const mfaRequirement = await determineMfaRequirement(rest.id, rest.role, rest.mfaEnabled, hasMfaMethod)
+
+            if (!mfaSetupRequired) {
+                // Checks whether MFA is enforced (settings are served from the
+                // settings cache) and reports no requirement when it is not.
+                const { determineMfaRequirement } = await import("@/lib/mfa-enforcement")
+                const mfaRequirement = await determineMfaRequirement(rest.id, rest.role, rest.mfaEnabled, hasMfaMethod, ctx.companyId)
                 mfaSetupRequired = mfaRequirement.mfaSetupRequired
                 shouldVerifyMfa = mfaRequirement.mfaRequired && !session.mfaVerified
             }
@@ -1424,28 +1056,22 @@ export const authRouter = createTRPCRouter({
             return { permissions };
         }),
     generateMfaQr: baseProcedure
-        .query(async () => {
-            const session = await getSession()
-            if (!session) {
-                throw new TRPCError({
-                    code: "UNAUTHORIZED",
-                    message: "Not authenticated",
-                });
-            }
+        .query(async ({ ctx }) => {
+            const session = requireSession(ctx)
             const authenticator = await import("otplib").then(mod => mod.authenticator)
             const qrcode = await import("qrcode").then(mod => mod.default)
             const { encrypt } = await import("@/lib/crypto")
             
-            // Generate a new MFA secret
-            const user = await prisma.user.findUnique({ where: { id: session.userId } })
+            const user = ctx.user
             
             let secret: string
 
             // Only return existing secret if MFA is already fully enabled and configured
             // If MFA is not enabled yet (setup in progress), always regenerate and save a new secret
-            if (user && user.mfaEnabled && user.mfaSecret) {
+            const existingSecret = user?.mfaEnabled && user.hasTotpSecret ? await getMfaSecret(session.userId) : null
+            if (existingSecret) {
                 // User has MFA enabled - use existing secret
-                secret = decrypt(user.mfaSecret)
+                secret = decrypt(existingSecret)
             } else {
                 // Generate new secret for setup
                 secret = authenticator.generateSecret()
@@ -1471,28 +1097,16 @@ export const authRouter = createTRPCRouter({
             code: z.string().min(6).max(6),
             method: z.enum(["TOTP", "SMS", "EMAIL", "WEBAUTHN"]).optional(),
         }))
-        .mutation(async ({ input }) => {
-            const session = await getSession()
-            if (!session) {
-                throw new TRPCError({
-                    code: "UNAUTHORIZED",
-                    message: "Not authenticated",
-                });
-            }
-            const user = await prisma.user.findUnique({ where: { id: session.userId } })
-            if (!user) {
-                throw new TRPCError({
-                    code: "NOT_FOUND",
-                    message: "User not found",
-                });
-            }
+        .mutation(async ({ input, ctx }) => {
+            const session = requireSession(ctx)
+            const user = requireUser(ctx)
 
             const method = input.method || user.mfaMethod || "TOTP"
 
             // Check if credentials are configured for the selected method
             if (method === "SMS") {
                 const { checkSmsCredentials } = await import("@/lib/sms")
-                const credentialsCheck = await checkSmsCredentials()
+                const credentialsCheck = await checkSmsCredentials(ctx.companyId)
                 if (!credentialsCheck.configured) {
                     throw new TRPCError({
                         code: "BAD_REQUEST",
@@ -1507,7 +1121,7 @@ export const authRouter = createTRPCRouter({
                 }
             } else if (method === "WEBAUTHN") {
                 const { checkWebAuthnCredentials } = await import("@/lib/webauthn")
-                const credentialsCheck = await checkWebAuthnCredentials()
+                const credentialsCheck = await checkWebAuthnCredentials(ctx.companyId)
                 if (!credentialsCheck.configured) {
                     throw new TRPCError({
                         code: "BAD_REQUEST",
@@ -1518,13 +1132,14 @@ export const authRouter = createTRPCRouter({
 
             // Verify based on method
             if (method === "TOTP") {
-                if (!user.mfaSecret) {
+                const encryptedSecret = await getMfaSecret(user.id)
+                if (!encryptedSecret) {
                     throw new TRPCError({
                         code: "NOT_FOUND",
                         message: "No MFA secret found",
                     });
                 }
-                const decryptedSecret = decrypt(user.mfaSecret)
+                const decryptedSecret = decrypt(encryptedSecret)
                 const authenticator = await import("otplib").then(mod => mod.authenticator)
                 const isValid = authenticator.check(input.code, decryptedSecret)
                 if (!isValid) {
@@ -1534,7 +1149,6 @@ export const authRouter = createTRPCRouter({
                     });
                 }
             } else if (method === "SMS") {
-                const { verifyMfaCode } = await import("@/lib/mfa-codes")
                 const isValid = await verifyMfaCode(user.id, "SMS", input.code)
                 if (!isValid) {
                     throw new TRPCError({
@@ -1543,7 +1157,6 @@ export const authRouter = createTRPCRouter({
                     });
                 }
             } else if (method === "EMAIL") {
-                const { verifyMfaCode } = await import("@/lib/mfa-codes")
                 const isValid = await verifyMfaCode(user.id, "EMAIL", input.code)
                 if (!isValid) {
                     throw new TRPCError({
@@ -1569,7 +1182,6 @@ export const authRouter = createTRPCRouter({
             });
 
             // Create audit log
-            const { createAuditLog } = await import("@/lib/audit-log")
             await createAuditLog({
                 action: "MFA_SETUP",
                 resource: "User",
@@ -1577,30 +1189,18 @@ export const authRouter = createTRPCRouter({
                 details: { method },
                 userId: session.userId,
             });
-            await createSession(user.id, user.email, { mfaVerified: true });
+            await createVerifiedSession(user.id, user.email);
             return { success: true };
         }),
     disableMfa: baseProcedure
-        .mutation(async () => {
-            const session = await getSession()
-            if (!session) {
-                throw new TRPCError({
-                    code: "UNAUTHORIZED",
-                    message: "Not authenticated",
-                });
-            }
+        .mutation(async ({ ctx }) => {
+            const session = requireSession(ctx)
             
-            const user = await prisma.user.findUnique({ where: { id: session.userId } })
-            if (!user) {
-                throw new TRPCError({
-                    code: "NOT_FOUND",
-                    message: "User not found",
-                });
-            }
+            const user = requireUser(ctx)
 
             // Check if MFA is enforced by global settings - prevent disabling if enforced
             const { shouldEnforceMfa } = await import("@/lib/mfa-enforcement")
-            const enforceMfa = await shouldEnforceMfa(user.id, user.role, false) // Check with mfaEnabled=false
+            const enforceMfa = await shouldEnforceMfa(user.id, user.role, false, ctx.companyId) // Check with mfaEnabled=false
             
             if (enforceMfa) {
                 throw new TRPCError({
@@ -1630,7 +1230,6 @@ export const authRouter = createTRPCRouter({
             });
 
             // Create audit log
-            const { createAuditLog } = await import("@/lib/audit-log")
             await createAuditLog({
                 action: "MFA_DISABLED",
                 resource: "User",
@@ -1645,14 +1244,8 @@ export const authRouter = createTRPCRouter({
             code: z.string().min(6).max(6).optional(),
             method: z.enum(["TOTP", "SMS", "EMAIL", "WEBAUTHN"]).optional(),
         }))
-        .mutation(async ({ input }) => {
-            const session = await getSession()
-            if (!session) {
-                throw new TRPCError({
-                    code: "UNAUTHORIZED",
-                    message: "Not authenticated",
-                });
-            }
+        .mutation(async ({ input, ctx }) => {
+            const session = requireSession(ctx)
             const user = await prisma.user.findUnique({ 
                 where: { id: session.userId },
                 include: { mfaCredentials: true },
@@ -1668,13 +1261,14 @@ export const authRouter = createTRPCRouter({
 
             // Verify based on method
             if (method === "TOTP") {
-                if (!user.mfaSecret || !input.code) {
+                const encryptedSecret = input.code ? await getMfaSecret(user.id) : null
+                if (!encryptedSecret || !input.code) {
                     throw new TRPCError({
                         code: "BAD_REQUEST",
                         message: "TOTP code is required",
                     });
                 }
-                const decryptedSecret = decrypt(user.mfaSecret);
+                const decryptedSecret = decrypt(encryptedSecret);
                 const authenticator = await import("otplib").then(mod => mod.authenticator);
                 const isValid = authenticator.check(input.code, decryptedSecret)
                 if (!isValid) {
@@ -1686,7 +1280,7 @@ export const authRouter = createTRPCRouter({
             } else if (method === "SMS") {
                 // Check if SMS credentials are configured
                 const { checkSmsCredentials } = await import("@/lib/sms")
-                const credentialsCheck = await checkSmsCredentials()
+                const credentialsCheck = await checkSmsCredentials(ctx.companyId)
                 if (!credentialsCheck.configured) {
                     throw new TRPCError({
                         code: "BAD_REQUEST",
@@ -1699,7 +1293,6 @@ export const authRouter = createTRPCRouter({
                         message: "SMS code is required",
                     });
                 }
-                const { verifyMfaCode } = await import("@/lib/mfa-codes")
                 const isValid = await verifyMfaCode(user.id, "SMS", input.code)
                 if (!isValid) {
                     throw new TRPCError({
@@ -1714,7 +1307,6 @@ export const authRouter = createTRPCRouter({
                         message: "Email code is required",
                     });
                 }
-                const { verifyMfaCode } = await import("@/lib/mfa-codes")
                 const isValid = await verifyMfaCode(user.id, "EMAIL", input.code)
                 if (!isValid) {
                     throw new TRPCError({
@@ -1725,7 +1317,7 @@ export const authRouter = createTRPCRouter({
             } else if (method === "WEBAUTHN") {
                 // Check if WebAuthn credentials are configured
                 const { checkWebAuthnCredentials } = await import("@/lib/webauthn")
-                const credentialsCheck = await checkWebAuthnCredentials()
+                const credentialsCheck = await checkWebAuthnCredentials(ctx.companyId)
                 if (!credentialsCheck.configured) {
                     throw new TRPCError({
                         code: "BAD_REQUEST",
@@ -1740,7 +1332,6 @@ export const authRouter = createTRPCRouter({
             }
 
             // Create audit logs
-            const { createAuditLog } = await import("@/lib/audit-log")
             await Promise.all([
                 createAuditLog({
                     action: "MFA_VERIFIED",
@@ -1758,21 +1349,15 @@ export const authRouter = createTRPCRouter({
                 }),
             ])
 
-            await createSession(user.id, user.email, { mfaVerified: true });
+            await createVerifiedSession(user.id, user.email);
             return { success: true };
         }),
 
     // SMS MFA
     sendSmsMfaCode: baseProcedure
-        .mutation(async () => {
-            const session = await getSession()
-            if (!session) {
-                throw new TRPCError({
-                    code: "UNAUTHORIZED",
-                    message: "Not authenticated",
-                });
-            }
-            const user = await prisma.user.findUnique({ where: { id: session.userId } })
+        .mutation(async ({ ctx }) => {
+            requireSession(ctx)
+            const user = ctx.user
             if (!user || !user.phoneNumber) {
                 throw new TRPCError({
                     code: "BAD_REQUEST",
@@ -1782,7 +1367,7 @@ export const authRouter = createTRPCRouter({
 
             // Check if SMS credentials are configured
             const { checkSmsCredentials } = await import("@/lib/sms")
-            const credentialsCheck = await checkSmsCredentials()
+            const credentialsCheck = await checkSmsCredentials(ctx.companyId)
             if (!credentialsCheck.configured) {
                 throw new TRPCError({
                     code: "BAD_REQUEST",
@@ -1790,13 +1375,12 @@ export const authRouter = createTRPCRouter({
                 });
             }
 
-            const { generateMfaCode, storeMfaCode } = await import("@/lib/mfa-codes")
             const { sendSmsCode } = await import("@/lib/sms")
             
             const code = generateMfaCode()
             await storeMfaCode(user.id, "SMS", code)
             
-            const result = await sendSmsCode(user.phoneNumber, code)
+            const result = await sendSmsCode(user.phoneNumber, code, ctx.companyId)
             if (!result.success) {
                 throw new TRPCError({
                     code: "INTERNAL_SERVER_ERROR",
@@ -1811,23 +1395,10 @@ export const authRouter = createTRPCRouter({
         .input(z.object({
             code: z.string().min(6).max(6),
         }))
-        .mutation(async ({ input }) => {
-            const session = await getSession()
-            if (!session) {
-                throw new TRPCError({
-                    code: "UNAUTHORIZED",
-                    message: "Not authenticated",
-                });
-            }
-            const user = await prisma.user.findUnique({ where: { id: session.userId } })
-            if (!user) {
-                throw new TRPCError({
-                    code: "NOT_FOUND",
-                    message: "User not found",
-                });
-            }
+        .mutation(async ({ input, ctx }) => {
+            requireSession(ctx)
+            const user = requireUser(ctx)
 
-            const { verifyMfaCode } = await import("@/lib/mfa-codes")
             const isValid = await verifyMfaCode(user.id, "SMS", input.code)
             
             if (!isValid) {
@@ -1838,7 +1409,6 @@ export const authRouter = createTRPCRouter({
             }
 
             // Create audit logs
-            const { createAuditLog } = await import("@/lib/audit-log")
             await Promise.all([
                 createAuditLog({
                     action: "MFA_VERIFIED",
@@ -1856,21 +1426,15 @@ export const authRouter = createTRPCRouter({
                 }),
             ])
 
-            await createSession(user.id, user.email, { mfaVerified: true });
+            await createVerifiedSession(user.id, user.email);
             return { success: true };
         }),
 
     // Email MFA
     sendEmailMfaCode: baseProcedure
-        .mutation(async () => {
-            const session = await getSession()
-            if (!session) {
-                throw new TRPCError({
-                    code: "UNAUTHORIZED",
-                    message: "Not authenticated",
-                });
-            }
-            const user = await prisma.user.findUnique({ where: { id: session.userId } })
+        .mutation(async ({ ctx }) => {
+            requireSession(ctx)
+            const user = ctx.user
             if (!user || !user.email) {
                 throw new TRPCError({
                     code: "BAD_REQUEST",
@@ -1878,7 +1442,6 @@ export const authRouter = createTRPCRouter({
                 });
             }
 
-            const { generateMfaCode, storeMfaCode } = await import("@/lib/mfa-codes")
             const { sendEmail } = await import("@/lib/mailer")
             const { renderEmailLayout, emailCodeBlock, APP_NAME } = await import(
                 "@/lib/email-template"
@@ -1919,23 +1482,10 @@ export const authRouter = createTRPCRouter({
         .input(z.object({
             code: z.string().min(6).max(6),
         }))
-        .mutation(async ({ input }) => {
-            const session = await getSession()
-            if (!session) {
-                throw new TRPCError({
-                    code: "UNAUTHORIZED",
-                    message: "Not authenticated",
-                });
-            }
-            const user = await prisma.user.findUnique({ where: { id: session.userId } })
-            if (!user) {
-                throw new TRPCError({
-                    code: "NOT_FOUND",
-                    message: "User not found",
-                });
-            }
+        .mutation(async ({ input, ctx }) => {
+            requireSession(ctx)
+            const user = requireUser(ctx)
 
-            const { verifyMfaCode } = await import("@/lib/mfa-codes")
             const isValid = await verifyMfaCode(user.id, "EMAIL", input.code)
             
             if (!isValid) {
@@ -1946,7 +1496,6 @@ export const authRouter = createTRPCRouter({
             }
 
             // Create audit logs
-            const { createAuditLog } = await import("@/lib/audit-log")
             await Promise.all([
                 createAuditLog({
                     action: "MFA_VERIFIED",
@@ -1964,34 +1513,20 @@ export const authRouter = createTRPCRouter({
                 }),
             ])
 
-            await createSession(user.id, user.email, { mfaVerified: true });
+            await createVerifiedSession(user.id, user.email);
             return { success: true };
         }),
 
     // WebAuthn MFA
     generateWebAuthnRegistration: baseProcedure
-        .query(async () => {
-            const session = await getSession()
-            if (!session) {
-                throw new TRPCError({
-                    code: "UNAUTHORIZED",
-                    message: "Not authenticated",
-                });
-            }
-            const user = await prisma.user.findUnique({
-                where: { id: session.userId },
-                include: { mfaCredentials: true },
-            })
-            if (!user) {
-                throw new TRPCError({
-                    code: "NOT_FOUND",
-                    message: "User not found",
-                });
-            }
+        .query(async ({ ctx }) => {
+            const session = requireSession(ctx)
+            const user = requireUser(ctx)
+            const mfaCredentials = await prisma.mfaCredential.findMany({ where: { userId: user.id } })
 
             // Check if WebAuthn credentials are configured
             const { checkWebAuthnCredentials } = await import("@/lib/webauthn")
-            const credentialsCheck = await checkWebAuthnCredentials()
+            const credentialsCheck = await checkWebAuthnCredentials(ctx.companyId)
             if (!credentialsCheck.configured) {
                 throw new TRPCError({
                     code: "BAD_REQUEST",
@@ -2001,7 +1536,7 @@ export const authRouter = createTRPCRouter({
 
             const { generateWebAuthnRegistrationOptions } = await import("@/lib/webauthn")
             
-            const existingCredentials = user.mfaCredentials.map((cred) => ({
+            const existingCredentials = mfaCredentials.map((cred) => ({
                 credentialID: cred.credentialId,
                 publicKey: cred.publicKey,
                 counter: Number(cred.counter),
@@ -2017,10 +1552,7 @@ export const authRouter = createTRPCRouter({
                 existingCredentials
             )
 
-            // Store challenge temporarily (in production, use Redis)
-            const challengeStore = (global as unknown as { webauthnChallenges: Map<string, string> }).webauthnChallenges || new Map()
-            challengeStore.set(session.userId, challenge)
-            ;(global as unknown as { webauthnChallenges: Map<string, string> }).webauthnChallenges = challengeStore
+            await setSignedCookie(WEBAUTHN_REG_COOKIE, { userId: session.userId, challenge }, CHALLENGE_TTL_SECONDS)
 
             return { options };
         }),
@@ -2029,25 +1561,11 @@ export const authRouter = createTRPCRouter({
         .input(z.object({
             response: z.any(),
         }))
-        .mutation(async ({ input }) => {
-            const session = await getSession()
-            if (!session) {
-                throw new TRPCError({
-                    code: "UNAUTHORIZED",
-                    message: "Not authenticated",
-                });
-            }
-            const user = await prisma.user.findUnique({ where: { id: session.userId } })
-            if (!user) {
-                throw new TRPCError({
-                    code: "NOT_FOUND",
-                    message: "User not found",
-                });
-            }
+        .mutation(async ({ input, ctx }) => {
+            const session = requireSession(ctx)
+            const user = requireUser(ctx)
 
-            const challengeStore = (global as unknown as { webauthnChallenges: Map<string, string> }).webauthnChallenges || new Map()
-            const expectedChallenge = challengeStore.get(session.userId)
-            challengeStore.delete(session.userId)
+            const expectedChallenge = await takeChallenge(WEBAUTHN_REG_COOKIE, session.userId)
 
             if (!expectedChallenge) {
                 throw new TRPCError({
@@ -2089,26 +1607,12 @@ export const authRouter = createTRPCRouter({
         }),
 
     generateWebAuthnAuthentication: baseProcedure
-        .query(async () => {
-            const session = await getSession()
-            if (!session) {
-                throw new TRPCError({
-                    code: "UNAUTHORIZED",
-                    message: "Not authenticated",
-                });
-            }
-            const user = await prisma.user.findUnique({
-                where: { id: session.userId },
-                include: { mfaCredentials: true },
-            })
-            if (!user) {
-                throw new TRPCError({
-                    code: "NOT_FOUND",
-                    message: "User not found",
-                });
-            }
+        .query(async ({ ctx }) => {
+            const session = requireSession(ctx)
+            const user = requireUser(ctx)
+            const mfaCredentials = await prisma.mfaCredential.findMany({ where: { userId: user.id } })
 
-            if (user.mfaCredentials.length === 0) {
+            if (mfaCredentials.length === 0) {
                 throw new TRPCError({
                     code: "BAD_REQUEST",
                     message: "No WebAuthn credentials found",
@@ -2117,7 +1621,7 @@ export const authRouter = createTRPCRouter({
 
             // Check if WebAuthn credentials are configured
             const { checkWebAuthnCredentials } = await import("@/lib/webauthn")
-            const credentialsCheck = await checkWebAuthnCredentials()
+            const credentialsCheck = await checkWebAuthnCredentials(ctx.companyId)
             if (!credentialsCheck.configured) {
                 throw new TRPCError({
                     code: "BAD_REQUEST",
@@ -2127,7 +1631,7 @@ export const authRouter = createTRPCRouter({
 
             const { generateWebAuthnAuthenticationOptions } = await import("@/lib/webauthn")
             
-            const credentials = user.mfaCredentials.map((cred) => ({
+            const credentials = mfaCredentials.map((cred) => ({
                 credentialID: cred.credentialId,
                 publicKey: cred.publicKey,
                 counter: Number(cred.counter),
@@ -2138,10 +1642,7 @@ export const authRouter = createTRPCRouter({
 
             const { options, challenge } = await generateWebAuthnAuthenticationOptions(credentials)
 
-            // Store challenge temporarily
-            const challengeStore = (global as unknown as { webauthnChallenges: Map<string, string> }).webauthnChallenges || new Map()
-            challengeStore.set(session.userId, challenge)
-            ;(global as unknown as { webauthnChallenges: Map<string, string> }).webauthnChallenges = challengeStore
+            await setSignedCookie(WEBAUTHN_AUTH_COOKIE, { userId: session.userId, challenge }, CHALLENGE_TTL_SECONDS)
 
             return { options };
         }),
@@ -2150,28 +1651,12 @@ export const authRouter = createTRPCRouter({
         .input(z.object({
             response: z.any(),
         }))
-        .mutation(async ({ input }) => {
-            const session = await getSession()
-            if (!session) {
-                throw new TRPCError({
-                    code: "UNAUTHORIZED",
-                    message: "Not authenticated",
-                });
-            }
-            const user = await prisma.user.findUnique({
-                where: { id: session.userId },
-                include: { mfaCredentials: true },
-            })
-            if (!user) {
-                throw new TRPCError({
-                    code: "NOT_FOUND",
-                    message: "User not found",
-                });
-            }
+        .mutation(async ({ input, ctx }) => {
+            const session = requireSession(ctx)
+            const user = requireUser(ctx)
+            const mfaCredentials = await prisma.mfaCredential.findMany({ where: { userId: user.id } })
 
-            const challengeStore = (global as unknown as { webauthnChallenges: Map<string, string> }).webauthnChallenges || new Map()
-            const expectedChallenge = challengeStore.get(session.userId)
-            challengeStore.delete(session.userId)
+            const expectedChallenge = await takeChallenge(WEBAUTHN_AUTH_COOKIE, session.userId)
 
             if (!expectedChallenge) {
                 throw new TRPCError({
@@ -2184,7 +1669,7 @@ export const authRouter = createTRPCRouter({
             // The response.id is already base64url encoded
             const response = input.response as AuthenticationResponseJSON
             const credentialId = response.id
-            const credential = user.mfaCredentials.find((c) => c.credentialId === credentialId)
+            const credential = mfaCredentials.find((c) => c.credentialId === credentialId)
 
             if (!credential) {
                 throw new TRPCError({
@@ -2228,7 +1713,6 @@ export const authRouter = createTRPCRouter({
             }
 
             // Create audit logs
-            const { createAuditLog } = await import("@/lib/audit-log")
             await Promise.all([
                 createAuditLog({
                     action: "MFA_VERIFIED",
@@ -2246,33 +1730,19 @@ export const authRouter = createTRPCRouter({
                 }),
             ])
 
-            await createSession(user.id, user.email, { mfaVerified: true });
+            await createVerifiedSession(user.id, user.email);
             return { success: true };
         }),
 
     // Recovery Codes
     generateRecoveryCodes: baseProcedure
-        .mutation(async () => {
-            const session = await getSession()
-            if (!session) {
-                throw new TRPCError({
-                    code: "UNAUTHORIZED",
-                    message: "Not authenticated",
-                });
-            }
-            const user = await prisma.user.findUnique({ where: { id: session.userId } })
-            if (!user) {
-                throw new TRPCError({
-                    code: "NOT_FOUND",
-                    message: "User not found",
-                });
-            }
+        .mutation(async ({ ctx }) => {
+            requireSession(ctx)
+            const user = requireUser(ctx)
 
             // Check if recovery codes are enabled
-            const recoveryCodesEnabled = await prisma.settings.findUnique({
-                where: { key: "mfa.recovery_codes_enabled" },
-            })
-            if (!recoveryCodesEnabled || recoveryCodesEnabled.value !== true) {
+            const recoverySettings = await getSettings(["mfa.recovery_codes_enabled", "mfa.recovery_codes_count"], ctx.companyId)
+            if (recoverySettings.get("mfa.recovery_codes_enabled") !== true) {
                 throw new TRPCError({
                     code: "BAD_REQUEST",
                     message: "Recovery codes are not enabled",
@@ -2280,42 +1750,29 @@ export const authRouter = createTRPCRouter({
             }
 
             // Get count from settings
-            const recoveryCodesCountSetting = await prisma.settings.findUnique({
-                where: { key: "mfa.recovery_codes_count" },
-            })
-            const count = (recoveryCodesCountSetting?.value as number) || 10
+            const count = (recoverySettings.get("mfa.recovery_codes_count") as number | undefined) || 10
 
             // Generate new codes
             const { generateRecoveryCodes, hashRecoveryCode } = await import("@/lib/recovery-codes")
             const codes = generateRecoveryCodes(count)
 
-            // Delete old unused codes
-            await prisma.recoveryCode.deleteMany({
-                where: {
-                    userId: user.id,
-                    used: false,
-                },
-            })
-
-            // Hash and store new codes (hash without dashes for consistency)
-            // Codes are displayed with dashes but stored/hashed without dashes
+            // Hash (in parallel, off the main thread) without dashes: codes are displayed with dashes but stored without
             const hashedCodes = await Promise.all(
-                codes.map((formattedCode) => {
-                    const rawCode = formattedCode.replace(/-/g, "").toUpperCase()
-                    return hashRecoveryCode(rawCode)
-                })
+                codes.map((formattedCode) => hashRecoveryCode(formattedCode.replace(/-/g, "").toUpperCase()))
             )
 
-            await Promise.all(
-                hashedCodes.map((hash) =>
-                    prisma.recoveryCode.create({
-                        data: {
-                            userId: user.id,
-                            codeHash: hash,
-                        },
-                    })
-                )
-            )
+            // Replace the old unused codes with the new ones in one transaction
+            await prisma.$transaction([
+                prisma.recoveryCode.deleteMany({
+                    where: {
+                        userId: user.id,
+                        used: false,
+                    },
+                }),
+                prisma.recoveryCode.createMany({
+                    data: hashedCodes.map((codeHash) => ({ userId: user.id, codeHash })),
+                }),
+            ])
 
             // Return plain codes only once (user should save them)
             return { codes };
@@ -2325,46 +1782,36 @@ export const authRouter = createTRPCRouter({
         .input(z.object({
             code: z.string().min(1),
         }))
-        .mutation(async ({ input }) => {
-            const session = await getSession()
-            if (!session) {
-                throw new TRPCError({
-                    code: "UNAUTHORIZED",
-                    message: "Not authenticated",
-                });
-            }
-            const user = await prisma.user.findUnique({
-                where: { id: session.userId },
-                include: { recoveryCodes: true },
-            })
-            if (!user) {
-                throw new TRPCError({
-                    code: "NOT_FOUND",
-                    message: "User not found",
-                });
-            }
+        .mutation(async ({ input, ctx }) => {
+            const session = requireSession(ctx)
+            const user = requireUser(ctx)
 
-            // Find unused recovery code
-            const unusedCodes = user.recoveryCodes.filter((rc) => !rc.used)
+            const unusedCodes = await prisma.recoveryCode.findMany({
+                where: { userId: user.id, used: false },
+                select: { id: true, codeHash: true },
+            })
             const { verifyRecoveryCode } = await import("@/lib/recovery-codes")
 
             // Remove dashes from input code for verification
             const normalizedCode = input.code.replace(/-/g, "").toUpperCase()
 
-            for (const recoveryCode of unusedCodes) {
-                const isValid = await verifyRecoveryCode(normalizedCode, recoveryCode.codeHash)
-                if (isValid) {
-                    // Mark as used
-                    await prisma.recoveryCode.update({
-                        where: { id: recoveryCode.id },
-                        data: {
-                            used: true,
-                            usedAt: new Date(),
-                        },
-                    })
+            // Every unused hash is checked at once instead of one slow compare after another
+            const results = await Promise.all(
+                unusedCodes.map(async (recoveryCode) => ({
+                    id: recoveryCode.id,
+                    valid: await verifyRecoveryCode(normalizedCode, recoveryCode.codeHash),
+                }))
+            )
+            const match = results.find((r) => r.valid)
 
-                    // Create audit logs
-                    const { createAuditLog } = await import("@/lib/audit-log")
+            if (match) {
+                // Mark as used; the conditional update makes a code usable only once even when two requests race
+                const claimed = await prisma.recoveryCode.updateMany({
+                    where: { id: match.id, used: false },
+                    data: { used: true, usedAt: new Date() },
+                })
+
+                if (claimed.count === 1) {
                     await Promise.all([
                         createAuditLog({
                             action: "MFA_VERIFIED",
@@ -2382,7 +1829,7 @@ export const authRouter = createTRPCRouter({
                         }),
                     ])
 
-                    await createSession(user.id, user.email, { mfaVerified: true });
+                    await createVerifiedSession(user.id, user.email);
                     return { success: true };
                 }
             }
@@ -2394,14 +1841,8 @@ export const authRouter = createTRPCRouter({
         }),
 
     listRecoveryCodes: baseProcedure
-        .query(async () => {
-            const session = await getSession()
-            if (!session) {
-                throw new TRPCError({
-                    code: "UNAUTHORIZED",
-                    message: "Not authenticated",
-                });
-            }
+        .query(async ({ ctx }) => {
+            const session = requireSession(ctx)
             const recoveryCodes = await prisma.recoveryCode.findMany({
                 where: {
                     userId: session.userId,
@@ -2434,10 +1875,8 @@ export const authRouter = createTRPCRouter({
         }))
         .mutation(async ({ input, ctx }) => {
             // Check if admin MFA reset is enabled (default to true if setting doesn't exist)
-            const adminResetSetting = await prisma.settings.findUnique({
-                where: { key: "mfa.admin_reset_enabled" },
-            })
-            const adminResetEnabled = adminResetSetting ? (adminResetSetting.value === true) : true // Default to true if not set
+            const adminResetSetting = await getSetting("mfa.admin_reset_enabled", ctx.companyId)
+            const adminResetEnabled = adminResetSetting !== undefined ? adminResetSetting === true : true // Default to true if not set
             if (!adminResetEnabled) {
                 throw new TRPCError({
                     code: "FORBIDDEN",
@@ -2549,10 +1988,7 @@ export const authRouter = createTRPCRouter({
             return next({ ctx });
         })
         .mutation(async ({ ctx }) => {
-            const user = await prisma.user.findUnique({
-                where: { id: ctx.userId },
-                select: { id: true, email: true, emailVerified: true },
-            });
+            const user = ctx.user;
 
             if (!user) {
                 throw new TRPCError({
@@ -2587,7 +2023,6 @@ export const authRouter = createTRPCRouter({
             }
 
             // Create audit log
-            const { createAuditLog } = await import("@/lib/audit-log");
             await createAuditLog({
                 action: "EMAIL_VERIFICATION_SENT",
                 resource: "User",
@@ -2627,6 +2062,7 @@ export const authRouter = createTRPCRouter({
                     id: true,
                     email: true,
                     emailVerified: true,
+                    company: { select: { subdomain: true } },
                 },
             });
 
@@ -2642,7 +2078,6 @@ export const authRouter = createTRPCRouter({
             });
 
             // Create audit log
-            const { createAuditLog } = await import("@/lib/audit-log");
             await createAuditLog({
                 action: "EMAIL_VERIFIED",
                 resource: "User",
@@ -2652,6 +2087,8 @@ export const authRouter = createTRPCRouter({
 
             return {
                 success: true,
+                // The app lives on the company's subdomain; the client needs it to continue
+                companySubdomain: user.company?.subdomain ?? null,
                 user: {
                     id: user.id,
                     email: user.email,
@@ -2671,10 +2108,7 @@ export const authRouter = createTRPCRouter({
             return next({ ctx });
         })
         .mutation(async ({ ctx }) => {
-            const user = await prisma.user.findUnique({
-                where: { id: ctx.userId },
-                select: { id: true, email: true, emailVerified: true },
-            });
+            const user = ctx.user;
 
             if (!user) {
                 throw new TRPCError({
@@ -2690,15 +2124,27 @@ export const authRouter = createTRPCRouter({
                 });
             }
 
+            // Authenticated, but still sends mail: limit per user
+            const resendLimit = await getThreatDetectionConfig();
+            if (resendLimit.enabled && resendLimit.rateLimiting.enabled) {
+                const check = await checkRateLimit(user.id, "USER", "RESEND_VERIFICATION", resendLimit.rateLimiting.passwordReset, ctx.companyId);
+                if (check.exceeded) {
+                    throw new TRPCError({
+                        code: "TOO_MANY_REQUESTS",
+                        message: `Too many attempts. Please try again after ${check.resetAt.toLocaleTimeString()}.`,
+                    });
+                }
+            }
+
             const { createVerificationToken, sendVerificationEmail } = await import("@/lib/email-verification");
             const token = await createVerificationToken(user.id, user.email);
-            
+
             // Get base URL for verification link
             const headersList = await headers();
             const protocol = headersList.get("x-forwarded-proto") || "http";
             const host = headersList.get("host") || "localhost:3000";
             const baseUrl = `${protocol}://${host}`;
-            
+
             const result = await sendVerificationEmail(user.id, user.email, token, baseUrl);
 
             if (!result.success) {
@@ -2709,7 +2155,6 @@ export const authRouter = createTRPCRouter({
             }
 
             // Create audit log
-            const { createAuditLog } = await import("@/lib/audit-log");
             await createAuditLog({
                 action: "EMAIL_VERIFICATION_RESENT",
                 resource: "User",
@@ -2728,6 +2173,8 @@ export const authRouter = createTRPCRouter({
             })
         )
         .mutation(async ({ input, ctx }) => {
+            await enforceRecoveryRateLimit("FORGOT_PASSWORD", input.email)
+
             // Get companyId from subdomain if available (for multi-tenancy)
             let companyId: string | undefined = undefined
             if (ctx.subdomain) {
@@ -2757,35 +2204,33 @@ export const authRouter = createTRPCRouter({
                 },
             })
 
-            // Don't reveal if user exists (security best practice)
-            if (!user) {
-                // Still return success to prevent email enumeration
-                return { success: true }
-            }
-
-            // Determine which email to use (prefer recovery email if provided)
-            const emailToUse = user.recoveryEmail || user.email
-
-            // Create password reset token
-            const { createPasswordResetToken, sendPasswordResetEmail } = await import("@/lib/password-reset")
-            const token = await createPasswordResetToken(user.id, emailToUse)
-
             // Get base URL for reset link
             const headersList = await headers()
             const protocol = headersList.get("x-forwarded-proto") || "http"
             const host = headersList.get("host") || "localhost:3000"
             const baseUrl = `${protocol}://${host}`
 
-            // Send password reset email
-            await sendPasswordResetEmail(user.id, emailToUse, token, baseUrl)
+            // Same path whether or not the account exists: the token and email work happens after the
+            // response, so response time does not reveal which addresses are registered
+            await runAfter(async () => {
+                if (!user) return
 
-            // Create audit log
-            const { createAuditLog } = await import("@/lib/audit-log")
-            await createAuditLog({
-                action: "PASSWORD_RESET_REQUESTED",
-                resource: "User",
-                resourceId: user.id,
-                userId: user.id,
+                // Prefer the recovery email if provided
+                const emailToUse = user.recoveryEmail || user.email
+
+                const { createPasswordResetToken, sendPasswordResetEmail } = await import("@/lib/password-reset")
+                const token = await createPasswordResetToken(user.id, emailToUse)
+                await sendPasswordResetEmail(user.id, emailToUse, token, baseUrl)
+
+                await createAuditLog(
+                    {
+                        action: "PASSWORD_RESET_REQUESTED",
+                        resource: "User",
+                        resourceId: user.id,
+                        userId: user.id,
+                    },
+                    { sync: true }
+                )
             })
 
             return { success: true }
@@ -2799,6 +2244,8 @@ export const authRouter = createTRPCRouter({
             })
         )
         .mutation(async ({ input }) => {
+            await enforceRecoveryRateLimit("RESET_PASSWORD")
+
             // Verify token
             const { verifyPasswordResetToken, markPasswordResetTokenAsUsed } = await import("@/lib/password-reset")
             const verification = await verifyPasswordResetToken(input.token)
@@ -2838,7 +2285,6 @@ export const authRouter = createTRPCRouter({
             })
 
             // Create audit log
-            const { createAuditLog } = await import("@/lib/audit-log")
             await createAuditLog({
                 action: "PASSWORD_RESET_COMPLETED",
                 resource: "User",
@@ -2875,7 +2321,6 @@ export const authRouter = createTRPCRouter({
             await setSecurityQuestions(ctx.userId!, input.questions)
 
             // Create audit log
-            const { createAuditLog } = await import("@/lib/audit-log")
             await createAuditLog({
                 action: "SECURITY_QUESTIONS_SET",
                 resource: "User",
@@ -2916,6 +2361,8 @@ export const authRouter = createTRPCRouter({
             })
         )
         .mutation(async ({ input, ctx }) => {
+            await enforceRecoveryRateLimit("VERIFY_SECURITY_QUESTIONS", input.email)
+
             // Get companyId from subdomain if available (for multi-tenancy)
             let companyId: string | undefined = undefined
             if (ctx.subdomain) {
@@ -2952,7 +2399,6 @@ export const authRouter = createTRPCRouter({
 
             if (!result.valid) {
                 // Create audit log for failed attempt
-                const { createAuditLog } = await import("@/lib/audit-log")
                 await createAuditLog({
                     action: "SECURITY_QUESTIONS_VERIFICATION_FAILED",
                     resource: "User",
@@ -2967,7 +2413,6 @@ export const authRouter = createTRPCRouter({
             }
 
             // Create audit log for successful verification
-            const { createAuditLog } = await import("@/lib/audit-log")
             await createAuditLog({
                 action: "SECURITY_QUESTIONS_VERIFIED",
                 resource: "User",
@@ -2992,6 +2437,8 @@ export const authRouter = createTRPCRouter({
             })
         )
         .mutation(async ({ input, ctx }) => {
+            await enforceRecoveryRateLimit("SECURITY_QUESTIONS_LOOKUP", input.email)
+
             // Get companyId from subdomain if available (for multi-tenancy)
             let companyId: string | undefined = undefined
             if (ctx.subdomain) {
@@ -3053,6 +2500,8 @@ export const authRouter = createTRPCRouter({
             })
         )
         .mutation(async ({ input }) => {
+            await enforceRecoveryRateLimit("RESET_PASSWORD_SECURITY_QUESTIONS")
+
             // Authorization: the reset is only allowed with a valid, unexpired,
             // single-use token proving the security questions were just answered.
             const { verifyPasswordResetToken, markPasswordResetTokenAsUsed } = await import(
@@ -3093,7 +2542,6 @@ export const authRouter = createTRPCRouter({
             })
 
             // Create audit log
-            const { createAuditLog } = await import("@/lib/audit-log")
             await createAuditLog({
                 action: "PASSWORD_RESET_VIA_SECURITY_QUESTIONS",
                 resource: "User",
@@ -3122,10 +2570,7 @@ export const authRouter = createTRPCRouter({
         )
         .mutation(async ({ input, ctx }) => {
             // Get current user's companyId for multi-tenancy check
-            const currentUser = await prisma.user.findUnique({
-                where: { id: ctx.userId! },
-                select: { companyId: true },
-            })
+            const currentUser = { companyId: ctx.companyId }
 
             // Check if email is already used by another user in the same company
             const existingUser = await prisma.user.findFirst({
@@ -3167,7 +2612,6 @@ export const authRouter = createTRPCRouter({
             await sendVerificationEmail(ctx.userId!, input.email, token, baseUrl)
 
             // Create audit log
-            const { createAuditLog } = await import("@/lib/audit-log")
             await createAuditLog({
                 action: "RECOVERY_EMAIL_SET",
                 resource: "User",
@@ -3223,7 +2667,6 @@ export const authRouter = createTRPCRouter({
             })
 
             // Create audit log
-            const { createAuditLog } = await import("@/lib/audit-log")
             await createAuditLog({
                 action: "RECOVERY_EMAIL_REMOVED",
                 resource: "User",
@@ -3283,11 +2726,7 @@ export const authRouter = createTRPCRouter({
                 origin
             )
 
-            // Store challenge in memory (you might want to use Redis in production)
-            if (!globalWithPasskeys.passkeyRegistrationChallenges) {
-                globalWithPasskeys.passkeyRegistrationChallenges = new Map()
-            }
-            globalWithPasskeys.passkeyRegistrationChallenges.set(user.id, challenge)
+            await setSignedCookie(PASSKEY_REG_COOKIE, { userId: user.id, challenge }, CHALLENGE_TTL_SECONDS)
 
             return { options }
         }),
@@ -3308,9 +2747,7 @@ export const authRouter = createTRPCRouter({
             name: z.string().min(1, "Please provide a name for this passkey"),
         }))
         .mutation(async ({ input, ctx }) => {
-            const challengeStore = globalWithPasskeys.passkeyRegistrationChallenges || new Map()
-            const expectedChallenge = challengeStore.get(ctx.userId!)
-            challengeStore.delete(ctx.userId!)
+            const expectedChallenge = await takeChallenge(PASSKEY_REG_COOKIE, ctx.userId!)
 
             if (!expectedChallenge) {
                 throw new TRPCError({
@@ -3350,7 +2787,6 @@ export const authRouter = createTRPCRouter({
             })
 
             // Create audit log
-            const { createAuditLog } = await import("@/lib/audit-log")
             await createAuditLog({
                 action: "PASSKEY_REGISTERED",
                 resource: "User",
@@ -3405,14 +2841,12 @@ export const authRouter = createTRPCRouter({
             // This is more reliable than specifying credential IDs which may have encoding issues
             const { options, challenge } = await generateWebAuthnAuthenticationOptions([], origin)
 
-            // Store challenge and userId for verification
-            if (!globalWithPasskeys.passkeyAuthenticationChallenges) {
-                globalWithPasskeys.passkeyAuthenticationChallenges = new Map()
-            }
-            globalWithPasskeys.passkeyAuthenticationChallenges.set(input.email, {
-                challenge,
-                userId: user.id,
-            })
+            // Challenge, user and email travel in a signed httpOnly cookie
+            await setSignedCookie(
+                PASSKEY_AUTH_COOKIE,
+                { userId: user.id, email: input.email, challenge },
+                CHALLENGE_TTL_SECONDS
+            )
 
             return { options }
         }),
@@ -3424,9 +2858,8 @@ export const authRouter = createTRPCRouter({
             response: z.unknown(),
         }))
         .mutation(async ({ input, ctx }) => {
-            const challengeStore = globalWithPasskeys.passkeyAuthenticationChallenges || new Map()
-            const storedData = challengeStore.get(input.email)
-            challengeStore.delete(input.email)
+            const stored = await takeSignedCookie<{ userId: string; email: string; challenge: string }>(PASSKEY_AUTH_COOKIE)
+            const storedData = stored && stored.email === input.email ? stored : null
 
             if (!storedData) {
                 throw new TRPCError({
@@ -3551,7 +2984,6 @@ export const authRouter = createTRPCRouter({
             const ipAddress = headersList.get("x-forwarded-for") || headersList.get("x-real-ip") || null
             const userAgent = headersList.get("user-agent") || null
 
-            const { createAuditLog } = await import("@/lib/audit-log")
             await createAuditLog({
                 action: "LOGIN_PASSKEY",
                 resource: "User",
@@ -3638,7 +3070,6 @@ export const authRouter = createTRPCRouter({
             })
 
             // Create audit log
-            const { createAuditLog } = await import("@/lib/audit-log")
             await createAuditLog({
                 action: "PASSKEY_DELETED",
                 resource: "User",
@@ -3650,32 +3081,10 @@ export const authRouter = createTRPCRouter({
             return { success: true }
         }),
     checkEmailVerification: baseProcedure
-        .query(async () => {
-            const session = await getSession();
-            
-            if (!session) {
-                throw new TRPCError({
-                    code: "UNAUTHORIZED",
-                    message: "Not authenticated",
-                });
-            }
-
-            const user = await prisma.user.findUnique({
-                where: { id: session.userId },
-                select: {
-                    emailVerified: true,
-                },
-            });
-
-            if (!user) {
-                throw new TRPCError({
-                    code: "NOT_FOUND",
-                    message: "User not found",
-                });
-            }
-
+        .query(async ({ ctx }) => {
+            // Logged-out visitors (or a user that no longer exists) simply are not verified
             return {
-                emailVerified: user.emailVerified,
+                emailVerified: ctx.user?.emailVerified ?? null,
             };
         }),
 });

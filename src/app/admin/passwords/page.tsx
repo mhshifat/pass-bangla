@@ -1,10 +1,8 @@
 import { Suspense } from "react"
 import { HydrationBoundary } from "@tanstack/react-query"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import {
-  PasswordsTableSkeleton,
-  PasswordsEmptyState,
-} from "@/modules/passwords/client"
+import { PasswordsTableSkeleton } from "@/modules/passwords/client/passwords-table-skeleton"
+import { PasswordsEmptyState } from "@/modules/passwords/client/passwords-empty-state"
 import { caller } from "@/trpc/server"
 import { prefetchPasswordsData } from "@/modules/passwords/server/prefetch"
 import { PasswordsContent } from "./passwords-content"
@@ -32,33 +30,32 @@ export default async function PasswordsPage({ searchParams }: PasswordsPageProps
   const folderIds = params.folders ? params.folders.split(",").filter(Boolean) : undefined
   const searchFields = params.searchFields ? params.searchFields.split(",").filter(Boolean) as ("name" | "username" | "url" | "notes")[] : undefined
 
-  // Prefetch export filters and rotation reminders on the server
-  const dehydratedState = await prefetchPasswordsData()
-
+  // The shell streams immediately; the list boundary prefetches the hydrated
+  // queries (export filters, reminders) in parallel with the list itself. The
+  // boundary has no per-search key so a search/page change inside a transition
+  // keeps the current rows on screen instead of flashing the skeleton.
   return (
-    <HydrationBoundary state={dehydratedState}>
-      <div className="p-6 space-y-6">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <PasswordsPageHeader />
-          <PasswordsContent />
-        </div>
-
-        <Suspense fallback={<PasswordsStatsSkeleton />}>
-          <PasswordsStats />
-        </Suspense>
-
-        <Suspense key={`${currentPage}-${search}-${filter}-${tagIds?.join(",")}-${folderIds?.join(",")}-${searchFields?.join(",")}`} fallback={<PasswordsTableSkeleton />}>
-          <PasswordsListContent 
-            page={currentPage} 
-            search={search} 
-            filter={filter} 
-            tagIds={tagIds}
-            folderIds={folderIds}
-            searchFields={searchFields}
-          />
-        </Suspense>
+    <div className="p-6 space-y-6">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <PasswordsPageHeader />
+        <PasswordsContent />
       </div>
-    </HydrationBoundary>
+
+      <Suspense fallback={<PasswordsStatsSkeleton />}>
+        <PasswordsStats />
+      </Suspense>
+
+      <Suspense fallback={<PasswordsTableSkeleton />}>
+        <PasswordsListContent
+          page={currentPage}
+          search={search}
+          filter={filter}
+          tagIds={tagIds}
+          folderIds={folderIds}
+          searchFields={searchFields}
+        />
+      </Suspense>
+    </div>
   )
 }
 
@@ -102,19 +99,26 @@ async function PasswordsListContent({
   folderIds?: string[]
   searchFields?: ("name" | "username" | "url" | "notes")[]
 }) {
-  const { passwords, pagination } = await caller.passwords.list({
-    page,
-    pageSize: 10,
-    search: search || undefined,
-    filter: filter,
-    tagIds: tagIds && tagIds.length > 0 ? tagIds : undefined,
-    folderIds: folderIds && folderIds.length > 0 ? folderIds : undefined,
-    searchFields: searchFields && searchFields.length > 0 ? searchFields : undefined,
-  })
+  const [{ passwords, pagination }, dehydratedState] = await Promise.all([
+    caller.passwords.list({
+      page,
+      pageSize: 10,
+      search: search || undefined,
+      filter: filter,
+      tagIds: tagIds && tagIds.length > 0 ? tagIds : undefined,
+      folderIds: folderIds && folderIds.length > 0 ? folderIds : undefined,
+      searchFields: searchFields && searchFields.length > 0 ? searchFields : undefined,
+    }),
+    prefetchPasswordsData(),
+  ])
 
   if (passwords.length === 0) {
     return <PasswordsEmptyState isSearching={!!search || !!filter || !!tagIds?.length || !!folderIds?.length} />
   }
 
-  return <PasswordsListClient passwords={passwords} pagination={pagination} />
+  return (
+    <HydrationBoundary state={dehydratedState}>
+      <PasswordsListClient passwords={passwords} pagination={pagination} />
+    </HydrationBoundary>
+  )
 }

@@ -85,11 +85,38 @@ if (!process.env.PASSWORD_ENCRYPTION_KEY || PASSWORD_ENCRYPTION_KEY_RAW.length !
   )
 }
 
+/**
+ * PBKDF2 at 100,000 iterations costs tens of milliseconds and blocks the event
+ * loop, and every derivation here is a pure function of (key material, salt).
+ * Derived keys are therefore kept per instance. The map is indexed by a SHA-256
+ * of the inputs so no raw key material is used as a map key, and it is bounded
+ * (oldest entry evicted) so share tokens and owner ids cannot grow it forever.
+ */
+const DERIVED_KEY_CACHE_MAX = 500
+const derivedKeyCache = new Map<string, Buffer>()
+
+function deriveKeyCached(keyMaterial: string, salt: string, iterations: number, keyLength: number): Buffer {
+  const cacheId = crypto
+    .createHash("sha256")
+    .update(`${salt}:${iterations}:${keyLength}:${keyMaterial}`)
+    .digest("hex")
+  const cached = derivedKeyCache.get(cacheId)
+  if (cached) return cached
+
+  const key = crypto.pbkdf2Sync(keyMaterial, salt, iterations, keyLength, "sha256")
+  if (derivedKeyCache.size >= DERIVED_KEY_CACHE_MAX) {
+    const oldest = derivedKeyCache.keys().next().value
+    if (oldest !== undefined) derivedKeyCache.delete(oldest)
+  }
+  derivedKeyCache.set(cacheId, key)
+  return key
+}
+
 // Derive key for old encryption method (server-side)
 function deriveOldEncryptionKey(): Buffer {
   const KEY_DERIVATION_ITERATIONS = 100000
   const KEY_LENGTH = 32
-  return crypto.pbkdf2Sync(PASSWORD_ENCRYPTION_KEY_RAW, "password_encryption_salt", KEY_DERIVATION_ITERATIONS, KEY_LENGTH, "sha256")
+  return deriveKeyCached(PASSWORD_ENCRYPTION_KEY_RAW, "password_encryption_salt", KEY_DERIVATION_ITERATIONS, KEY_LENGTH)
 }
 
 // Decrypt using old server-side method
@@ -125,7 +152,7 @@ function deriveUserEncryptionKey(userId: string, salt: string = "password_encryp
   // but then the client would need access to it too
   const keyMaterial = userId
   
-  return crypto.pbkdf2Sync(keyMaterial, salt, KEY_DERIVATION_ITERATIONS, KEY_LENGTH, "sha256")
+  return deriveKeyCached(keyMaterial, salt, KEY_DERIVATION_ITERATIONS, KEY_LENGTH)
 }
 
 /**
@@ -137,7 +164,7 @@ export function deriveShareTokenEncryptionKey(shareToken: string, salt: string =
   // This provides encryption in transit while allowing client-side decryption
   const keyMaterial = shareToken
   
-  return crypto.pbkdf2Sync(keyMaterial, salt, KEY_DERIVATION_ITERATIONS, KEY_LENGTH, "sha256")
+  return deriveKeyCached(keyMaterial, salt, KEY_DERIVATION_ITERATIONS, KEY_LENGTH)
 }
 
 /**
@@ -290,13 +317,7 @@ export function storageKeyFingerprint(): string {
 /** Hardened storage key = PBKDF2(masterKey + ":" + ownerId). */
 function deriveStorageKey(ownerId: string, masterKey: string = getStorageMasterKey()): Buffer {
   const keyMaterial = `${masterKey}:${ownerId}`
-  return crypto.pbkdf2Sync(
-    keyMaterial,
-    "password_storage_salt_v2",
-    KEY_DERIVATION_ITERATIONS,
-    KEY_LENGTH,
-    "sha256"
-  )
+  return deriveKeyCached(keyMaterial, "password_storage_salt_v2", KEY_DERIVATION_ITERATIONS, KEY_LENGTH)
 }
 
 // GCM uses a 96-bit nonce (recommended) and produces a 128-bit auth tag.

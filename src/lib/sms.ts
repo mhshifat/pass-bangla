@@ -1,28 +1,18 @@
 import twilio from "twilio"
-import prisma from "@/lib/prisma"
+import { getSettings } from "@/lib/settings-cache"
 import { decrypt } from "@/lib/crypto"
 
 let twilioClient: twilio.Twilio | null = null
-let cachedCredentials: { accountSid: string; authToken: string; phoneNumber: string } | null = null
+let twilioClientKey: string | null = null
 
-async function getTwilioCredentials() {
-  // Return cached credentials if available
-  if (cachedCredentials) {
-    return cachedCredentials
-  }
-
-  // Fetch from database
-  const settings = await prisma.settings.findMany({
-    where: {
-      key: {
-        in: ["mfa.sms.account_sid", "mfa.sms.auth_token", "mfa.sms.phone_number"],
-      },
-    },
-  })
+async function getTwilioCredentials(companyId?: string | null) {
+  // Served from the shared settings cache (short TTL), so credential changes made on
+  // another instance are picked up without a process-lifetime cache here
+  const settings = await getSettings(["mfa.sms.account_sid", "mfa.sms.auth_token", "mfa.sms.phone_number"], companyId)
 
   const config: Record<string, string> = {}
-  settings.forEach((setting) => {
-    config[setting.key] = decrypt(setting.value as string)
+  settings.forEach((value, key) => {
+    config[key] = decrypt(value as string)
   })
 
   const accountSid = config["mfa.sms.account_sid"]
@@ -33,26 +23,28 @@ async function getTwilioCredentials() {
     return null
   }
 
-  cachedCredentials = { accountSid, authToken, phoneNumber }
-  return cachedCredentials
+  return { accountSid, authToken, phoneNumber }
 }
 
-async function getTwilioClient() {
-  if (twilioClient) {
-    return twilioClient
-  }
-
-  const credentials = await getTwilioCredentials()
+async function getTwilioClient(
+  credentials: { accountSid: string; authToken: string } | null
+) {
   if (!credentials) {
     return null
   }
 
+  const key = `${credentials.accountSid}:${credentials.authToken}`
+  if (twilioClient && twilioClientKey === key) {
+    return twilioClient
+  }
+
   twilioClient = twilio(credentials.accountSid, credentials.authToken)
+  twilioClientKey = key
   return twilioClient
 }
 
-export async function checkSmsCredentials(): Promise<{ configured: boolean; error?: string }> {
-  const credentials = await getTwilioCredentials()
+export async function checkSmsCredentials(companyId?: string | null): Promise<{ configured: boolean; error?: string }> {
+  const credentials = await getTwilioCredentials(companyId)
   if (!credentials) {
     return {
       configured: false,
@@ -62,29 +54,25 @@ export async function checkSmsCredentials(): Promise<{ configured: boolean; erro
   return { configured: true }
 }
 
-export async function sendSmsCode(phoneNumber: string, code: string): Promise<{ success: boolean; error?: string }> {
+export async function sendSmsCode(
+  phoneNumber: string,
+  code: string,
+  companyId?: string | null
+): Promise<{ success: boolean; error?: string }> {
   try {
-    const credentials = await checkSmsCredentials()
-    if (!credentials.configured) {
+    const creds = await getTwilioCredentials(companyId)
+    if (!creds) {
       return {
         success: false,
-        error: credentials.error || "SMS is not configured.",
+        error: "SMS credentials are not configured. Please configure them in Settings → MFA Credentials.",
       }
     }
 
-    const client = await getTwilioClient()
+    const client = await getTwilioClient(creds)
     if (!client) {
       return {
         success: false,
         error: "Failed to initialize Twilio client.",
-      }
-    }
-
-    const creds = await getTwilioCredentials()
-    if (!creds) {
-      return {
-        success: false,
-        error: "SMS credentials not found.",
       }
     }
 
@@ -106,6 +94,6 @@ export async function sendSmsCode(phoneNumber: string, code: string): Promise<{ 
 
 // Clear cache when credentials are updated
 export function clearSmsCredentialsCache() {
-  cachedCredentials = null
   twilioClient = null
+  twilioClientKey = null
 }

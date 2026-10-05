@@ -33,12 +33,17 @@ export function TemporaryPasswordShareView({ token }: TemporaryPasswordShareView
   const hasDecryptedRef = React.useRef(false)
   const totpIntervalRef = React.useRef<NodeJS.Timeout | null>(null)
 
-  const { data, isLoading, error } = trpc.passwords.accessTemporaryShare.useQuery(
-    { shareToken: token },
-    {
-      retry: false,
-    }
-  )
+  // Opening the link consumes an access, so it is a mutation fired exactly once per token
+  const accessMutation = trpc.passwords.accessTemporaryShare.useMutation({ retry: false })
+  const { data, error } = accessMutation
+  const isLoading = accessMutation.isPending || accessMutation.isIdle
+  const requestedTokenRef = React.useRef<string | null>(null)
+  React.useEffect(() => {
+    if (requestedTokenRef.current === token) return
+    requestedTokenRef.current = token
+    accessMutation.mutate({ shareToken: token })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token])
 
   // Decrypt password and TOTP code when data is available (only once)
   React.useEffect(() => {

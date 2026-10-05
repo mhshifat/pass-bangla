@@ -47,6 +47,39 @@ export interface ReportData {
   data: unknown[]
 }
 
+const MAX_REPORT_ROWS = 10000
+const CATEGORY_SAMPLE_SIZE = 100
+
+function rowLimit(config: ReportConfig): number {
+  const limit = Number(config.limit)
+  return limit > 0 ? Math.min(limit, MAX_REPORT_ROWS) : MAX_REPORT_ROWS
+}
+
+/**
+ * Totals and a bounded sample for one control category, computed in SQL
+ * instead of loading every audit row for the period.
+ */
+async function categoryStats(
+  baseWhere: Prisma.AuditLogWhereInput,
+  categoryWhere: Prisma.AuditLogWhereInput
+) {
+  const where: Prisma.AuditLogWhereInput = { AND: [baseWhere, categoryWhere] }
+  const [total, compliant, events] = await Promise.all([
+    prisma.auditLog.count({ where }),
+    prisma.auditLog.count({ where: { AND: [where, { status: "SUCCESS" }] } }),
+    prisma.auditLog.findMany({
+      where,
+      include: { user: { select: { id: true, name: true, email: true } } },
+      orderBy: { createdAt: "desc" },
+      take: CATEGORY_SAMPLE_SIZE,
+    }),
+  ])
+  return { total, compliant, nonCompliant: total - compliant, events }
+}
+
+const actionContains = (...terms: string[]): Prisma.AuditLogWhereInput[] =>
+  terms.map((term) => ({ action: { contains: term } }))
+
 /**
  * Generate report data based on report type and configuration
  */
@@ -98,11 +131,7 @@ async function generateAuditReport(
   const where: Prisma.AuditLogWhereInput = {}
 
   // Filter by company through user relation
-  if (companyId) {
-    where.user = {
-      companyId,
-    }
-  }
+  where.user = companyId ? { companyId } : { id: userId }
 
   if (config.filters?.dateRange) {
     where.createdAt = {
@@ -141,7 +170,7 @@ async function generateAuditReport(
     orderBy: config.sortBy
       ? { [config.sortBy]: config.sortOrder || "desc" }
       : { createdAt: "desc" },
-    take: config.limit || 10000,
+    take: rowLimit(config),
   })
 
   const data = logs.map((log) => ({
@@ -182,11 +211,7 @@ async function generateSecurityReport(
     status: { in: ["FAILED", "BLOCKED", "WARNING"] },
   }
   
-  if (companyId) {
-    where.user = {
-      companyId,
-    }
-  }
+  where.user = companyId ? { companyId } : { id: userId }
 
   if (config.filters?.dateRange) {
     where.createdAt = {
@@ -195,7 +220,8 @@ async function generateSecurityReport(
     }
   }
 
-  const securityEvents = await prisma.auditLog.findMany({
+  const [securityEvents, threatEvents] = await Promise.all([
+    prisma.auditLog.findMany({
     where,
     include: {
       user: {
@@ -207,13 +233,12 @@ async function generateSecurityReport(
       },
     },
     orderBy: { createdAt: "desc" },
-    take: config.limit || 10000,
-  })
-
-  // Get threat events if available
-  const threatEvents = await prisma.threatEvent.findMany({
+    take: rowLimit(config),
+  }),
+  // Threat events
+  prisma.threatEvent.findMany({
     where: {
-      companyId: companyId || undefined,
+      companyId: companyId ?? null,
       ...(config.filters?.dateRange && {
         createdAt: {
           gte: config.filters.dateRange.start,
@@ -231,8 +256,9 @@ async function generateSecurityReport(
       },
     },
     orderBy: { createdAt: "desc" },
-    take: config.limit || 10000,
-  })
+    take: rowLimit(config),
+  }),
+  ])
 
   const data = [
     ...securityEvents.map((event) => ({
@@ -282,11 +308,7 @@ async function generateComplianceReport(
   // Compliance report includes audit logs, user activities, and policy compliance
   const where: Prisma.AuditLogWhereInput = {}
   
-  if (companyId) {
-    where.user = {
-      companyId,
-    }
-  }
+  where.user = companyId ? { companyId } : { id: userId }
 
   if (config.filters?.dateRange) {
     where.createdAt = {
@@ -308,7 +330,7 @@ async function generateComplianceReport(
       },
     },
     orderBy: { createdAt: "desc" },
-    take: config.limit || 10000,
+    take: rowLimit(config),
   })
 
   const data = logs.map((log) => ({
@@ -359,62 +381,39 @@ async function generateSOC2Report(
     },
   }
   
-  if (companyId) {
-    where.user = {
-      companyId,
-    }
-  }
+  where.user = companyId ? { companyId } : { id: userId }
 
-  const logs = await prisma.auditLog.findMany({
-    where,
-    include: {
-      user: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-        },
-      },
-    },
-    orderBy: { createdAt: "desc" },
-  })
-
-  // Group by SOC2 criteria
-  const securityControls = logs.filter(
-    (l) =>
-      l.action.includes("LOGIN") ||
-      l.action.includes("AUTH") ||
-      l.action.includes("MFA") ||
-      l.status === "BLOCKED"
-  )
-  const accessControls = logs.filter(
-    (l) => l.action.includes("ACCESS") || l.action.includes("PERMISSION")
-  )
-  const dataIntegrity = logs.filter(
-    (l) => l.action.includes("CREATE") || l.action.includes("UPDATE") || l.action.includes("DELETE")
-  )
+  const [totalRecords, successRecords, security, access, integrity] = await Promise.all([
+    prisma.auditLog.count({ where }),
+    prisma.auditLog.count({ where: { ...where, status: "SUCCESS" } }),
+    categoryStats(where, {
+      OR: [...actionContains("LOGIN", "AUTH", "MFA"), { status: "BLOCKED" }],
+    }),
+    categoryStats(where, { OR: actionContains("ACCESS", "PERMISSION") }),
+    categoryStats(where, { OR: actionContains("CREATE", "UPDATE", "DELETE") }),
+  ])
 
   const data = [
     {
       category: "Security",
-      totalEvents: securityControls.length,
-      compliant: securityControls.filter((l) => l.status === "SUCCESS").length,
-      nonCompliant: securityControls.filter((l) => l.status !== "SUCCESS").length,
-      events: securityControls.slice(0, 100),
+      totalEvents: security.total,
+      compliant: security.compliant,
+      nonCompliant: security.nonCompliant,
+      events: security.events,
     },
     {
       category: "Access Control",
-      totalEvents: accessControls.length,
-      compliant: accessControls.filter((l) => l.status === "SUCCESS").length,
-      nonCompliant: accessControls.filter((l) => l.status !== "SUCCESS").length,
-      events: accessControls.slice(0, 100),
+      totalEvents: access.total,
+      compliant: access.compliant,
+      nonCompliant: access.nonCompliant,
+      events: access.events,
     },
     {
       category: "Data Integrity",
-      totalEvents: dataIntegrity.length,
-      compliant: dataIntegrity.filter((l) => l.status === "SUCCESS").length,
-      nonCompliant: dataIntegrity.filter((l) => l.status !== "SUCCESS").length,
-      events: dataIntegrity.slice(0, 100),
+      totalEvents: integrity.total,
+      compliant: integrity.compliant,
+      nonCompliant: integrity.nonCompliant,
+      events: integrity.events,
     },
   ]
 
@@ -425,14 +424,11 @@ async function generateSOC2Report(
       complianceStandard: "SOC2 Type II",
     },
     summary: {
-      totalRecords: logs.length,
-      securityControls: securityControls.length,
-      accessControls: accessControls.length,
-      dataIntegrity: dataIntegrity.length,
-      complianceRate:
-        logs.length > 0
-          ? (logs.filter((l) => l.status === "SUCCESS").length / logs.length) * 100
-          : 100,
+      totalRecords,
+      securityControls: security.total,
+      accessControls: access.total,
+      dataIntegrity: integrity.total,
+      complianceRate: totalRecords > 0 ? (successRecords / totalRecords) * 100 : 100,
     },
     data,
   }
@@ -459,56 +455,39 @@ async function generateISO27001Report(
     },
   }
   
-  if (companyId) {
-    where.user = {
-      companyId,
-    }
-  }
+  where.user = companyId ? { companyId } : { id: userId }
 
-  const logs = await prisma.auditLog.findMany({
-    where,
-    include: {
-      user: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-        },
-      },
-    },
-    orderBy: { createdAt: "desc" },
-  })
-
-  // ISO27001 focuses on information security management
-  const accessControl = logs.filter(
-    (l) => l.action.includes("ACCESS") || l.action.includes("LOGIN") || l.action.includes("PERMISSION")
-  )
-  const cryptography = logs.filter((l) => l.action.includes("ENCRYPT") || l.action.includes("DECRYPT"))
-  const incidentManagement = logs.filter(
-    (l) => l.status === "FAILED" || l.status === "BLOCKED" || l.action.includes("THREAT")
-  )
+  const [totalRecords, successRecords, accessControl, cryptography, incident] = await Promise.all([
+    prisma.auditLog.count({ where }),
+    prisma.auditLog.count({ where: { ...where, status: "SUCCESS" } }),
+    categoryStats(where, { OR: actionContains("ACCESS", "LOGIN", "PERMISSION") }),
+    categoryStats(where, { OR: actionContains("ENCRYPT", "DECRYPT") }),
+    categoryStats(where, {
+      OR: [{ status: "FAILED" }, { status: "BLOCKED" }, ...actionContains("THREAT")],
+    }),
+  ])
 
   const data = [
     {
       control: "A.9 Access Control",
-      totalEvents: accessControl.length,
-      compliant: accessControl.filter((l) => l.status === "SUCCESS").length,
-      nonCompliant: accessControl.filter((l) => l.status !== "SUCCESS").length,
-      events: accessControl.slice(0, 100),
+      totalEvents: accessControl.total,
+      compliant: accessControl.compliant,
+      nonCompliant: accessControl.nonCompliant,
+      events: accessControl.events,
     },
     {
       control: "A.10 Cryptography",
-      totalEvents: cryptography.length,
-      compliant: cryptography.filter((l) => l.status === "SUCCESS").length,
-      nonCompliant: cryptography.filter((l) => l.status !== "SUCCESS").length,
-      events: cryptography.slice(0, 100),
+      totalEvents: cryptography.total,
+      compliant: cryptography.compliant,
+      nonCompliant: cryptography.nonCompliant,
+      events: cryptography.events,
     },
     {
       control: "A.16 Incident Management",
-      totalEvents: incidentManagement.length,
-      compliant: incidentManagement.filter((l) => l.status === "SUCCESS").length,
-      nonCompliant: incidentManagement.filter((l) => l.status !== "SUCCESS").length,
-      events: incidentManagement.slice(0, 100),
+      totalEvents: incident.total,
+      compliant: incident.compliant,
+      nonCompliant: incident.nonCompliant,
+      events: incident.events,
     },
   ]
 
@@ -519,14 +498,11 @@ async function generateISO27001Report(
       complianceStandard: "ISO/IEC 27001:2022",
     },
     summary: {
-      totalRecords: logs.length,
-      accessControl: accessControl.length,
-      cryptography: cryptography.length,
-      incidentManagement: incidentManagement.length,
-      complianceRate:
-        logs.length > 0
-          ? (logs.filter((l) => l.status === "SUCCESS").length / logs.length) * 100
-          : 100,
+      totalRecords,
+      accessControl: accessControl.total,
+      cryptography: cryptography.total,
+      incidentManagement: incident.total,
+      complianceRate: totalRecords > 0 ? (successRecords / totalRecords) * 100 : 100,
     },
     data,
   }
@@ -544,11 +520,7 @@ async function generateCustomReport(
   // Custom reports can combine multiple data sources based on config
   const where: Prisma.AuditLogWhereInput = {}
   
-  if (companyId) {
-    where.user = {
-      companyId,
-    }
-  }
+  where.user = companyId ? { companyId } : { id: userId }
 
   if (config.filters?.dateRange) {
     where.createdAt = {
@@ -605,7 +577,7 @@ async function generateCustomReport(
       },
     },
     orderBy,
-    take: config.limit || 10000,
+    take: rowLimit(config),
   })
 
   // Apply field selection if specified

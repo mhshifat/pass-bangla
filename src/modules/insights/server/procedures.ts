@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma"
 import { createTRPCRouter, protectedProcedure } from "@/trpc/init"
 import z from "zod"
+import { TRPCError } from "@trpc/server"
 import { Prisma } from "@/app/generated"
 
 export const insightsRouter = createTRPCRouter({
@@ -211,6 +212,11 @@ export const insightsRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       // Use companyId from context (already fetched, no extra query needed)
       const companyId = ctx.companyId
+
+      // Without a company these queries would aggregate every tenant
+      if (!companyId) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "A company is required" })
+      }
 
       const hasUserView = ctx.permissions.includes("user.view")
       const hasAuditView = ctx.permissions.includes("audit.view")
@@ -492,6 +498,11 @@ export const insightsRouter = createTRPCRouter({
       // Use companyId from context (already fetched, no extra query needed)
       const companyId = ctx.companyId
 
+      // Without a company these queries would aggregate every tenant
+      if (!companyId) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "A company is required" })
+      }
+
       const now = new Date()
       const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
       const startDate = input.dateRange?.start || thirtyDaysAgo
@@ -728,6 +739,11 @@ export const insightsRouter = createTRPCRouter({
       // Use companyId from context (already fetched, no extra query needed)
       const companyId = ctx.companyId
 
+      // Without a company these queries would aggregate every tenant
+      if (!companyId) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "A company is required" })
+      }
+
       const now = new Date()
       const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
       const startDate = input.dateRange?.start || thirtyDaysAgo
@@ -744,39 +760,8 @@ export const insightsRouter = createTRPCRouter({
         sharesByTeam,
         topCollaborators,
       ] = await Promise.all([
-        // Team counts - filter by company through members
-        companyId
-          ? prisma.team.count({
-              where: {
-                members: {
-                  some: {
-                    user: {
-                      companyId,
-                    },
-                  },
-                },
-              },
-            })
-          : prisma.team.count(),
-        // Active teams - filter by company through members
-        companyId
-          ? prisma.team.count({
-              where: {
-                members: {
-                  some: {
-                    user: {
-                      companyId,
-                    },
-                  },
-                },
-                updatedAt: { gte: startDate },
-              },
-            })
-          : prisma.team.count({
-              where: {
-                updatedAt: { gte: startDate },
-              },
-            }),
+        prisma.team.count({ where: { companyId } }),
+        prisma.team.count({ where: { companyId, updatedAt: { gte: startDate } } }),
         // Password shares
         prisma.passwordShare.count({
           where: {
@@ -871,14 +856,13 @@ export const insightsRouter = createTRPCRouter({
       if (companyId) {
         teamWhere.companyId = companyId
       }
-      const teams =
+      const teamsPromise =
         teamIds.length > 0
-          ? await prisma.team.findMany({
+          ? prisma.team.findMany({
               where: teamWhere,
               select: { id: true, name: true },
             })
-          : []
-      const teamMap = new Map(teams.map((t) => [t.id, t]))
+          : Promise.resolve([])
 
       // Get user names for top collaborators (filtered by company)
       const collaboratorIds = topCollaborators
@@ -888,13 +872,15 @@ export const insightsRouter = createTRPCRouter({
       if (companyId) {
         collaboratorWhere.companyId = companyId
       }
-      const collaborators =
+      const collaboratorsPromise =
         collaboratorIds.length > 0
-          ? await prisma.user.findMany({
+          ? prisma.user.findMany({
               where: collaboratorWhere,
               select: { id: true, name: true, email: true },
             })
-          : []
+          : Promise.resolve([])
+      const [teams, collaborators] = await Promise.all([teamsPromise, collaboratorsPromise])
+      const teamMap = new Map(teams.map((t) => [t.id, t]))
       const collaboratorMap = new Map(
         collaborators.map((u) => [u.id, u])
       )
@@ -952,6 +938,11 @@ export const insightsRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       // Use companyId from context (already fetched, no extra query needed)
       const companyId = ctx.companyId
+
+      // Without a company these queries would aggregate every tenant
+      if (!companyId) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "A company is required" })
+      }
 
       const now = new Date()
       let startDate: Date

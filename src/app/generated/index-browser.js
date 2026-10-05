@@ -385,6 +385,7 @@ exports.Prisma.AuditLogSearchScalarFieldEnum = {
 exports.Prisma.SettingsScalarFieldEnum = {
   id: 'id',
   key: 'key',
+  companyId: 'companyId',
   value: 'value',
   updatedAt: 'updatedAt'
 };

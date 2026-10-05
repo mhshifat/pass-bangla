@@ -1,19 +1,14 @@
 "use client"
 
-import { useEffect, useRef } from "react"
-import { gsap } from "gsap"
-import { ScrollTrigger } from "gsap/ScrollTrigger"
+import { useRef } from "react"
 import { Quote, Star } from "lucide-react"
 import { useTranslation } from "@/hooks/use-translation"
-import { cn } from "@/lib/utils"
-
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger)
-}
+import { useReveal } from "./use-reveal"
 
 export function TestimonialsSection() {
   const { t } = useTranslation()
   const sectionRef = useRef<HTMLDivElement>(null)
+  useReveal(sectionRef, "[data-testimonial-card]", 200)
 
   const testimonials = [
     {
@@ -38,27 +33,6 @@ export function TestimonialsSection() {
       rating: 5,
     },
   ]
-
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      const cards = sectionRef.current?.querySelectorAll("[data-testimonial-card]")
-      if (cards && cards.length > 0) {
-        gsap.from(cards, {
-          y: 50,
-          opacity: 0,
-          duration: 0.8,
-          stagger: 0.2,
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top 80%",
-            toggleActions: "play none none none",
-          },
-        })
-      }
-    }, sectionRef)
-
-    return () => ctx.revert()
-  }, [])
 
   return (
     <section
@@ -103,4 +77,3 @@ export function TestimonialsSection() {
     </section>
   )
 }
-

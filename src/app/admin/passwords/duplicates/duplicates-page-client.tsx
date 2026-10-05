@@ -22,7 +22,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { trpc } from "@/trpc/client"
 import { toast } from "sonner"
-import { BulkResolveDuplicatesDialog, PasswordDetailsDialog } from "@/modules/passwords/client"
+import { BulkResolveDuplicatesDialog } from "@/modules/passwords/client/bulk-resolve-duplicates-dialog"
+import { PasswordDetailsDialog } from "@/modules/passwords/client/password-details-dialog"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useCurrentUser } from "@/hooks/use-current-user"
 import { showErrorFromException } from "@/lib/error-toast"
@@ -70,6 +71,7 @@ export function DuplicatesPageClient() {
   const isRefreshing = duplicatesFetching || reusedFetching || similarFetching
 
   const { user: currentUser } = useCurrentUser()
+  const utils = trpc.useUtils()
 
   const handleResolve = (passwordIds: string[], keepPasswordId?: string) => {
     setSelectedGroup({ passwordIds, keepPasswordId })
@@ -82,12 +84,14 @@ export function DuplicatesPageClient() {
     refetchDuplicates()
     refetchReused()
     refetchSimilar()
-    router.refresh()
   }
 
-  const copyPassword = async (password: string) => {
+  // Plaintext is never part of the scan results; fetch it on demand (permission-checked, audited)
+  const copyPassword = async (passwordId: string) => {
     try {
-      await navigator.clipboard.writeText(password)
+      const result = await utils.passwords.getPassword.fetch({ id: passwordId })
+      if (!result?.password) return
+      await navigator.clipboard.writeText(result.password)
       toast.success(t("passwords.duplicates.passwordCopied"))
     } catch (error) { showErrorFromException(error, t("passwords.passwordCopyFailed")) }
   }
@@ -198,7 +202,7 @@ export function DuplicatesPageClient() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => copyPassword(group.password)}
+                              onClick={() => copyPassword(group.entries[0].id)}
                             >
                               <Copy className="h-4 w-4 mr-2" />
                               {t("passwords.duplicates.copyPassword")}
@@ -273,7 +277,7 @@ export function DuplicatesPageClient() {
                                           username: entry.username,
                                           url: entry.url,
                                           folder: null,
-                                          strength: "medium" as const,
+                                          strength: entry.strength,
                                           shared: false,
                                           sharedWith: [],
                                           lastModified: new Date().toISOString().split("T")[0],
@@ -351,7 +355,7 @@ export function DuplicatesPageClient() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => copyPassword(group.password)}
+                              onClick={() => copyPassword(group.entries[0].id)}
                             >
                               <Copy className="h-4 w-4 mr-2" />
                               {t("passwords.duplicates.copyPassword")}
@@ -426,7 +430,7 @@ export function DuplicatesPageClient() {
                                           username: entry.username,
                                           url: entry.url,
                                           folder: null,
-                                          strength: "medium" as const,
+                                          strength: entry.strength,
                                           shared: false,
                                           sharedWith: [],
                                           lastModified: new Date().toISOString().split("T")[0],
@@ -558,7 +562,15 @@ export function DuplicatesPageClient() {
                                     )}
                                   </TableCell>
                                   <TableCell className="font-mono text-sm">
-                                    {entry.password}
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="font-mono"
+                                      onClick={() => copyPassword(entry.id)}
+                                    >
+                                      <Copy className="h-3 w-3 mr-2" />
+                                      ••••••••
+                                    </Button>
                                   </TableCell>
                                   <TableCell>
                                     <div>
@@ -577,7 +589,7 @@ export function DuplicatesPageClient() {
                                           username: entry.username,
                                           url: entry.url,
                                           folder: null,
-                                          strength: "medium" as const,
+                                          strength: entry.strength,
                                           shared: false,
                                           sharedWith: [],
                                           lastModified: new Date().toISOString().split("T")[0],

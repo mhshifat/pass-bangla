@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma"
 import { Prisma } from "@/app/generated"
+import { invalidateRolePermissionsCache } from "@/lib/permissions"
 
 /**
  * Sync all permissions and update system roles
@@ -36,14 +37,17 @@ export async function syncPermissionsAndRoles() {
     { key: "report.delete", name: "Delete Reports", description: "Remove reports", category: "Reports" },
   ]
 
-  // Create missing permissions
-  await prisma.permission.createMany({
-    data: defaultPermissions,
-    skipDuplicates: true,
-  })
-
-  // Get all permissions
-  const allPermissions = await prisma.permission.findMany()
+  // Create only the permissions that are missing
+  let allPermissions = await prisma.permission.findMany()
+  const existingKeys = new Set(allPermissions.map((p) => p.key))
+  const missingPermissions = defaultPermissions.filter((p) => !existingKeys.has(p.key))
+  if (missingPermissions.length > 0) {
+    await prisma.permission.createMany({
+      data: missingPermissions,
+      skipDuplicates: true,
+    })
+    allPermissions = await prisma.permission.findMany()
+  }
   const permissionMap = new Map(allPermissions.map((p) => [p.key, p.id]))
 
   // Define system roles with their permissions
@@ -104,25 +108,32 @@ export async function syncPermissionsAndRoles() {
     },
   ]
 
-  // Update each system role
+  // Load existing system roles and their permission links once
+  const existingRoles = await prisma.role.findMany({
+    where: { name: { in: systemRoles.map((r) => r.name) }, companyId: null, isSystem: true },
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      permissions: { select: { permissionId: true } },
+    },
+  })
+  const existingByName = new Map(existingRoles.map((r) => [r.name, r]))
+
+  let changed = missingPermissions.length > 0
+
   for (const roleData of systemRoles) {
     const { permissions, ...roleInfo } = roleData
+    const existingRole = existingByName.get(roleInfo.name)
 
-    // Find existing system role (system roles have null companyId)
-    const existingRole = await prisma.role.findFirst({
-      where: { name: roleInfo.name, companyId: null, isSystem: true },
-    })
+    const permissionIds = permissions
+      .map((key) => permissionMap.get(key))
+      .filter((id): id is string => id !== undefined)
 
-    // Create or update the role
-    const role = existingRole
-      ? await prisma.role.update({
-          where: { id: existingRole.id },
-          data: {
-            description: roleInfo.description,
-            isSystem: true,
-          },
-        })
-      : await prisma.role.create({
+    if (!existingRole) {
+      // New role: create it with its permissions in one transaction
+      await prisma.$transaction(async (tx) => {
+        const role = await tx.role.create({
           data: {
             name: roleInfo.name,
             description: roleInfo.description,
@@ -130,28 +141,50 @@ export async function syncPermissionsAndRoles() {
             createdById: null,
           },
         })
-
-    // Get permission IDs for this role
-    const permissionIds = permissions
-      .map((key) => permissionMap.get(key))
-      .filter((id): id is string => id !== undefined)
-
-    // Delete existing permissions for this role (to ensure correct permissions)
-    await prisma.rolePermission.deleteMany({
-      where: { roleId: role.id },
-    })
-
-    // Assign permissions
-    if (permissionIds.length > 0) {
-      await prisma.rolePermission.createMany({
-        data: permissionIds.map((permissionId) => ({
-          roleId: role.id,
-          permissionId,
-        })),
-        skipDuplicates: true,
+        if (permissionIds.length > 0) {
+          await tx.rolePermission.createMany({
+            data: permissionIds.map((permissionId) => ({ roleId: role.id, permissionId })),
+            skipDuplicates: true,
+          })
+        }
       })
+      changed = true
+      continue
     }
+
+    const currentIds = new Set(existingRole.permissions.map((rp) => rp.permissionId))
+    const wantedIds = new Set(permissionIds)
+    const toRemove = [...currentIds].filter((id) => !wantedIds.has(id))
+    const toAdd = [...wantedIds].filter((id) => !currentIds.has(id))
+    const descriptionChanged = existingRole.description !== roleInfo.description
+
+    if (!descriptionChanged && toRemove.length === 0 && toAdd.length === 0) continue
+
+    await prisma.$transaction([
+      ...(descriptionChanged
+        ? [
+            prisma.role.update({
+              where: { id: existingRole.id },
+              data: { description: roleInfo.description, isSystem: true },
+            }),
+          ]
+        : []),
+      ...(toRemove.length > 0
+        ? [prisma.rolePermission.deleteMany({ where: { roleId: existingRole.id, permissionId: { in: toRemove } } })]
+        : []),
+      ...(toAdd.length > 0
+        ? [
+            prisma.rolePermission.createMany({
+              data: toAdd.map((permissionId) => ({ roleId: existingRole.id, permissionId })),
+              skipDuplicates: true,
+            }),
+          ]
+        : []),
+    ])
+    changed = true
   }
+
+  if (changed) invalidateRolePermissionsCache()
 
   // Seed system report templates
   await seedSystemReportTemplates()
@@ -260,17 +293,15 @@ export async function seedSystemReportTemplates() {
     },
   ]
 
-  // Create or update system templates
-  for (const templateData of systemTemplates) {
-    // Check if template already exists by name and isSystem
-    const existing = await prisma.reportTemplate.findFirst({
-      where: {
-        name: templateData.name,
-        isSystem: true,
-      },
-    })
+  // Create missing system templates
+  const existingTemplates = await prisma.reportTemplate.findMany({
+    where: { name: { in: systemTemplates.map((t) => t.name) }, isSystem: true },
+    select: { name: true },
+  })
+  const existingNames = new Set(existingTemplates.map((t) => t.name))
 
-    if (!existing && systemUser) {
+  for (const templateData of systemTemplates) {
+    if (!existingNames.has(templateData.name) && systemUser) {
       // Only create if it doesn't exist and we have a valid user
       await prisma.reportTemplate.create({
         data: {

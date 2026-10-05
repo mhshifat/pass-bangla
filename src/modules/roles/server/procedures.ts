@@ -3,6 +3,7 @@ import { createTRPCRouter, protectedProcedure } from "@/trpc/init"
 import z from "zod"
 import { TRPCError } from "@trpc/server"
 import { Prisma } from "@/app/generated"
+import { invalidateRolePermissionsCache } from "@/lib/permissions"
 
 export const rolesRouter = createTRPCRouter({
   create: protectedProcedure("role.manage")
@@ -53,6 +54,8 @@ export const rolesRouter = createTRPCRouter({
           updatedAt: true,
         },
       })
+
+      invalidateRolePermissionsCache()
 
       return {
         success: true,
@@ -152,6 +155,8 @@ export const rolesRouter = createTRPCRouter({
           updatedAt: true,
         },
       })
+
+      invalidateRolePermissionsCache()
 
       return {
         success: true,
@@ -256,6 +261,7 @@ export const rolesRouter = createTRPCRouter({
       await prisma.role.delete({
         where: { id: input.id },
       })
+      invalidateRolePermissionsCache()
 
       return {
         success: true,
@@ -451,28 +457,22 @@ export const rolesRouter = createTRPCRouter({
 
       // Count users for each role - filter by company
       // Since User.role is now a string, we can match both system and custom roles
-      const rolesWithUserCount = await Promise.all(
-        roles.map(async (role) => {
-          // Count users with this role name in the same company
-          const userWhere: Prisma.UserWhereInput = {
-            role: role.name, // Match exact role name
-          }
-          
-          if (companyId) {
-            userWhere.companyId = companyId
-          }
+      const userWhere: Prisma.UserWhereInput = {
+        role: { in: roles.map((role) => role.name) },
+      }
+      if (companyId) {
+        userWhere.companyId = companyId
+      }
+      const userCounts = roles.length
+        ? await prisma.user.groupBy({ by: ["role"], where: userWhere, _count: { _all: true } })
+        : []
+      const countByRole = new Map(userCounts.map((c) => [c.role as string, c._count._all]))
 
-          const userCount = await prisma.user.count({
-            where: userWhere,
-          })
-          
-          return {
-            ...role,
-            users: userCount,
-            createdAt: role.createdAt.toISOString(),
-          }
-        })
-      )
+      const rolesWithUserCount = roles.map((role) => ({
+        ...role,
+        users: countByRole.get(role.name) ?? 0,
+        createdAt: role.createdAt.toISOString(),
+      }))
 
       return {
         roles: rolesWithUserCount,
@@ -576,25 +576,30 @@ export const rolesRouter = createTRPCRouter({
         })
       }
 
-      // Delete existing permissions
-      await prisma.rolePermission.deleteMany({
-        where: { roleId: input.roleId },
-      })
+      // Look up IDs from keys, then replace the role's permissions atomically
+      const permissions = input.permissionKeys.length > 0
+        ? await prisma.permission.findMany({
+            where: { key: { in: input.permissionKeys } },
+            select: { id: true },
+          })
+        : []
 
-      // Create new permissions by looking up IDs from keys
-      if (input.permissionKeys.length > 0) {
-        const permissions = await prisma.permission.findMany({
-          where: { key: { in: input.permissionKeys } },
-          select: { id: true },
-        })
-
-        await prisma.rolePermission.createMany({
-          data: permissions.map((permission) => ({
-            roleId: input.roleId,
-            permissionId: permission.id,
-          })),
-        })
-      }
+      await prisma.$transaction([
+        prisma.rolePermission.deleteMany({
+          where: { roleId: input.roleId },
+        }),
+        ...(permissions.length > 0
+          ? [
+              prisma.rolePermission.createMany({
+                data: permissions.map((permission) => ({
+                  roleId: input.roleId,
+                  permissionId: permission.id,
+                })),
+              }),
+            ]
+          : []),
+      ])
+      invalidateRolePermissionsCache()
 
       return {
         success: true,
@@ -602,7 +607,6 @@ export const rolesRouter = createTRPCRouter({
     }),
 
   getAllPermissions: protectedProcedure("role.manage").query(async () => {
-    // Always ensure all default permissions exist (create missing ones)
     const defaultPermissions = [
       // User Management
       { key: "user.create", name: "Create Users", description: "Create new user accounts", category: "User Management" },
@@ -632,19 +636,27 @@ export const rolesRouter = createTRPCRouter({
       { key: "report.delete", name: "Delete Reports", description: "Remove reports", category: "Reports" },
     ]
 
-    // Create missing permissions in database (skipDuplicates ensures existing ones aren't recreated)
-    await prisma.permission.createMany({
-      data: defaultPermissions,
-      skipDuplicates: true,
-    })
+    const fetchPermissions = () =>
+      prisma.permission.findMany({
+        orderBy: [
+          { category: "asc" },
+          { name: "asc" },
+        ],
+      })
 
-    // Fetch all permissions
-    const permissions = await prisma.permission.findMany({
-      orderBy: [
-        { category: "asc" },
-        { name: "asc" },
-      ],
-    })
+    let permissions = await fetchPermissions()
+
+    // Only write when a default permission is missing
+    const existingKeys = new Set(permissions.map((p) => p.key))
+    const missing = defaultPermissions.filter((p) => !existingKeys.has(p.key))
+    if (missing.length > 0) {
+      await prisma.permission.createMany({
+        data: missing,
+        skipDuplicates: true,
+      })
+      invalidateRolePermissionsCache()
+      permissions = await fetchPermissions()
+    }
 
     // Group by category
     const grouped = permissions.reduce(

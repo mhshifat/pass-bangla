@@ -2,6 +2,144 @@ import prisma from "@/lib/prisma"
 import { createTRPCRouter, protectedProcedure } from "@/trpc/init"
 import z from "zod"
 import { Prisma } from "@/app/generated"
+import { getSettings, readUserSetting, writeSettings } from "@/lib/settings-cache"
+
+type DashboardCtx = { userId: string; userTeams: string[] }
+
+// The dashboard cards each call their own procedure in the same request; shared
+// aggregates are computed once per request context.
+const requestMemo = new WeakMap<object, Map<string, Promise<unknown>>>()
+
+function once<T>(ctx: object, key: string, load: () => Promise<T>): Promise<T> {
+  let entries = requestMemo.get(ctx)
+  if (!entries) {
+    entries = new Map()
+    requestMemo.set(ctx, entries)
+  }
+  let value = entries.get(key) as Promise<T> | undefined
+  if (!value) {
+    value = load()
+    entries.set(key, value)
+  }
+  return value
+}
+
+// Passwords the user owns or can reach through a team share that has not expired
+function accessiblePasswordWhere(ctx: DashboardCtx, now: Date): Prisma.PasswordWhereInput {
+  return {
+    OR: [
+      { ownerId: ctx.userId },
+      ...(ctx.userTeams.length > 0
+        ? [
+            {
+              sharedWith: {
+                some: {
+                  teamId: { in: ctx.userTeams },
+                  OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+                },
+              },
+            },
+          ]
+        : []),
+    ],
+  }
+}
+
+function getStrengthCounts(ctx: DashboardCtx) {
+  return once(ctx, "strength", async () => {
+    const groups = await prisma.password.groupBy({
+      by: ["strength"],
+      where: accessiblePasswordWhere(ctx, new Date()),
+      _count: { _all: true },
+    })
+    const count = (strength: string) =>
+      groups.find((group) => group.strength === strength)?._count._all ?? 0
+    return {
+      total: groups.reduce((sum, group) => sum + group._count._all, 0),
+      weak: count("WEAK"),
+      medium: count("MEDIUM"),
+      strong: count("STRONG"),
+    }
+  })
+}
+
+// One scan of the company's users instead of one count per figure
+function getCompanyUserCounts(ctx: object, companyId: string) {
+  return once(ctx, `users:${companyId}`, async () => {
+    const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+    const rows = await prisma.$queryRaw<
+      Array<{ total: number; active: number; mfa: number; recent: number }>
+    >`
+      SELECT
+        COUNT(*)::int AS total,
+        COUNT(*) FILTER (WHERE "isActive")::int AS active,
+        COUNT(*) FILTER (WHERE "isActive" AND "mfaEnabled")::int AS mfa,
+        COUNT(*) FILTER (WHERE "isActive" AND "lastLoginAt" >= ${since})::int AS recent
+      FROM "User"
+      WHERE "companyId" = ${companyId}
+    `
+    return rows[0] ?? { total: 0, active: 0, mfa: 0, recent: 0 }
+  })
+}
+
+// Accessible passwords with no PASSWORD_VIEWED entry by anyone in the company since `since`
+async function countUnusedPasswords(
+  ctx: DashboardCtx,
+  companyId: string,
+  now: Date,
+  since: Date
+): Promise<number> {
+  const teamShare =
+    ctx.userTeams.length > 0
+      ? Prisma.sql`OR EXISTS (
+          SELECT 1 FROM "PasswordShare" ps
+          WHERE ps."passwordId" = p.id
+            AND ps."teamId" IN (${Prisma.join(ctx.userTeams)})
+            AND (ps."expiresAt" IS NULL OR ps."expiresAt" > ${now})
+        )`
+      : Prisma.empty
+  const rows = await prisma.$queryRaw<Array<{ count: number }>>`
+    SELECT COUNT(*)::int AS count
+    FROM "Password" p
+    WHERE (p."ownerId" = ${ctx.userId} ${teamShare})
+      AND NOT EXISTS (
+        SELECT 1 FROM "AuditLog" al
+        INNER JOIN "User" u ON u.id = al."userId"
+        WHERE al."resourceId" = p.id
+          AND al.action = 'PASSWORD_VIEWED'
+          AND al."createdAt" >= ${since}
+          AND u."companyId" = ${companyId}
+      )
+  `
+  return rows[0]?.count ?? 0
+}
+
+// Own passwords whose rotation reminder date (last completed rotation or creation
+// + rotationDays - reminderDays) falls inside the window
+async function countUpcomingRotations(
+  userId: string,
+  companyId: string,
+  now: Date,
+  until: Date
+): Promise<number> {
+  const rows = await prisma.$queryRaw<Array<{ count: number }>>`
+    SELECT COUNT(*)::int AS count
+    FROM "Password" p
+    INNER JOIN "PasswordRotationPolicy" rp ON rp.id = p."rotationPolicyId"
+    INNER JOIN "User" u ON u.id = p."ownerId"
+    WHERE p."ownerId" = ${userId}
+      AND u."companyId" = ${companyId}
+      AND rp."isActive" = true
+      AND (
+        COALESCE(
+          (SELECT MAX(r."rotatedAt") FROM "PasswordRotation" r
+           WHERE r."passwordId" = p.id AND r.status = 'COMPLETED'),
+          p."createdAt"
+        ) + (rp."rotationDays" - rp."reminderDays") * INTERVAL '1 day'
+      ) BETWEEN ${now} AND ${until}
+  `
+  return rows[0]?.count ?? 0
+}
 
 export const dashboardRouter = createTRPCRouter({
   stats: protectedProcedure("password.view")
@@ -35,39 +173,11 @@ export const dashboardRouter = createTRPCRouter({
         }
       }
 
-      // Use userTeams from context (already fetched, no extra query needed)
-      const teamIds = ctx.userTeams
-
-      // Build where clause for passwords accessible to user
-      const passwordWhere = {
-        OR: [
-          { ownerId: ctx.userId },
-          ...(teamIds.length > 0
-            ? [
-                {
-                  sharedWith: {
-                    some: {
-                      teamId: { in: teamIds },
-                      OR: [
-                        { expiresAt: null },
-                        { expiresAt: { gt: new Date() } },
-                      ],
-                    },
-                  },
-                },
-              ]
-            : []),
-        ],
-      }
-
       // Check permissions for different stats
       const hasUserView = ctx.permissions.includes("user.view")
       const hasTeamView = ctx.permissions.includes("team.view")
       const hasAuditView = ctx.permissions.includes("audit.view")
 
-      // Build company filters - companyId is guaranteed to exist here
-      const userWhere = { companyId }
-      const teamWhere = { companyId }
       const auditLogWhere: Prisma.AuditLogWhereInput = {
         action: {
           in: ["LOGIN_FAILED", "PASSWORD_VIEWED", "PASSWORD_SHARED", "PASSWORD_DELETED"],
@@ -78,21 +188,12 @@ export const dashboardRouter = createTRPCRouter({
         user: { companyId },
       }
 
-      // Fetch stats based on permissions
+      // All four counts are independent; password and user counts are shared with the other cards
       const [userStats, passwordStats, teamStats, securityEvents] = await Promise.all([
-        // User stats - only if user has user.view permission, filtered by company
-        hasUserView ? prisma.user.count({ where: userWhere }) : Promise.resolve(0),
-        
-        // Password stats - always available (user has password.view permission)
-        prisma.password.count({ where: passwordWhere }),
-        
-        // Team stats - only if user has team.view permission, filtered by company
-        hasTeamView ? prisma.team.count({ where: teamWhere }) : Promise.resolve(0),
-        
-        // Security events - only if user has audit.view permission, filtered by company
-        hasAuditView
-          ? prisma.auditLog.count({ where: auditLogWhere })
-          : Promise.resolve(0),
+        hasUserView ? getCompanyUserCounts(ctx, companyId).then((c) => c.total) : Promise.resolve(0),
+        getStrengthCounts(ctx).then((c) => c.total),
+        hasTeamView ? prisma.team.count({ where: { companyId } }) : Promise.resolve(0),
+        hasAuditView ? prisma.auditLog.count({ where: auditLogWhere }) : Promise.resolve(0),
       ])
 
       // Calculate changes - show neutral when totals are low/zero
@@ -209,155 +310,78 @@ export const dashboardRouter = createTRPCRouter({
         return []
       }
 
-      // Get dismissed alerts for this user
-      const dismissedKey = `user.${ctx.userId}.dismissedAlerts`
-      const dismissedSetting = await prisma.settings.findUnique({
-        where: { key: dismissedKey },
-      })
-      const dismissedAlerts = dismissedSetting?.value
-        ? (dismissedSetting.value as string[])
-        : []
-      const dismissedSet = new Set(dismissedAlerts)
       const now = new Date()
       const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
       const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)
       const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000)
 
-
-      // Build password where clause for user's accessible passwords
-      const passwordWhere = {
-        OR: [
-          { ownerId: ctx.userId },
-          ...(teamIds.length > 0
-            ? [
-                {
-                  sharedWith: {
-                    some: {
-                      teamId: { in: teamIds },
-                      OR: [
-                        { expiresAt: null },
-                        { expiresAt: { gt: now } },
-                      ],
-                    },
-                  },
-                },
-              ]
-            : []),
-        ],
-      }
-
-      // Check for expiring passwords (within 7 days) - HIGH severity
-      const expiringPasswordWhere = {
-        ...passwordWhere,
-        expiresAt: {
-          not: null,
-          gte: now,
-          lte: sevenDaysFromNow,
-        },
-      }
-      const expiringPasswords = await prisma.password.count({
-        where: expiringPasswordWhere,
-      })
-
-      // Check for weak passwords - MEDIUM severity
-      const weakPasswords = await prisma.password.count({
-        where: {
-          ...passwordWhere,
-          strength: "WEAK",
-        },
-      })
-
-      // Check permissions
       const hasAuditView = ctx.permissions.includes("audit.view")
       const hasUserView = ctx.permissions.includes("user.view")
 
-      // Check for unused passwords (no access in last 90 days) - LOW severity
-      // Get passwords that haven't been viewed in last 90 days
-      const allUserPasswords = await prisma.password.findMany({
-        where: passwordWhere,
-        select: { id: true },
-      })
-      const passwordIds = allUserPasswords.map((p) => p.id)
-      
-      let unusedPasswords = 0
-      if (hasAuditView && passwordIds.length > 0) {
-        const auditLogWhere: Prisma.AuditLogWhereInput = {
-          action: "PASSWORD_VIEWED",
-          resourceId: { in: passwordIds },
-          createdAt: { gte: ninetyDaysAgo },
-          ...(companyId ? { user: { companyId } } : {}),
-        }
-        const recentlyAccessedPasswordIds = await prisma.auditLog.findMany({
-          where: auditLogWhere,
-          select: { resourceId: true },
-          distinct: ["resourceId"],
-        })
-        const accessedIds = new Set(recentlyAccessedPasswordIds.map((log) => log.resourceId).filter(Boolean))
-        unusedPasswords = passwordIds.filter((id) => !accessedIds.has(id)).length
-      }
-
-      // Build company filters for audit logs - companyId is guaranteed to exist here
-      const auditLogWhere: Prisma.AuditLogWhereInput = {
+      const dismissedKey = `user.${ctx.userId}.dismissedAlerts`
+      const failedLoginWhere: Prisma.AuditLogWhereInput = {
         action: "LOGIN_FAILED",
         createdAt: { gte: yesterday },
         user: { companyId },
       }
 
-      // Check for failed login attempts in last 24 hours - CRITICAL if >20, HIGH if >10
-      // Only if user has audit.view permission, filtered by company
-      const failedLogins = hasAuditView
-        ? await prisma.auditLog.count({ where: auditLogWhere })
-        : 0
+      // Every query below is independent: one parallel step instead of a dozen round trips
+      const [
+        dismissedSetting,
+        backupSettings,
+        expiringPasswords,
+        strengthCounts,
+        unusedPasswords,
+        failedLogins,
+        suspiciousIPs,
+        userCounts,
+        breachedPasswords,
+        upcomingRotations,
+      ] = await Promise.all([
+        // Read straight from the database: a just-dismissed alert must stay dismissed
+        readUserSetting(dismissedKey),
+        getSettings(["system.backup.lastCompleted", "system.backup.status"]),
+        prisma.password.count({
+          where: {
+            ...accessiblePasswordWhere(ctx, now),
+            expiresAt: { not: null, gte: now, lte: sevenDaysFromNow },
+          },
+        }),
+        getStrengthCounts(ctx),
+        hasAuditView ? countUnusedPasswords(ctx, companyId, now, ninetyDaysAgo) : Promise.resolve(0),
+        hasAuditView ? prisma.auditLog.count({ where: failedLoginWhere }) : Promise.resolve(0),
+        // More than 5 failed attempts from the same IP
+        hasAuditView
+          ? prisma.auditLog.groupBy({
+              by: ["ipAddress"],
+              where: { ...failedLoginWhere, ipAddress: { not: null } },
+              _count: true,
+              having: { ipAddress: { _count: { gt: 5 } } },
+            })
+          : Promise.resolve([]),
+        hasUserView ? getCompanyUserCounts(ctx, companyId) : Promise.resolve(null),
+        // Own passwords only, scoped to the company
+        prisma.passwordBreach.count({
+          where: {
+            password: { ownerId: ctx.userId, owner: { companyId } },
+            isBreached: true,
+            resolved: false,
+          },
+        }),
+        countUpcomingRotations(ctx.userId, companyId, now, sevenDaysFromNow),
+      ])
 
-      // Check for suspicious access patterns (multiple failed logins from same IP) - HIGH severity
-      // Only if user has audit.view permission, filtered by company
-      const suspiciousIPs = hasAuditView
-        ? await prisma.auditLog.groupBy({
-            by: ["ipAddress"],
-            where: {
-              ...auditLogWhere,
-              ipAddress: { not: null },
-            },
-            _count: true,
-            having: {
-              ipAddress: {
-                _count: {
-                  gt: 5, // More than 5 failed attempts from same IP
-                },
-              },
-            },
-          })
-        : []
+      const dismissedSet = new Set(
+        Array.isArray(dismissedSetting) ? (dismissedSetting as string[]) : []
+      )
+      const weakPasswords = strengthCounts.weak
+      const totalActiveUsers = userCounts?.active ?? 0
+      const usersWithoutMFA = userCounts ? userCounts.active - userCounts.mfa : 0
 
-      // Build company filters for user stats - companyId is guaranteed to exist here (checked above)
-      const userWhere = { companyId, isActive: true }
-
-      // Check for users without MFA enabled - MEDIUM severity
-      // Only if user has user.view permission, filtered by company
-      const [totalActiveUsers, usersWithoutMFA] = hasUserView
-        ? await Promise.all([
-            prisma.user.count({ where: userWhere }),
-            prisma.user.count({
-              where: {
-                ...userWhere,
-                mfaEnabled: false,
-              },
-            }),
-          ])
-        : [0, 0]
-
-      // Get system backup status from Settings
-      const backupSetting = await prisma.settings.findUnique({
-        where: { key: "system.backup.lastCompleted" },
-      })
-      
-      const lastBackupTime = backupSetting?.value
-        ? new Date(backupSetting.value as string)
-        : null
-      const backupStatus = backupSetting?.value
-        ? (await prisma.settings.findUnique({
-            where: { key: "system.backup.status" },
-          }))?.value || "unknown"
+      const backupValue = backupSettings.get("system.backup.lastCompleted")
+      const lastBackupTime = backupValue ? new Date(backupValue as string) : null
+      const backupStatus = backupValue
+        ? backupSettings.get("system.backup.status") || "unknown"
         : "unknown"
 
       const alerts: Array<{
@@ -453,19 +477,6 @@ export const dashboardRouter = createTRPCRouter({
         }
       }
 
-      // HIGH: Breached passwords - Check for unresolved breaches
-      // Filter by ownerId and companyId for security
-      const breachedPasswords = await prisma.passwordBreach.count({
-        where: {
-          password: {
-            ownerId: ctx.userId,
-            owner: companyId ? { companyId } : undefined,
-          },
-          isBreached: true,
-          resolved: false,
-        },
-      })
-
       if (breachedPasswords > 0) {
         alerts.push({
           id: "breached-passwords",
@@ -476,57 +487,6 @@ export const dashboardRouter = createTRPCRouter({
           timeKey: "dashboard.today",
           timestamp: now,
         })
-      }
-
-      // MEDIUM: Password rotation reminders - Check for upcoming rotations
-      // Filter by ownerId and companyId for security
-      const rotationReminders = await prisma.password.findMany({
-        where: {
-          ownerId: ctx.userId,
-          owner: companyId ? { companyId } : undefined,
-          rotationPolicyId: { not: null },
-          rotationPolicy: {
-            isActive: true,
-          },
-        },
-        include: {
-          rotationPolicy: true,
-          rotations: {
-            where: {
-              status: "COMPLETED",
-            },
-            orderBy: {
-              rotatedAt: "desc",
-            },
-            take: 1,
-          },
-        },
-      })
-
-      let upcomingRotations = 0
-      for (const password of rotationReminders) {
-        if (!password.rotationPolicy) continue
-
-        let lastRotationDate: Date
-        if (password.rotations.length > 0) {
-          lastRotationDate = password.rotations[0].rotatedAt
-        } else {
-          lastRotationDate = password.createdAt
-        }
-
-        const nextRotationDate = new Date(
-          lastRotationDate.getTime() + password.rotationPolicy.rotationDays * 24 * 60 * 60 * 1000
-        )
-
-        const reminderDate = new Date(
-          nextRotationDate.getTime() - password.rotationPolicy.reminderDays * 24 * 60 * 60 * 1000
-        )
-
-        // Check if reminder is within next 7 days
-        const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
-        if (reminderDate <= sevenDaysFromNow && reminderDate >= now) {
-          upcomingRotations++
-        }
       }
 
       if (upcomingRotations > 0) {
@@ -627,26 +587,14 @@ export const dashboardRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       // Store dismissed alerts in Settings as a JSON array
       const dismissedKey = `user.${ctx.userId}.dismissedAlerts`
-      const existing = await prisma.settings.findUnique({
-        where: { key: dismissedKey },
-      })
+      // The key embeds the user id, so the row is per-user (stored with companyId NULL)
+      const existing = await readUserSetting(dismissedKey)
 
-      const dismissedAlerts = existing?.value
-        ? (existing.value as string[])
-        : []
+      const dismissedAlerts = Array.isArray(existing) ? (existing as string[]) : []
 
       if (!dismissedAlerts.includes(input.alertId)) {
         dismissedAlerts.push(input.alertId)
-        await prisma.settings.upsert({
-          where: { key: dismissedKey },
-          update: {
-            value: dismissedAlerts,
-          },
-          create: {
-            key: dismissedKey,
-            value: dismissedAlerts,
-          },
-        })
+        await writeSettings([{ key: dismissedKey, value: dismissedAlerts }], ctx.companyId)
       }
 
       return { success: true }
@@ -655,83 +603,31 @@ export const dashboardRouter = createTRPCRouter({
   healthMetrics: protectedProcedure("password.view")
     .query(async ({ ctx }) => {
       const now = new Date()
-      
-      // Use companyId and userTeams from context (already fetched, no extra queries needed)
       const companyId = ctx.companyId
-      const teamIds = ctx.userTeams
-      
 
-      // Build where clause for passwords accessible to user
-      const passwordWhere = {
-        OR: [
-          { ownerId: ctx.userId },
-          ...(teamIds.length > 0
-            ? [
-                {
-                  sharedWith: {
-                    some: {
-                      teamId: { in: teamIds },
-                      OR: [
-                        { expiresAt: null },
-                        { expiresAt: { gt: new Date() } },
-                      ],
-                    },
-                  },
-                },
-              ]
-            : []),
-        ],
-      }
-
-      // Get password strength stats
-      const [totalPasswords, strongPasswords, mediumPasswords] = await Promise.all([
-        prisma.password.count({ where: passwordWhere }),
-        prisma.password.count({
-          where: { ...passwordWhere, strength: "STRONG" },
-        }),
-        prisma.password.count({
-          where: { ...passwordWhere, strength: "MEDIUM" },
-        }),
-      ])
-
-      // Check permissions for user stats
-      const hasUserView = ctx.permissions.includes("user.view")
-      
       // If no company found, return empty array to prevent data leakage
       if (!companyId) {
         return []
       }
 
-      // Build company filters for user stats - companyId is guaranteed to exist here
-      const userWhere = { companyId, isActive: true }
-      const activeUserWhere = {
-        companyId,
-        isActive: true,
-        lastLoginAt: {
-          gte: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000), // Active in last 30 days
-        },
-      }
-      
-      // Get MFA adoption - only if user has user.view permission, filtered by company
-      const [totalUsers, mfaUsers, activeUsers] = await Promise.all([
-        hasUserView ? prisma.user.count({ where: userWhere }) : Promise.resolve(0),
-        hasUserView ? prisma.user.count({ where: { ...userWhere, mfaEnabled: true } }) : Promise.resolve(0),
-        hasUserView ? prisma.user.count({ where: activeUserWhere }) : Promise.resolve(0),
+      const hasUserView = ctx.permissions.includes("user.view")
+
+      // Password strength, user counts and sessions are independent
+      const [strengthCounts, userCounts, activeSessions] = await Promise.all([
+        getStrengthCounts(ctx),
+        hasUserView ? getCompanyUserCounts(ctx, companyId) : Promise.resolve(null),
+        // Sessions that haven't expired yet (sessions are user-related), filtered by company
+        hasUserView
+          ? prisma.session.count({ where: { expires: { gt: now }, user: { companyId } } })
+          : Promise.resolve(0),
       ])
 
-      // Get active sessions (sessions that haven't expired yet)
-      // Only if user has user.view permission (sessions are user-related), filtered by company
-      // companyId is guaranteed to exist here (checked above)
-      const sessionWhere: Prisma.SessionWhereInput = {
-        expires: {
-          gt: now,
-        },
-        user: { companyId },
-      }
-      
-      const activeSessions = hasUserView
-        ? await prisma.session.count({ where: sessionWhere })
-        : 0
+      const totalPasswords = strengthCounts.total
+      const strongPasswords = strengthCounts.strong
+      const mediumPasswords = strengthCounts.medium
+      const totalUsers = userCounts?.active ?? 0
+      const mfaUsers = userCounts?.mfa ?? 0
+      const activeUsers = userCounts?.recent ?? 0
 
       // Calculate session percentage based on active users
       // If we have active users, calculate percentage of sessions vs active users

@@ -13,6 +13,17 @@ import { createAuditLog } from "@/lib/audit-log"
 import { Prisma } from "@/app/generated"
 import { seedSystemReportTemplates } from "@/lib/sync-permissions"
 
+// The seeder is expensive (several sequential reads), so check once per server
+// instance and only seed when no system template exists at all.
+let systemTemplatesChecked = false
+
+async function ensureSystemTemplates() {
+  if (systemTemplatesChecked) return
+  const existing = await prisma.reportTemplate.count({ where: { isSystem: true } })
+  if (existing === 0) await seedSystemReportTemplates()
+  systemTemplatesChecked = true
+}
+
 export const reportsRouter = createTRPCRouter({
   // List all reports
   list: protectedProcedure("report.view")
@@ -32,7 +43,7 @@ export const reportsRouter = createTRPCRouter({
       const companyId = ctx.companyId
 
       const where: Prisma.ReportWhereInput = {
-        companyId: companyId || undefined,
+        companyId: companyId ?? null,
       }
 
       if (search) {
@@ -50,29 +61,30 @@ export const reportsRouter = createTRPCRouter({
         where.status = status
       }
 
-      const total = await prisma.report.count({ where })
-
-      const reports = await prisma.report.findMany({
-        where,
-        take: pageSize,
-        skip: (page - 1) * pageSize,
-        orderBy: { createdAt: "desc" },
-        include: {
-          createdBy: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
+      const [total, reports] = await Promise.all([
+        prisma.report.count({ where }),
+        prisma.report.findMany({
+          where,
+          take: pageSize,
+          skip: (page - 1) * pageSize,
+          orderBy: { createdAt: "desc" },
+          include: {
+            createdBy: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+            template: {
+              select: {
+                id: true,
+                name: true,
+              },
             },
           },
-          template: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
-      })
+        }),
+      ])
 
       return {
         reports,
@@ -95,7 +107,7 @@ export const reportsRouter = createTRPCRouter({
       const report = await prisma.report.findFirst({
         where: {
           id: input.id,
-          companyId: companyId || undefined,
+          companyId: companyId ?? null,
         },
         include: {
           createdBy: {
@@ -146,10 +158,7 @@ export const reportsRouter = createTRPCRouter({
       }
 
       // Get user's companyId
-      const user = await prisma.user.findUnique({
-        where: { id: ctx.userId },
-        select: { companyId: true },
-      })
+      const user = { companyId: ctx.companyId }
 
       const report = await prisma.report.create({
         data: {
@@ -210,10 +219,7 @@ export const reportsRouter = createTRPCRouter({
       }
 
       // Get user's companyId
-      const user = await prisma.user.findUnique({
-        where: { id: ctx.userId },
-        select: { companyId: true },
-      })
+      const user = { companyId: ctx.companyId }
 
       // Update report status to GENERATING
       const report = await prisma.report.create({
@@ -329,7 +335,7 @@ export const reportsRouter = createTRPCRouter({
       const report = await prisma.report.findFirst({
         where: {
           id: input.id,
-          companyId: companyId || undefined,
+          companyId: companyId ?? null,
         },
       })
 
@@ -368,7 +374,7 @@ export const reportsRouter = createTRPCRouter({
       const report = await prisma.report.findFirst({
         where: {
           id: input.id,
-          companyId: companyId || undefined,
+          companyId: companyId ?? null,
         },
       })
 
@@ -478,15 +484,14 @@ export const reportsRouter = createTRPCRouter({
       })
     )
     .query(async ({ input, ctx }) => {
-      // Ensure system templates exist
-      await seedSystemReportTemplates()
+      await ensureSystemTemplates()
 
       // Use companyId from context (already fetched, no extra query needed)
       const companyId = ctx.companyId
 
       const where: Prisma.ReportTemplateWhereInput = {
         OR: [
-          { companyId: companyId || undefined },
+          { companyId: companyId ?? null },
           { isPublic: true },
           ...(input.includeSystem ? [{ isSystem: true }] : []),
         ],
@@ -531,7 +536,7 @@ export const reportsRouter = createTRPCRouter({
         where: {
           id: input.id,
           OR: [
-            { companyId: companyId || undefined },
+            { companyId: companyId ?? null },
             { isPublic: true },
             { isSystem: true },
           ],
@@ -576,10 +581,7 @@ export const reportsRouter = createTRPCRouter({
         })
       }
 
-      const user = await prisma.user.findUnique({
-        where: { id: ctx.userId },
-        select: { companyId: true },
-      })
+      const user = { companyId: ctx.companyId }
 
       const template = await prisma.reportTemplate.create({
         data: {
@@ -624,7 +626,7 @@ export const reportsRouter = createTRPCRouter({
       const template = await prisma.reportTemplate.findFirst({
         where: {
           id: input.id,
-          companyId: companyId || undefined,
+          companyId: companyId ?? null,
           isSystem: false, // Cannot update system templates
         },
       })
@@ -665,7 +667,7 @@ export const reportsRouter = createTRPCRouter({
       const template = await prisma.reportTemplate.findFirst({
         where: {
           id: input.id,
-          companyId: companyId || undefined,
+          companyId: companyId ?? null,
           isSystem: false, // Cannot delete system templates
         },
       })

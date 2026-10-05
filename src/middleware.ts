@@ -107,6 +107,18 @@ export async function middleware(req: NextRequest) {
   return response
 }
 
+// Runs for every page route. Skipped for static assets, which need neither the
+// subdomain header nor a per-request invocation:
+//   - root-level files such as /favicon-16x16.png, /manifest.json, /robots.txt,
+//     /sitemap.xml, /manifest.webmanifest, /icon.svg
+//   - the guide screenshots under /guide/
+//   - the generated /icon and /opengraph-image routes
+// Deliberately still matched: /sw.js and root .html files, so they keep the CSP
+// set above, and any nested path with a dot in it (e.g. /admin/x/y.png), so a
+// page route can never be reached without the x-subdomain header being
+// overwritten here.
 export const config = {
-  matcher: ["/((?!_next|api|static|favicon.ico).*)"],
+  matcher: [
+    "/((?!_next|api|static|favicon.ico|[^/]+\\.(?:png|jpe?g|gif|svg|ico|webp|avif|json|xml|txt|webmanifest)$|guide/[^/]+\\.(?:png|jpe?g|webp|avif)$|(?:icon|opengraph-image)$).*)",
+  ],
 }

@@ -82,6 +82,7 @@ export function ChangePasswordForm() {
                     <PasswordInput
                       {...field}
                       placeholder={t("profile.currentPasswordPlaceholder")}
+                      autoComplete="current-password"
                       disabled={isLoading}
                       showToggleButton={true}
                       showGenerateButton={false}
@@ -102,6 +103,7 @@ export function ChangePasswordForm() {
                     <PasswordInput
                       {...field}
                       placeholder={t("profile.newPasswordPlaceholder")}
+                      autoComplete="new-password"
                       disabled={isLoading}
                       showToggleButton={true}
                       showGenerateButton={true}
@@ -130,6 +132,7 @@ export function ChangePasswordForm() {
                     <PasswordInput
                       {...field}
                       placeholder={t("profile.confirmPasswordPlaceholder")}
+                      autoComplete="new-password"
                       disabled={isLoading}
                       showToggleButton={true}
                       showGenerateButton={false}

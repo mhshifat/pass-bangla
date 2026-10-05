@@ -1,11 +1,11 @@
-import { AuthCard } from "@/modules/auth/client/auth-card"
 import { RegisterForm } from "@/modules/auth/client/register-form"
 import { RegisterPageHeader } from "./register-page-header"
+import { getEnabledOAuthProviders } from "@/lib/oauth"
 
 export default function RegisterPage() {
   return (
     <RegisterPageHeader>
-      <RegisterForm />
+      <RegisterForm oauthProviders={getEnabledOAuthProviders()} />
     </RegisterPageHeader>
   )
 }

@@ -47,7 +47,6 @@ model Company {
   rotationPolicies PasswordRotationPolicy[]
   sessions    Session[]
 
-  @@index([subdomain])
 }
 
 model User {
@@ -119,6 +118,7 @@ model User {
   @@index([email])
   @@index([phoneNumber])
   @@index([companyId])
+  @@index([companyId, email])
   @@index([recoveryEmail])
 }
 
@@ -165,6 +165,8 @@ model Session {
   @@index([userId, deviceFingerprint])
   @@index([expires])
   @@index([companyId])
+  @@index([userId, expires])
+  @@index([companyId, expires])
 }
 
 model Password {
@@ -201,6 +203,7 @@ model Password {
   rotationPolicy PasswordRotationPolicy? @relation(fields: [rotationPolicyId], references: [id], onDelete: SetNull)
 
   @@index([ownerId])
+  @@index([ownerId, createdAt(sort: Desc)])
   @@index([folderId])
   @@index([rotationPolicyId])
   @@index([isFavorite])
@@ -229,6 +232,7 @@ model PasswordHistory {
   changedByUser User?     @relation("PasswordHistoryChangedBy", fields: [changedBy], references: [id], onDelete: SetNull)
 
   @@index([passwordId])
+  @@index([passwordId, createdAt(sort: Desc)])
   @@index([changedBy])
   @@index([createdAt])
 }
@@ -347,6 +351,7 @@ model PasswordShare {
   @@index([passwordId])
   @@index([userId])
   @@index([teamId])
+  @@index([teamId, passwordId])
 }
 
 model TemporaryPasswordShare {
@@ -370,7 +375,6 @@ model TemporaryPasswordShare {
 
   @@index([passwordId])
   @@index([createdBy])
-  @@index([shareToken])
   @@index([expiresAt])
 }
 
@@ -476,6 +480,10 @@ model AuditLog {
   @@index([status])
   @@index([resource])
   @@index([companyId])
+  @@index([companyId, createdAt(sort: Desc)])
+  @@index([companyId, action, createdAt])
+  @@index([userId, action, createdAt])
+  @@index([resourceId, action, createdAt])
 }
 
 model AuditLogArchive {
@@ -521,11 +529,14 @@ model AuditLogSearch {
 
 model Settings {
   id                     String   @id @default(cuid())
-  key                    String   @unique
+  key                    String
+  // NULL = global/platform default row; set = that company's own value
+  companyId              String?
   value                  Json
   updatedAt              DateTime @updatedAt
 
-  @@index([key])
+  @@unique([key, companyId])
+  @@index([companyId])
 }
 
 model ThreatEvent {
@@ -548,6 +559,7 @@ model ThreatEvent {
 
   @@index([userId])
   @@index([companyId])
+  @@index([companyId, createdAt(sort: Desc)])
   @@index([threatType])
   @@index([severity])
   @@index([isResolved])
@@ -630,7 +642,6 @@ model Permission {
   // Relations
   rolePermissions RolePermission[]
 
-  @@index([key])
   @@index([category])
 }
 
@@ -705,7 +716,6 @@ model MfaCredential {
   user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-  @@index([credentialId])
 }
 
 model RecoveryCode {
@@ -740,7 +750,6 @@ model PasskeyCredential {
   user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-  @@index([credentialId])
 }
 
 model SavedSearch {
@@ -820,7 +829,6 @@ model EmailVerificationToken {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([token])
   @@index([userId])
   @@index([email])
   @@index([expiresAt])
@@ -838,7 +846,6 @@ model PasswordResetToken {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([token])
   @@index([userId])
   @@index([email])
   @@index([expiresAt])
@@ -924,7 +931,6 @@ model PasswordPolicy {
   // Relations
   company                Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
-  @@index([companyId])
 }
 
 model DataRetentionPolicy {
@@ -946,7 +952,6 @@ model DataRetentionPolicy {
   // Relations
   company                Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
-  @@index([companyId])
 }
 
 model DataExport {
@@ -995,7 +1000,6 @@ model DataDeletionRequest {
   @@index([companyId])
   @@index([status])
   @@index([requestedAt])
-  @@index([confirmationToken])
 }
 
 model Report {

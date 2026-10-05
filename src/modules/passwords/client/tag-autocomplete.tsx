@@ -50,6 +50,17 @@ export function TagAutocomplete({
   const [isCreating, startTransition] = useTransition()
   const utils = trpc.useUtils()
 
+  // Server autocomplete follows the input after a short pause, not every keystroke
+  const [debouncedQuery, setDebouncedQuery] = useState("")
+  React.useEffect(() => {
+    if (!query) {
+      setDebouncedQuery("")
+      return
+    }
+    const timer = setTimeout(() => setDebouncedQuery(query), 300)
+    return () => clearTimeout(timer)
+  }, [query])
+
   // Fetch all tags when popover is open
   const { data: allTagsData, isLoading: isLoadingTags } = trpc.passwords.getExportFilters.useQuery(
     undefined,
@@ -62,8 +73,8 @@ export function TagAutocomplete({
 
   // Fetch autocomplete suggestions when there's a query
   const { data: autocompleteTags } = trpc.passwords.tagAutocomplete.useQuery(
-    { query, limit: 10 },
-    { enabled: open && query.length > 0 }
+    { query: debouncedQuery, limit: 10 },
+    { enabled: open && debouncedQuery.length > 0, placeholderData: (prev) => prev }
   )
 
   // Fetch tag suggestions based on password context

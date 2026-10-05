@@ -60,6 +60,8 @@ export async function sendEmailViaBytloopMailApi(params: {
       ...(params.text !== undefined ? { text: params.text } : {}),
       ...(params.replyTo ? { replyTo: params.replyTo } : {}),
     }),
+    // Do not let a stalled mail API hold the request open
+    signal: AbortSignal.timeout(15_000),
   })
 
   if (!res.ok) {

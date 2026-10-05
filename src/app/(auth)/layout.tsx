@@ -1,3 +1,5 @@
+import { I18nProvider } from "@/components/providers/i18n-provider"
+import { getServerLanguage } from "@/lib/i18n-server"
 import { getSession } from "@/lib/session";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { redirect } from "next/navigation";
@@ -32,9 +34,13 @@ export default async function Layout({ children }: { children: React.ReactNode }
         console.error("Session check failed in auth layout:", error);
     }
 
+    const language = await getServerLanguage();
+
     return (
-        <div>
-            {children}
-        </div>
+        <I18nProvider initialLanguage={language}>
+            <div>
+                {children}
+            </div>
+        </I18nProvider>
     );
 }

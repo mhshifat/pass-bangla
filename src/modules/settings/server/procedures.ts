@@ -14,13 +14,24 @@ import {
 } from "@/lib/gdpr-compliance"
 
 import { syncPermissionsAndRoles } from "@/lib/sync-permissions"
+import { getOwnSettings, getSettings, writeSettings } from "@/lib/settings-cache"
+
+// Effective (company row, else platform default) settings, shaped like the old findMany rows
+async function readSettingRows(keys: string[], companyId: string | null) {
+  const values = await getSettings(keys, companyId)
+  return Array.from(values, ([key, value]) => ({ key, value }))
+}
+
+// Only the caller's own rows: used where secrets are shown, so a company never sees the platform default's
+async function readOwnSettingRows(keys: string[], companyId: string | null) {
+  const values = await getOwnSettings(keys, companyId)
+  return Array.from(values, ([key, value]) => ({ key, value }))
+}
 
 export const settingsRouter = createTRPCRouter({
-  getEmailConfig: protectedProcedure("settings.view").query(async () => {
-    const settings = await prisma.settings.findMany({
-      where: {
-        key: {
-          in: [
+  getEmailConfig: protectedProcedure("settings.view").query(async ({ ctx }) => {
+    const canEdit = ctx.permissions.includes("settings.edit")
+    const settings = await readOwnSettingRows([
             "smtp_host",
             "smtp_port",
             "smtp_secure",
@@ -28,10 +39,7 @@ export const settingsRouter = createTRPCRouter({
             "smtp_password",
             "smtp_from_email",
             "smtp_from_name",
-          ],
-        },
-      },
-    })
+          ], ctx.companyId)
 
     const config: Record<string, unknown> = {}
 
@@ -57,7 +65,8 @@ export const settingsRouter = createTRPCRouter({
       smtp_port: (config.smtp_port as string) || "587",
       smtp_secure: (config.smtp_secure as boolean) || false,
       smtp_user: (config.smtp_user as string) || "",
-      smtp_password: (config.smtp_password as string) || "",
+      // Secrets are only shown to roles that can edit them
+      smtp_password: canEdit ? (config.smtp_password as string) || "" : "",
       smtp_from_email: (config.smtp_from_email as string) || "",
       smtp_from_name: (config.smtp_from_name as string) || "PassBangla",
     }
@@ -75,8 +84,8 @@ export const settingsRouter = createTRPCRouter({
         smtp_from_name: z.string(),
       })
     )
-    .mutation(async ({ input }) => {
-      // Update or create each setting
+    .mutation(async ({ input, ctx }) => {
+      // Update or create each setting (for the caller's company)
 
       const encryptKeys = [
         "smtp_host",
@@ -88,23 +97,21 @@ export const settingsRouter = createTRPCRouter({
         "smtp_from_name",
       ]
       await Promise.all(
-        Object.entries(input).map(async ([key, value]) => {
-          if (typeof value === "undefined") return // skip undefined values
-          let toSave = value
+        encryptKeys.map(async (key) => {
+          // An omitted username/password is saved empty so the platform default's credentials never apply
+          const value = input[key as keyof typeof input] ?? ""
+          let toSave: string | boolean = value
           if (encryptKeys.includes(key) && value) {
             toSave = encrypt(value as string)
           }
-          await prisma.settings.upsert({
-            where: { key },
-            update: { value: toSave },
-            create: { key, value: toSave },
-          })
+          await writeSettings([{ key, value: toSave as string | boolean }], ctx.companyId)
         })
       )
 
+
       // Reset email transporter cache
       const { resetEmailTransporter } = await import("@/lib/mailer")
-      resetEmailTransporter()
+      resetEmailTransporter(ctx.companyId)
 
       return { success: true }
     }),
@@ -115,14 +122,14 @@ export const settingsRouter = createTRPCRouter({
         testEmail: z.string().email(),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const { testEmailConfig, sendEmail } = await import("@/lib/mailer")
       const { renderEmailLayout, emailCallout, APP_NAME } = await import(
         "@/lib/email-template"
       )
 
       // First verify the configuration
-      const testResult = await testEmailConfig()
+      const testResult = await testEmailConfig(ctx.companyId)
       if (!testResult.success) {
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -133,6 +140,7 @@ export const settingsRouter = createTRPCRouter({
       // Send a test email
       const emailResult = await sendEmail({
         to: input.testEmail,
+        companyId: ctx.companyId,
         subject: `Test email from ${APP_NAME}`,
         html: renderEmailLayout({
           title: `Test email from ${APP_NAME}`,
@@ -164,18 +172,12 @@ export const settingsRouter = createTRPCRouter({
       return { success: true }
     }),
 
-  getGeneralSettings: protectedProcedure("settings.view").query(async () => {
-    const settings = await prisma.settings.findMany({
-      where: {
-        key: {
-          in: [
+  getGeneralSettings: protectedProcedure("settings.view").query(async ({ ctx }) => {
+    const settings = await readSettingRows([
             "app.name",
             "app.maintenance_mode",
             "app.theme",
-          ],
-        },
-      },
-    })
+          ], ctx.companyId)
 
     const config: Record<string, unknown> = {}
     settings.forEach((setting) => {
@@ -183,6 +185,8 @@ export const settingsRouter = createTRPCRouter({
     })
 
     return {
+      // App name, maintenance mode and theme are platform-wide; only company-less (platform) admins can change them
+      canEdit: !ctx.companyId,
       appName: (config["app.name"] as string) || "PassBangla",
       maintenanceMode: (config["app.maintenance_mode"] as boolean) || false,
       theme: (config["app.theme"] as string) || "system",
@@ -200,25 +204,13 @@ export const settingsRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       // Update or create each setting
       const updates = [
-        prisma.settings.upsert({
-          where: { key: "app.name" },
-          update: { value: input.appName },
-          create: { key: "app.name", value: input.appName },
-        }),
-        prisma.settings.upsert({
-          where: { key: "app.maintenance_mode" },
-          update: { value: input.maintenanceMode },
-          create: { key: "app.maintenance_mode", value: input.maintenanceMode },
-        }),
+        writeSettings([{ key: "app.name", value: input.appName }], ctx.companyId),
+        writeSettings([{ key: "app.maintenance_mode", value: input.maintenanceMode }], ctx.companyId),
       ]
 
       if (input.theme !== undefined) {
         updates.push(
-          prisma.settings.upsert({
-            where: { key: "app.theme" },
-            update: { value: input.theme },
-            create: { key: "app.theme", value: input.theme },
-          })
+          writeSettings([{ key: "app.theme", value: input.theme }], ctx.companyId)
         )
       }
 
@@ -241,11 +233,8 @@ export const settingsRouter = createTRPCRouter({
       return { success: true }
     }),
 
-  getSecuritySettings: protectedProcedure("settings.view").query(async () => {
-    const settings = await prisma.settings.findMany({
-      where: {
-        key: {
-          in: [
+  getSecuritySettings: protectedProcedure("settings.view").query(async ({ ctx }) => {
+    const settings = await readSettingRows([
             "security.password.min_length",
             "security.password.require_uppercase",
             "security.password.require_lowercase",
@@ -258,10 +247,7 @@ export const settingsRouter = createTRPCRouter({
             "security.login.max_attempts",
             "security.login.lockout_duration_minutes",
             "security.device.require_mfa_untrusted",
-          ],
-        },
-      },
-    })
+          ], ctx.companyId)
 
     const config: Record<string, unknown> = {}
     settings.forEach((setting) => {
@@ -313,74 +299,23 @@ export const settingsRouter = createTRPCRouter({
       // Update or create each setting
       await Promise.all([
         // Password Policies
-        prisma.settings.upsert({
-          where: { key: "security.password.min_length" },
-          update: { value: input.passwordMinLength },
-          create: { key: "security.password.min_length", value: input.passwordMinLength },
-        }),
-        prisma.settings.upsert({
-          where: { key: "security.password.require_uppercase" },
-          update: { value: input.passwordRequireUppercase },
-          create: { key: "security.password.require_uppercase", value: input.passwordRequireUppercase },
-        }),
-        prisma.settings.upsert({
-          where: { key: "security.password.require_lowercase" },
-          update: { value: input.passwordRequireLowercase },
-          create: { key: "security.password.require_lowercase", value: input.passwordRequireLowercase },
-        }),
-        prisma.settings.upsert({
-          where: { key: "security.password.require_numbers" },
-          update: { value: input.passwordRequireNumbers },
-          create: { key: "security.password.require_numbers", value: input.passwordRequireNumbers },
-        }),
-        prisma.settings.upsert({
-          where: { key: "security.password.require_special" },
-          update: { value: input.passwordRequireSpecial },
-          create: { key: "security.password.require_special", value: input.passwordRequireSpecial },
-        }),
-        prisma.settings.upsert({
-          where: { key: "security.password.expiry_days" },
-          update: { value: input.passwordExpiryDays },
-          create: { key: "security.password.expiry_days", value: input.passwordExpiryDays },
-        }),
+        writeSettings([{ key: "security.password.min_length", value: input.passwordMinLength }], ctx.companyId),
+        writeSettings([{ key: "security.password.require_uppercase", value: input.passwordRequireUppercase }], ctx.companyId),
+        writeSettings([{ key: "security.password.require_lowercase", value: input.passwordRequireLowercase }], ctx.companyId),
+        writeSettings([{ key: "security.password.require_numbers", value: input.passwordRequireNumbers }], ctx.companyId),
+        writeSettings([{ key: "security.password.require_special", value: input.passwordRequireSpecial }], ctx.companyId),
+        writeSettings([{ key: "security.password.expiry_days", value: input.passwordExpiryDays }], ctx.companyId),
         // Session Management
-        prisma.settings.upsert({
-          where: { key: "security.session.timeout_minutes" },
-          update: { value: input.sessionTimeoutMinutes },
-          create: { key: "security.session.timeout_minutes", value: input.sessionTimeoutMinutes },
-        }),
-        prisma.settings.upsert({
-          where: { key: "security.session.max_concurrent" },
-          update: { value: input.sessionMaxConcurrent },
-          create: { key: "security.session.max_concurrent", value: input.sessionMaxConcurrent },
-        }),
-        prisma.settings.upsert({
-          where: { key: "security.session.require_reauth" },
-          update: { value: input.sessionRequireReauth },
-          create: { key: "security.session.require_reauth", value: input.sessionRequireReauth },
-        }),
+        writeSettings([{ key: "security.session.timeout_minutes", value: input.sessionTimeoutMinutes }], ctx.companyId),
+        writeSettings([{ key: "security.session.max_concurrent", value: input.sessionMaxConcurrent }], ctx.companyId),
+        writeSettings([{ key: "security.session.require_reauth", value: input.sessionRequireReauth }], ctx.companyId),
         // Login Security
-        prisma.settings.upsert({
-          where: { key: "security.login.max_attempts" },
-          update: { value: input.loginMaxAttempts },
-          create: { key: "security.login.max_attempts", value: input.loginMaxAttempts },
-        }),
-        prisma.settings.upsert({
-          where: { key: "security.login.lockout_duration_minutes" },
-          update: { value: input.loginLockoutDurationMinutes },
-          create: { key: "security.login.lockout_duration_minutes", value: input.loginLockoutDurationMinutes },
-        }),
+        writeSettings([{ key: "security.login.max_attempts", value: input.loginMaxAttempts }], ctx.companyId),
+        writeSettings([{ key: "security.login.lockout_duration_minutes", value: input.loginLockoutDurationMinutes }], ctx.companyId),
         // Device Management
         ...(input.requireMfaForUntrustedDevices !== undefined
           ? [
-              prisma.settings.upsert({
-                where: { key: "security.device.require_mfa_untrusted" },
-                update: { value: input.requireMfaForUntrustedDevices },
-                create: {
-                  key: "security.device.require_mfa_untrusted",
-                  value: input.requireMfaForUntrustedDevices,
-                },
-              }),
+              writeSettings([{ key: "security.device.require_mfa_untrusted", value: input.requireMfaForUntrustedDevices }], ctx.companyId),
             ]
           : []),
       ])
@@ -397,11 +332,8 @@ export const settingsRouter = createTRPCRouter({
       return { success: true }
     }),
 
-  getMfaSettings: protectedProcedure("settings.view").query(async () => {
-    const settings = await prisma.settings.findMany({
-      where: {
-        key: {
-          in: [
+  getMfaSettings: protectedProcedure("settings.view").query(async ({ ctx }) => {
+    const settings = await readSettingRows([
             "mfa.enforce_all_users",
             "mfa.enforce_admins",
             "mfa.methods.totp",
@@ -412,10 +344,7 @@ export const settingsRouter = createTRPCRouter({
             "mfa.recovery_codes_enabled",
             "mfa.recovery_codes_count",
             "mfa.admin_reset_enabled",
-          ],
-        },
-      },
-    })
+          ], ctx.companyId)
 
     const config: Record<string, unknown> = {}
     settings.forEach((setting) => {
@@ -454,13 +383,7 @@ export const settingsRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       // Validate credentials before enabling methods
       if (input.methodSms) {
-        const smsSettings = await prisma.settings.findMany({
-          where: {
-            key: {
-              in: ["mfa.sms.account_sid", "mfa.sms.auth_token", "mfa.sms.phone_number"],
-            },
-          },
-        })
+        const smsSettings = await readSettingRows(["mfa.sms.account_sid", "mfa.sms.auth_token", "mfa.sms.phone_number"], ctx.companyId)
 
         const smsConfig: Record<string, string> = {}
         smsSettings.forEach((setting) => {
@@ -476,13 +399,7 @@ export const settingsRouter = createTRPCRouter({
       }
 
       if (input.methodHardware) {
-        const webauthnSettings = await prisma.settings.findMany({
-          where: {
-            key: {
-              in: ["mfa.webauthn.rp_id", "mfa.webauthn.rp_name", "mfa.webauthn.origin"],
-            },
-          },
-        })
+        const webauthnSettings = await readSettingRows(["mfa.webauthn.rp_id", "mfa.webauthn.rp_name", "mfa.webauthn.origin"], ctx.companyId)
 
         const webauthnConfig: Record<string, string> = {}
         webauthnSettings.forEach((setting) => {
@@ -499,56 +416,16 @@ export const settingsRouter = createTRPCRouter({
 
       // Update or create each setting
       await Promise.all([
-        prisma.settings.upsert({
-          where: { key: "mfa.enforce_all_users" },
-          update: { value: input.enforceAllUsers },
-          create: { key: "mfa.enforce_all_users", value: input.enforceAllUsers },
-        }),
-        prisma.settings.upsert({
-          where: { key: "mfa.enforce_admins" },
-          update: { value: input.enforceAdmins },
-          create: { key: "mfa.enforce_admins", value: input.enforceAdmins },
-        }),
-        prisma.settings.upsert({
-          where: { key: "mfa.methods.totp" },
-          update: { value: input.methodTotp },
-          create: { key: "mfa.methods.totp", value: input.methodTotp },
-        }),
-        prisma.settings.upsert({
-          where: { key: "mfa.methods.sms" },
-          update: { value: input.methodSms },
-          create: { key: "mfa.methods.sms", value: input.methodSms },
-        }),
-        prisma.settings.upsert({
-          where: { key: "mfa.methods.email" },
-          update: { value: input.methodEmail },
-          create: { key: "mfa.methods.email", value: input.methodEmail },
-        }),
-        prisma.settings.upsert({
-          where: { key: "mfa.methods.hardware" },
-          update: { value: input.methodHardware },
-          create: { key: "mfa.methods.hardware", value: input.methodHardware },
-        }),
-        prisma.settings.upsert({
-          where: { key: "mfa.grace_period_days" },
-          update: { value: input.gracePeriodDays },
-          create: { key: "mfa.grace_period_days", value: input.gracePeriodDays },
-        }),
-        prisma.settings.upsert({
-          where: { key: "mfa.recovery_codes_enabled" },
-          update: { value: input.recoveryCodesEnabled },
-          create: { key: "mfa.recovery_codes_enabled", value: input.recoveryCodesEnabled },
-        }),
-        prisma.settings.upsert({
-          where: { key: "mfa.recovery_codes_count" },
-          update: { value: input.recoveryCodesCount },
-          create: { key: "mfa.recovery_codes_count", value: input.recoveryCodesCount },
-        }),
-        prisma.settings.upsert({
-          where: { key: "mfa.admin_reset_enabled" },
-          update: { value: input.adminResetEnabled },
-          create: { key: "mfa.admin_reset_enabled", value: input.adminResetEnabled },
-        }),
+        writeSettings([{ key: "mfa.enforce_all_users", value: input.enforceAllUsers }], ctx.companyId),
+        writeSettings([{ key: "mfa.enforce_admins", value: input.enforceAdmins }], ctx.companyId),
+        writeSettings([{ key: "mfa.methods.totp", value: input.methodTotp }], ctx.companyId),
+        writeSettings([{ key: "mfa.methods.sms", value: input.methodSms }], ctx.companyId),
+        writeSettings([{ key: "mfa.methods.email", value: input.methodEmail }], ctx.companyId),
+        writeSettings([{ key: "mfa.methods.hardware", value: input.methodHardware }], ctx.companyId),
+        writeSettings([{ key: "mfa.grace_period_days", value: input.gracePeriodDays }], ctx.companyId),
+        writeSettings([{ key: "mfa.recovery_codes_enabled", value: input.recoveryCodesEnabled }], ctx.companyId),
+        writeSettings([{ key: "mfa.recovery_codes_count", value: input.recoveryCodesCount }], ctx.companyId),
+        writeSettings([{ key: "mfa.admin_reset_enabled", value: input.adminResetEnabled }], ctx.companyId),
       ])
 
       // Create audit log
@@ -563,21 +440,16 @@ export const settingsRouter = createTRPCRouter({
       return { success: true }
     }),
 
-  getMfaCredentials: protectedProcedure("settings.view").query(async () => {
-    const settings = await prisma.settings.findMany({
-      where: {
-        key: {
-          in: [
+  getMfaCredentials: protectedProcedure("settings.view").query(async ({ ctx }) => {
+    const canEdit = ctx.permissions.includes("settings.edit")
+    const settings = await readOwnSettingRows([
             "mfa.sms.account_sid",
             "mfa.sms.auth_token",
             "mfa.sms.phone_number",
             "mfa.webauthn.rp_id",
             "mfa.webauthn.rp_name",
             "mfa.webauthn.origin",
-          ],
-        },
-      },
-    })
+          ], ctx.companyId)
 
     const config: Record<string, unknown> = {}
     settings.forEach((setting) => {
@@ -594,7 +466,7 @@ export const settingsRouter = createTRPCRouter({
 
     return {
       smsAccountSid: (config["mfa.sms.account_sid"] as string) || "",
-      smsAuthToken: (config["mfa.sms.auth_token"] as string) || "",
+      smsAuthToken: canEdit ? (config["mfa.sms.auth_token"] as string) || "" : "",
       smsPhoneNumber: (config["mfa.sms.phone_number"] as string) || "",
       webauthnRpId: (config["mfa.webauthn.rp_id"] as string) || "",
       webauthnRpName: (config["mfa.webauthn.rp_name"] as string) || "",
@@ -613,7 +485,7 @@ export const settingsRouter = createTRPCRouter({
         webauthnOrigin: z.string().optional(),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       // Encrypt sensitive SMS credentials
       const encryptKeys = ["smsAccountSid", "smsAuthToken", "smsPhoneNumber"]
       const encryptedData: Record<string, string> = {}
@@ -628,41 +500,17 @@ export const settingsRouter = createTRPCRouter({
       // Update or create each setting
       await Promise.all([
         input.smsAccountSid !== undefined &&
-          prisma.settings.upsert({
-            where: { key: "mfa.sms.account_sid" },
-            update: { value: encryptedData.smsAccountSid || input.smsAccountSid },
-            create: { key: "mfa.sms.account_sid", value: encryptedData.smsAccountSid || input.smsAccountSid },
-          }),
+          writeSettings([{ key: "mfa.sms.account_sid", value: encryptedData.smsAccountSid || input.smsAccountSid }], ctx.companyId),
         input.smsAuthToken !== undefined &&
-          prisma.settings.upsert({
-            where: { key: "mfa.sms.auth_token" },
-            update: { value: encryptedData.smsAuthToken || input.smsAuthToken },
-            create: { key: "mfa.sms.auth_token", value: encryptedData.smsAuthToken || input.smsAuthToken },
-          }),
+          writeSettings([{ key: "mfa.sms.auth_token", value: encryptedData.smsAuthToken || input.smsAuthToken }], ctx.companyId),
         input.smsPhoneNumber !== undefined &&
-          prisma.settings.upsert({
-            where: { key: "mfa.sms.phone_number" },
-            update: { value: encryptedData.smsPhoneNumber || input.smsPhoneNumber },
-            create: { key: "mfa.sms.phone_number", value: encryptedData.smsPhoneNumber || input.smsPhoneNumber },
-          }),
+          writeSettings([{ key: "mfa.sms.phone_number", value: encryptedData.smsPhoneNumber || input.smsPhoneNumber }], ctx.companyId),
         input.webauthnRpId !== undefined &&
-          prisma.settings.upsert({
-            where: { key: "mfa.webauthn.rp_id" },
-            update: { value: input.webauthnRpId },
-            create: { key: "mfa.webauthn.rp_id", value: input.webauthnRpId },
-          }),
+          writeSettings([{ key: "mfa.webauthn.rp_id", value: input.webauthnRpId }], ctx.companyId),
         input.webauthnRpName !== undefined &&
-          prisma.settings.upsert({
-            where: { key: "mfa.webauthn.rp_name" },
-            update: { value: input.webauthnRpName },
-            create: { key: "mfa.webauthn.rp_name", value: input.webauthnRpName },
-          }),
+          writeSettings([{ key: "mfa.webauthn.rp_name", value: input.webauthnRpName }], ctx.companyId),
         input.webauthnOrigin !== undefined &&
-          prisma.settings.upsert({
-            where: { key: "mfa.webauthn.origin" },
-            update: { value: input.webauthnOrigin },
-            create: { key: "mfa.webauthn.origin", value: input.webauthnOrigin },
-          }),
+          writeSettings([{ key: "mfa.webauthn.origin", value: input.webauthnOrigin }], ctx.companyId),
       ].filter(Boolean))
 
       // Clear caches when credentials are updated
@@ -674,15 +522,9 @@ export const settingsRouter = createTRPCRouter({
       return { success: true }
     }),
 
-  checkMfaCredentialsStatus: protectedProcedure("settings.view").query(async () => {
+  checkMfaCredentialsStatus: protectedProcedure("settings.view").query(async ({ ctx }) => {
     // Check SMS credentials
-    const smsSettings = await prisma.settings.findMany({
-      where: {
-        key: {
-          in: ["mfa.sms.account_sid", "mfa.sms.auth_token", "mfa.sms.phone_number"],
-        },
-      },
-    })
+    const smsSettings = await readSettingRows(["mfa.sms.account_sid", "mfa.sms.auth_token", "mfa.sms.phone_number"], ctx.companyId)
 
     const smsConfig: Record<string, string> = {}
     smsSettings.forEach((setting) => {
@@ -695,13 +537,7 @@ export const settingsRouter = createTRPCRouter({
       smsConfig["mfa.sms.phone_number"]
 
     // Check WebAuthn credentials
-    const webauthnSettings = await prisma.settings.findMany({
-      where: {
-        key: {
-          in: ["mfa.webauthn.rp_id", "mfa.webauthn.rp_name", "mfa.webauthn.origin"],
-        },
-      },
-    })
+    const webauthnSettings = await readSettingRows(["mfa.webauthn.rp_id", "mfa.webauthn.rp_name", "mfa.webauthn.origin"], ctx.companyId)
 
     const webauthnConfig: Record<string, string> = {}
     webauthnSettings.forEach((setting) => {
@@ -1061,19 +897,13 @@ export const settingsRouter = createTRPCRouter({
 
   // IP Security Settings
   getIpSecuritySettings: protectedProcedure("settings.view")
-    .query(async () => {
-      const settings = await prisma.settings.findMany({
-        where: {
-          key: {
-            in: [
+    .query(async ({ ctx }) => {
+      const settings = await readSettingRows([
               "security.ip_whitelist_enabled",
               "security.geographic_restriction_enabled",
               "security.vpn_detection_enabled",
               "security.suspicious_location_alerts_enabled",
-            ],
-          },
-        },
-      })
+            ], ctx.companyId)
 
       const config: Record<string, unknown> = {}
       settings.forEach((setting) => {
@@ -1109,11 +939,7 @@ export const settingsRouter = createTRPCRouter({
         settingsToUpdate
           .filter((s) => s.value !== undefined)
           .map((setting) =>
-            prisma.settings.upsert({
-              where: { key: setting.key },
-              update: { value: setting.value as Prisma.InputJsonValue },
-              create: { key: setting.key, value: setting.value as Prisma.InputJsonValue },
-            })
+            writeSettings([{ key: setting.key, value: setting.value as Prisma.InputJsonValue }], ctx.companyId)
           )
       )
 
@@ -1254,9 +1080,9 @@ export const settingsRouter = createTRPCRouter({
       return { success: true }
     }),
 
-  getThreatDetectionSettings: protectedProcedure("settings.view").query(async () => {
+  getThreatDetectionSettings: protectedProcedure("settings.view").query(async ({ ctx }) => {
     const { getThreatDetectionConfig } = await import("@/lib/threat-detection")
-    return await getThreatDetectionConfig()
+    return await getThreatDetectionConfig(ctx.companyId)
   }),
 
   updateThreatDetectionSettings: protectedProcedure("settings.edit")
@@ -1320,11 +1146,7 @@ export const settingsRouter = createTRPCRouter({
 
       await Promise.all(
         settings.map((setting) =>
-          prisma.settings.upsert({
-            where: { key: setting.key },
-            update: { value: setting.value },
-            create: { key: setting.key, value: setting.value },
-          })
+          writeSettings([{ key: setting.key, value: setting.value }], ctx.companyId)
         )
       )
 
@@ -1536,10 +1358,7 @@ export const settingsRouter = createTRPCRouter({
       }
 
       // Get user's companyId
-      const user = await prisma.user.findUnique({
-        where: { id: ctx.userId },
-        select: { companyId: true },
-      })
+      const user = { companyId: ctx.companyId }
 
       // Create export request
       const exportRecord = await prisma.dataExport.create({
@@ -1611,10 +1430,7 @@ export const settingsRouter = createTRPCRouter({
       }
 
       // Get user's companyId
-      const user = await prisma.user.findUnique({
-        where: { id: ctx.userId },
-        select: { companyId: true },
-      })
+      const user = { companyId: ctx.companyId }
 
       // Generate confirmation token
       const confirmationToken = crypto.randomUUID()

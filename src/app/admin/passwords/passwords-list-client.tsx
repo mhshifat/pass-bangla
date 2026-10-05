@@ -2,21 +2,11 @@
 
 import { useState, useEffect, useOptimistic, startTransition } from "react"
 import { useActionState } from "react"
-import { useRouter } from "next/navigation"
-import {
-  PasswordsTable,
-  PasswordDetailsDialog,
-  PasswordFormDialog,
-  PasswordsPagination,
-  SharePasswordDialog,
-  BulkOperationsToolbar,
-  BulkMoveDialog,
-  BulkTagDialog,
-  BulkShareDialog,
-  BulkStrengthDialog,
-  BulkDeleteDialog,
-  InstantSearchDialog,
-} from "@/modules/passwords/client"
+import dynamic from "next/dynamic"
+import { PasswordsTable } from "@/modules/passwords/client/passwords-table"
+import { PasswordsPagination } from "@/modules/passwords/client/passwords-pagination"
+import { BulkOperationsToolbar } from "@/modules/passwords/client/bulk-operations-toolbar"
+import { useEverOpened } from "@/modules/passwords/client/use-ever-opened"
 import { Button } from "@/components/ui/button"
 import { Zap } from "lucide-react"
 import { updatePasswordAction, deletePasswordAction } from "@/app/admin/passwords/actions"
@@ -34,6 +24,43 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+
+const PasswordDetailsDialog = dynamic(
+  () => import("@/modules/passwords/client/password-details-dialog").then((m) => m.PasswordDetailsDialog),
+  { ssr: false }
+)
+const PasswordFormDialog = dynamic(
+  () => import("@/modules/passwords/client/password-form-dialog").then((m) => m.PasswordFormDialog),
+  { ssr: false }
+)
+const SharePasswordDialog = dynamic(
+  () => import("@/modules/passwords/client/share-password-dialog").then((m) => m.SharePasswordDialog),
+  { ssr: false }
+)
+const BulkMoveDialog = dynamic(
+  () => import("@/modules/passwords/client/bulk-move-dialog").then((m) => m.BulkMoveDialog),
+  { ssr: false }
+)
+const BulkTagDialog = dynamic(
+  () => import("@/modules/passwords/client/bulk-tag-dialog").then((m) => m.BulkTagDialog),
+  { ssr: false }
+)
+const BulkShareDialog = dynamic(
+  () => import("@/modules/passwords/client/bulk-share-dialog").then((m) => m.BulkShareDialog),
+  { ssr: false }
+)
+const BulkStrengthDialog = dynamic(
+  () => import("@/modules/passwords/client/bulk-strength-dialog").then((m) => m.BulkStrengthDialog),
+  { ssr: false }
+)
+const BulkDeleteDialog = dynamic(
+  () => import("@/modules/passwords/client/bulk-delete-dialog").then((m) => m.BulkDeleteDialog),
+  { ssr: false }
+)
+const InstantSearchDialog = dynamic(
+  () => import("@/modules/passwords/client/instant-search-dialog").then((m) => m.InstantSearchDialog),
+  { ssr: false }
+)
 
 // Wrapper component to reset useActionState when key changes
 function EditPasswordDialogWrapper({
@@ -57,7 +84,6 @@ function EditPasswordDialogWrapper({
   }
   passwordId: string
 }) {
-  const router = useRouter()
   const [updateState, updateFormAction, updatePending] = useActionState(updatePasswordAction, null)
 
   // Handle update success/error
@@ -65,11 +91,10 @@ function EditPasswordDialogWrapper({
     if (updateState?.success) {
       toast.success("Password updated successfully")
       onOpenChange(false)
-      router.refresh()
     } else if (updateState?.error) {
       showErrorFromException(updateState.error, "Failed to update password")
     }
-  }, [updateState, router, onOpenChange])
+  }, [updateState, onOpenChange])
 
   return (
     <PasswordFormDialog
@@ -118,13 +143,12 @@ interface PasswordsListClientProps {
 }
 
 export function PasswordsListClient({ passwords, pagination }: PasswordsListClientProps) {
-  const router = useRouter()
   const { hasPermission } = usePermissions()
 
   // Optimistic list: removals reflect instantly. The optimistic state is scoped
   // to the surrounding transition and automatically reconciles with the real
-  // `passwords` prop once `router.refresh()` re-runs the server component (so a
-  // failed delete reappears, a successful one stays gone).
+  // `passwords` prop once the action's revalidation lands (so a failed delete
+  // reappears, a successful one stays gone).
   const [optimisticPasswords, removeOptimisticPasswords] = useOptimistic(
     passwords,
     (state: Password[], idsToRemove: string[]) => {
@@ -149,6 +173,13 @@ export function PasswordsListClient({ passwords, pagination }: PasswordsListClie
   const [isBulkUnshareOpen, setIsBulkUnshareOpen] = useState(false)
   const [isBulkStrengthOpen, setIsBulkStrengthOpen] = useState(false)
   const [isBulkDeleteOpen, setIsBulkDeleteOpen] = useState(false)
+  const detailsMounted = useEverOpened(isViewDialogOpen)
+  const bulkMoveMounted = useEverOpened(isBulkMoveOpen)
+  const bulkTagMounted = useEverOpened(isBulkTagOpen)
+  const bulkShareMounted = useEverOpened(isBulkShareOpen)
+  const bulkUnshareMounted = useEverOpened(isBulkUnshareOpen)
+  const bulkStrengthMounted = useEverOpened(isBulkStrengthOpen)
+  const bulkDeleteMounted = useEverOpened(isBulkDeleteOpen)
   const [bulkTagMode, setBulkTagMode] = useState<"assign" | "remove">("assign")
 
   // Use a key to reset the dialog component when needed
@@ -156,6 +187,16 @@ export function PasswordsListClient({ passwords, pagination }: PasswordsListClie
 
   // Instant (client-side, worker-powered) full-vault search
   const [isInstantSearchOpen, setIsInstantSearchOpen] = useState(false)
+  const instantSearchMounted = useEverOpened(isInstantSearchOpen)
+
+  // The list is not remounted between pages/searches, so drop selections that left the page
+  useEffect(() => {
+    const visible = new Set(passwords.map((p) => p.id))
+    setSelectedIds((prev) => {
+      const next = prev.filter((id) => visible.has(id))
+      return next.length === prev.length ? prev : next
+    })
+  }, [passwords])
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -245,10 +286,6 @@ export function PasswordsListClient({ passwords, pagination }: PasswordsListClie
         }
       } catch (error) {
         showErrorFromException(error, "Failed to delete password")
-      } finally {
-        // Reconcile with the server: keeps the row gone on success, restores it
-        // on failure.
-        router.refresh()
       }
     })
   }
@@ -258,13 +295,11 @@ export function PasswordsListClient({ passwords, pagination }: PasswordsListClie
     setIsShareDialogOpen(true)
   }
 
-  const handleShareSuccess = () => {
-    router.refresh()
-  }
+  // The server actions behind these dialogs revalidate the page, so no manual refresh
+  const handleShareSuccess = () => {}
 
   const handleBulkSuccess = () => {
     setSelectedIds([])
-    router.refresh()
   }
 
   // Called by the bulk-delete dialog the moment the user confirms, so the rows
@@ -328,12 +363,14 @@ export function PasswordsListClient({ passwords, pagination }: PasswordsListClie
         hasEditPermission={hasPermission("password.edit")}
         hasSharePermission={hasPermission("password.share")}
       />
-      <PasswordDetailsDialog
-        open={isViewDialogOpen}
-        onOpenChange={setIsViewDialogOpen}
-        password={selectedPassword}
-        onEdit={handleEdit}
-      />
+      {detailsMounted && (
+        <PasswordDetailsDialog
+          open={isViewDialogOpen}
+          onOpenChange={setIsViewDialogOpen}
+          password={selectedPassword}
+          onEdit={handleEdit}
+        />
+      )}
       {isEditDialogOpen && passwordToEdit && (
         <EditPasswordDialogWrapper
           key={`${passwordToEdit.id}-${editKey}`}
@@ -387,51 +424,65 @@ export function PasswordsListClient({ passwords, pagination }: PasswordsListClie
       )}
 
       {/* Bulk Operations Dialogs */}
-      <BulkDeleteDialog
-        open={isBulkDeleteOpen}
-        onOpenChange={setIsBulkDeleteOpen}
-        passwordIds={selectedIds}
-        onSuccess={handleBulkSuccess}
-        onOptimisticRemove={handleOptimisticRemove}
-      />
-      <BulkMoveDialog
-        open={isBulkMoveOpen}
-        onOpenChange={setIsBulkMoveOpen}
-        passwordIds={selectedIds}
-        onSuccess={handleBulkSuccess}
-      />
-      <BulkTagDialog
-        open={isBulkTagOpen}
-        onOpenChange={setIsBulkTagOpen}
-        passwordIds={selectedIds}
-        mode={bulkTagMode}
-        onSuccess={handleBulkSuccess}
-      />
-      <BulkShareDialog
-        open={isBulkShareOpen}
-        onOpenChange={setIsBulkShareOpen}
-        passwordIds={selectedIds}
-        mode="share"
-        onSuccess={handleBulkSuccess}
-      />
-      <BulkShareDialog
-        open={isBulkUnshareOpen}
-        onOpenChange={setIsBulkUnshareOpen}
-        passwordIds={selectedIds}
-        mode="unshare"
-        onSuccess={handleBulkSuccess}
-      />
-      <BulkStrengthDialog
-        open={isBulkStrengthOpen}
-        onOpenChange={setIsBulkStrengthOpen}
-        passwordIds={selectedIds}
-        onSuccess={handleBulkSuccess}
-      />
+      {bulkDeleteMounted && (
+        <BulkDeleteDialog
+          open={isBulkDeleteOpen}
+          onOpenChange={setIsBulkDeleteOpen}
+          passwordIds={selectedIds}
+          onSuccess={handleBulkSuccess}
+          onOptimisticRemove={handleOptimisticRemove}
+        />
+      )}
+      {bulkMoveMounted && (
+        <BulkMoveDialog
+          open={isBulkMoveOpen}
+          onOpenChange={setIsBulkMoveOpen}
+          passwordIds={selectedIds}
+          onSuccess={handleBulkSuccess}
+        />
+      )}
+      {bulkTagMounted && (
+        <BulkTagDialog
+          open={isBulkTagOpen}
+          onOpenChange={setIsBulkTagOpen}
+          passwordIds={selectedIds}
+          mode={bulkTagMode}
+          onSuccess={handleBulkSuccess}
+        />
+      )}
+      {bulkShareMounted && (
+        <BulkShareDialog
+          open={isBulkShareOpen}
+          onOpenChange={setIsBulkShareOpen}
+          passwordIds={selectedIds}
+          mode="share"
+          onSuccess={handleBulkSuccess}
+        />
+      )}
+      {bulkUnshareMounted && (
+        <BulkShareDialog
+          open={isBulkUnshareOpen}
+          onOpenChange={setIsBulkUnshareOpen}
+          passwordIds={selectedIds}
+          mode="unshare"
+          onSuccess={handleBulkSuccess}
+        />
+      )}
+      {bulkStrengthMounted && (
+        <BulkStrengthDialog
+          open={isBulkStrengthOpen}
+          onOpenChange={setIsBulkStrengthOpen}
+          passwordIds={selectedIds}
+          onSuccess={handleBulkSuccess}
+        />
+      )}
 
-      <InstantSearchDialog
-        open={isInstantSearchOpen}
-        onOpenChange={setIsInstantSearchOpen}
-      />
+      {instantSearchMounted && (
+        <InstantSearchDialog
+          open={isInstantSearchOpen}
+          onOpenChange={setIsInstantSearchOpen}
+        />
+      )}
     </>
   )
 }

@@ -161,6 +161,7 @@ export function ResetPasswordPage() {
                         <PasswordInput
                           {...field}
                           placeholder={t("auth.password")}
+                          autoComplete="new-password"
                           className="pl-10"
                           disabled={resetPasswordMutation.isPending}
                           onGeneratePassword={(password: string) => {
@@ -188,6 +189,7 @@ export function ResetPasswordPage() {
                       <PasswordInput
                         {...field}
                         placeholder={t("auth.resetPassword.confirmPasswordPlaceholder")}
+                        autoComplete="new-password"
                         disabled={resetPasswordMutation.isPending}
                       />
                     </FormControl>

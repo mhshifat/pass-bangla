@@ -15,16 +15,26 @@ export async function getUserPermissions(userId: string): Promise<string[]> {
     return []
   }
 
+  return getRolePermissions(user.role, user.companyId)
+}
+
+/**
+ * Get all permission keys for a role name, for callers that already loaded the user
+ */
+export async function getRolePermissions(
+  roleName: string,
+  companyId: string | null
+): Promise<string[]> {
   // Find the role in the database (could be system or custom)
   // Filter by company: system roles are global, custom roles are company-specific
-  const roleWhere: Prisma.RoleWhereInput = { name: user.role }
-  if (user.companyId) {
+  const roleWhere: Prisma.RoleWhereInput = { name: roleName }
+  if (companyId) {
     roleWhere.OR = [
       { isSystem: true }, // System roles are available to all companies
       {
         isSystem: false,
         createdBy: {
-          companyId: user.companyId, // Custom roles are company-specific
+          companyId, // Custom roles are company-specific
         },
       },
     ]
@@ -35,10 +45,10 @@ export async function getUserPermissions(userId: string): Promise<string[]> {
 
   const role = await prisma.role.findFirst({
     where: roleWhere,
-    include: {
+    select: {
       permissions: {
-        include: {
-          permission: true,
+        select: {
+          permission: { select: { key: true } },
         },
       },
     },
@@ -50,6 +60,61 @@ export async function getUserPermissions(userId: string): Promise<string[]> {
 
   // Extract permission keys
   return role.permissions.map((rp) => rp.permission.key)
+}
+
+const ROLE_PERMISSIONS_TTL_MS = 60_000
+const ROLE_PERMISSIONS_MAX_ENTRIES = 2_000
+
+const rolePermissionsCache = new Map<string, { keys: string[]; at: number }>()
+const rolePermissionsInFlight = new Map<string, Promise<string[]>>()
+// Bumped on invalidation so a lookup that started before it cannot repopulate the cache
+let rolePermissionsGeneration = 0
+
+/**
+ * getRolePermissions with a 60 second in-memory cache per `role|companyId`.
+ *
+ * Security trade-off: the cache is per server instance. A permission removed
+ * from (or added to) a role applies immediately on the instance that calls
+ * `invalidateRolePermissionsCache()`, but can take up to 60 seconds on other
+ * warm instances. Changing which role a USER has is not affected: the user row
+ * is read on every request. Empty results and failures are never cached.
+ */
+export async function getCachedRolePermissions(
+  roleName: string,
+  companyId: string | null
+): Promise<string[]> {
+  const cacheKey = `${roleName}|${companyId ?? ""}`
+  const cached = rolePermissionsCache.get(cacheKey)
+  if (cached && Date.now() - cached.at < ROLE_PERMISSIONS_TTL_MS) {
+    return [...cached.keys]
+  }
+
+  let load = rolePermissionsInFlight.get(cacheKey)
+  if (!load) {
+    const startedAt = rolePermissionsGeneration
+    const pending = getRolePermissions(roleName, companyId)
+      .then((keys) => {
+        if (keys.length > 0 && startedAt === rolePermissionsGeneration) {
+          if (rolePermissionsCache.size >= ROLE_PERMISSIONS_MAX_ENTRIES) rolePermissionsCache.clear()
+          rolePermissionsCache.set(cacheKey, { keys, at: Date.now() })
+        }
+        return keys
+      })
+      .finally(() => {
+        if (rolePermissionsInFlight.get(cacheKey) === pending) rolePermissionsInFlight.delete(cacheKey)
+      })
+    rolePermissionsInFlight.set(cacheKey, pending)
+    load = pending
+  }
+
+  return [...(await load)]
+}
+
+/** Drop cached role → permission keys. Call after any write to roles or role permissions. */
+export function invalidateRolePermissionsCache(): void {
+  rolePermissionsGeneration++
+  rolePermissionsCache.clear()
+  rolePermissionsInFlight.clear()
 }
 
 /**

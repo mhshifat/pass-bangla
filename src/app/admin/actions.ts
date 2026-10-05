@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation"
 import { headers } from "next/headers"
-import { serverTrpc } from "@/trpc/server-caller"
+import { serverTrpc, getCurrentUserData } from "@/trpc/server-caller"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
 
 export async function logoutAction() {
@@ -70,8 +70,7 @@ export async function logoutAction() {
  */
 export async function getUserData() {
   try {
-    const trpc = await serverTrpc();
-    const { user, session, shouldVerifyMfa } = await trpc.auth.getCurrentUser();
+    const { user, session, shouldVerifyMfa } = await getCurrentUserData();
     
     if (shouldVerifyMfa === true) {
       redirect("/mfa-verify");

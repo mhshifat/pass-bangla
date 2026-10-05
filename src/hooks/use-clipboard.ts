@@ -95,16 +95,16 @@ export function useClipboard(): UseClipboardReturn {
 
         // Log to audit if enabled
         if (logToAudit && resourceId && actionType) {
-          try {
-            await logCopyMutation.mutateAsync({
+          // Fire and forget: the toast must not wait on the audit round trip
+          logCopyMutation
+            .mutateAsync({
               resourceId,
               resourceType,
               actionType,
             })
-          } catch (auditError) {
-            // Don't fail the copy operation if audit logging fails
-            console.warn("Failed to log clipboard copy to audit:", auditError)
-          }
+            .catch((auditError: unknown) => {
+              console.warn("Failed to log clipboard copy to audit:", auditError)
+            })
         }
 
         // Show success message

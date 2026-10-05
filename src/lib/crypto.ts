@@ -41,8 +41,18 @@ function deriveKey(rawKey: string, salt: string = "default_salt_change_in_produc
   return crypto.pbkdf2Sync(rawKey, salt, KEY_DERIVATION_ITERATIONS, KEY_LENGTH, "sha256")
 }
 
-const EMAIL_ENCRYPTION_KEY = deriveKey(EMAIL_ENCRYPTION_KEY_RAW, "email_encryption_salt")
-const PASSWORD_ENCRYPTION_KEY = deriveKey(PASSWORD_ENCRYPTION_KEY_RAW, "password_encryption_salt")
+// Derived on first use rather than at module load, so importing this module
+// does not cost two 100,000-iteration PBKDF2 runs on every cold start.
+let emailEncryptionKey: Buffer | null = null
+let passwordEncryptionKey: Buffer | null = null
+
+function getEmailEncryptionKey(): Buffer {
+  return (emailEncryptionKey ??= deriveKey(EMAIL_ENCRYPTION_KEY_RAW, "email_encryption_salt"))
+}
+
+function getPasswordEncryptionKey(): Buffer {
+  return (passwordEncryptionKey ??= deriveKey(PASSWORD_ENCRYPTION_KEY_RAW, "password_encryption_salt"))
+}
 
 const IV_LENGTH = 16 // AES block size
 
@@ -52,7 +62,7 @@ const IV_LENGTH = 16 // AES block size
  */
 export function encrypt(text: string): string {
   const iv = crypto.randomBytes(IV_LENGTH)
-  const cipher = crypto.createCipheriv("aes-256-cbc", EMAIL_ENCRYPTION_KEY, iv)
+  const cipher = crypto.createCipheriv("aes-256-cbc", getEmailEncryptionKey(), iv)
   let encrypted = cipher.update(text, "utf8")
   encrypted = Buffer.concat([encrypted, cipher.final()])
   return iv.toString("hex") + ":" + encrypted.toString("hex")
@@ -68,7 +78,7 @@ export function decrypt(text: string): string {
   }
   const iv = Buffer.from(textParts[0]!, "hex")
   const encryptedText = Buffer.from(textParts[1]!, "hex")
-  const decipher = crypto.createDecipheriv("aes-256-cbc", EMAIL_ENCRYPTION_KEY, iv)
+  const decipher = crypto.createDecipheriv("aes-256-cbc", getEmailEncryptionKey(), iv)
   let decrypted = decipher.update(encryptedText)
   decrypted = Buffer.concat([decrypted, decipher.final()])
   return decrypted.toString("utf8")
@@ -80,7 +90,7 @@ export function decrypt(text: string): string {
  */
 export function encryptPassword(text: string): string {
   const iv = crypto.randomBytes(IV_LENGTH)
-  const cipher = crypto.createCipheriv("aes-256-cbc", PASSWORD_ENCRYPTION_KEY, iv)
+  const cipher = crypto.createCipheriv("aes-256-cbc", getPasswordEncryptionKey(), iv)
   let encrypted = cipher.update(text, "utf8")
   encrypted = Buffer.concat([encrypted, cipher.final()])
   return iv.toString("hex") + ":" + encrypted.toString("hex")
@@ -96,7 +106,7 @@ export function decryptPassword(text: string): string {
   }
   const iv = Buffer.from(textParts[0]!, "hex")
   const encryptedText = Buffer.from(textParts[1]!, "hex")
-  const decipher = crypto.createDecipheriv("aes-256-cbc", PASSWORD_ENCRYPTION_KEY, iv)
+  const decipher = crypto.createDecipheriv("aes-256-cbc", getPasswordEncryptionKey(), iv)
   let decrypted = decipher.update(encryptedText)
   decrypted = Buffer.concat([decrypted, decipher.final()])
   return decrypted.toString("utf8")

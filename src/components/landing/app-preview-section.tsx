@@ -1,20 +1,19 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
-import { gsap } from "gsap"
-import { ScrollTrigger } from "gsap/ScrollTrigger"
-import { Canvas, useFrame } from "@react-three/fiber"
-import { OrbitControls } from "@react-three/drei"
-import * as THREE from "three"
-import { Monitor, Lock, Shield, Users, ArrowRight, ChevronLeft, ChevronRight, Key, Settings, FileText } from "lucide-react"
+import { useRef, useState } from "react"
+import dynamic from "next/dynamic"
+import { Monitor, Lock, Shield, Users, ArrowRight, ChevronLeft, ChevronRight, Key } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "@/hooks/use-translation"
+import { useReveal } from "./use-reveal"
+import { useDecorativeWebGL } from "./use-decorative-webgl"
 
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger)
-}
+// Decorative 3D card: fetched after first paint, only near the viewport and on capable devices
+const AppPreviewCanvas = dynamic(() => import("./app-preview-canvas").then((m) => m.AppPreviewCanvas), {
+  ssr: false,
+})
 
 // Preview screens will be defined in the component to use translations
 
@@ -204,52 +203,12 @@ function SecurityPreview() {
   )
 }
 
-// 3D Card Component
-function PreviewCard3D() {
-  const meshRef = useRef<THREE.Mesh>(null)
-  const groupRef = useRef<THREE.Group>(null)
-
-  useFrame((state) => {
-    if (meshRef.current && groupRef.current) {
-      const x = state.pointer.x * 0.1
-      const y = state.pointer.y * 0.1
-      
-      groupRef.current.rotation.y = x
-      groupRef.current.rotation.x = -y
-      
-      meshRef.current.position.y = Math.sin(state.clock.elapsedTime) * 0.1
-    }
-  })
-
-  return (
-    <group ref={groupRef}>
-      <mesh ref={meshRef} position={[0, 0, 0]}>
-        <boxGeometry args={[4, 2.5, 0.1]} />
-        <meshStandardMaterial
-          color="#1a1a1a"
-          metalness={0.3}
-          roughness={0.4}
-          envMapIntensity={1}
-        />
-      </mesh>
-      <mesh position={[0, 0, 0.06]}>
-        <boxGeometry args={[3.8, 2.3, 0.01]} />
-        <meshStandardMaterial
-          color="#0a0a0a"
-          emissive="#1a1a1a"
-          emissiveIntensity={0.3}
-        />
-      </mesh>
-    </group>
-  )
-}
-
 export function AppPreviewSection() {
   const { t } = useTranslation()
   const sectionRef = useRef<HTMLDivElement>(null)
-  const previewRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLDivElement>(null)
-  const carouselRef = useRef<HTMLDivElement>(null)
+  useReveal(sectionRef, "[data-reveal-item]", 200)
+  const showWebGL = useDecorativeWebGL(canvasRef)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [touchStart, setTouchStart] = useState<number | null>(null)
   const [touchEnd, setTouchEnd] = useState<number | null>(null)
@@ -319,70 +278,8 @@ export function AppPreviewSection() {
     setCurrentIndex((prev) => (prev < previewScreens.length - 1 ? prev + 1 : 0))
   }
 
-  useEffect(() => {
-    if (!sectionRef.current || !previewRef.current || !canvasRef.current) return
-
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        previewRef.current,
-        {
-          opacity: 0,
-          scale: 0.9,
-          y: 40,
-        },
-        {
-          opacity: 1,
-          scale: 1,
-          y: 0,
-          duration: 1,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top 75%",
-            toggleActions: "play none none none",
-          },
-        }
-      )
-
-      gsap.fromTo(
-        canvasRef.current,
-        {
-          opacity: 0,
-          scale: 0.8,
-        },
-        {
-          opacity: 1,
-          scale: 1,
-          duration: 1.2,
-          delay: 0.2,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top 75%",
-            toggleActions: "play none none none",
-          },
-        }
-      )
-    }, sectionRef)
-
-    return () => ctx.revert()
-  }, [])
-
-  // Animate carousel on index change
-  useEffect(() => {
-    if (carouselRef.current) {
-      // Each slide is 100% of viewport width
-      // Container is previewScreens.length * 100% wide
-      // To show slide N, translate by -N * (100 / previewScreens.length)% of container
-      const translatePercent = -(currentIndex * (100 / previewScreens.length))
-      
-      gsap.to(carouselRef.current, {
-        x: `${translatePercent}%`,
-        duration: 0.5,
-        ease: "power2.inOut",
-      })
-    }
-  }, [currentIndex])
+  // Container is previewScreens.length * 100% wide, so slide N sits at N * (100 / length)%
+  const translatePercent = -(currentIndex * (100 / previewScreens.length))
 
   return (
     <section
@@ -413,15 +310,18 @@ export function AppPreviewSection() {
           {/* Swipeable Preview Carousel */}
           <div
             ref={canvasRef}
-            className="relative h-[500px] opacity-100"
-            style={{ opacity: 1 }}
+            data-reveal-item
+            data-reveal-from="zoom"
+            className="relative h-[500px]"
           >
             {/* Carousel Container */}
             <div className="relative w-full h-full overflow-hidden rounded-lg z-10">
               <div
-                ref={carouselRef}
-                className="flex h-full"
-                style={{ width: `${previewScreens.length * 100}%` }}
+                className="flex h-full transition-transform duration-500 ease-in-out"
+                style={{
+                  width: `${previewScreens.length * 100}%`,
+                  transform: `translateX(${translatePercent}%)`,
+                }}
                 onTouchStart={onTouchStart}
                 onTouchMove={onTouchMove}
                 onTouchEnd={onTouchEnd}
@@ -477,28 +377,15 @@ export function AppPreviewSection() {
             </div>
 
             {/* 3D Background Elements */}
-            <div className="absolute inset-0 -z-10 opacity-30">
-              <Canvas
-                camera={{ position: [0, 0, 5], fov: 75 }}
-                className="rounded-lg pointer-events-none"
-              >
-                <ambientLight intensity={0.4} />
-                <directionalLight position={[5, 5, 5]} intensity={0.6} />
-                <PreviewCard3D />
-                <OrbitControls
-                  enableZoom={false}
-                  enablePan={false}
-                  autoRotate
-                  autoRotateSpeed={0.3}
-                  minPolarAngle={Math.PI / 2.5}
-                  maxPolarAngle={Math.PI / 1.8}
-                />
-              </Canvas>
-            </div>
+            {showWebGL && (
+              <div className="absolute inset-0 -z-10 opacity-30">
+                <AppPreviewCanvas />
+              </div>
+            )}
           </div>
 
           {/* Content */}
-          <div ref={previewRef} className="space-y-6 opacity-100" style={{ opacity: 1 }}>
+          <div data-reveal-item data-reveal-from="pop" className="space-y-6">
             <div className="space-y-4">
               <div className="flex items-start gap-4">
                 <div className="p-3 rounded-lg bg-primary/10 text-primary shrink-0">

@@ -203,6 +203,7 @@ export function ExportPasswordDialog({
                   </Label>
                   <PasswordInput
                       id="encryptionKey"
+                      storedSecret
                       value={encryptionKey}
                       onChange={(e) => setEncryptionKey(e.target.value)}
                       placeholder={t("passwords.export.encryptionKeyPlaceholder")}

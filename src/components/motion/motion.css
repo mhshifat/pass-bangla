@@ -1,0 +1,48 @@
+/*
+ * CSS-only entrance primitives (FadeIn, Stagger, PageTransition).
+ * Pure CSS so server-rendered content is never parked at opacity 0 waiting for
+ * JavaScript; the animation runs as soon as the stylesheet is applied.
+ * Timings mirror motion/constants.ts (DURATION.base, EASE.out, STAGGER).
+ */
+@keyframes pb-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(var(--pb-y, 8px));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.pb-fade-in {
+  animation: pb-fade-up 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.pb-page-enter {
+  --pb-y: 6px;
+  animation: pb-fade-up 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.pb-stagger {
+  --pb-stagger: 50ms;
+}
+.pb-stagger > .pb-stagger-item {
+  --pb-y: 10px;
+  animation: pb-fade-up 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.pb-stagger > .pb-stagger-item:nth-child(2) { animation-delay: calc(var(--pb-stagger) * 1); }
+.pb-stagger > .pb-stagger-item:nth-child(3) { animation-delay: calc(var(--pb-stagger) * 2); }
+.pb-stagger > .pb-stagger-item:nth-child(4) { animation-delay: calc(var(--pb-stagger) * 3); }
+.pb-stagger > .pb-stagger-item:nth-child(5) { animation-delay: calc(var(--pb-stagger) * 4); }
+.pb-stagger > .pb-stagger-item:nth-child(6) { animation-delay: calc(var(--pb-stagger) * 5); }
+.pb-stagger > .pb-stagger-item:nth-child(7) { animation-delay: calc(var(--pb-stagger) * 6); }
+.pb-stagger > .pb-stagger-item:nth-child(n + 8) { animation-delay: calc(var(--pb-stagger) * 7); }
+
+@media (prefers-reduced-motion: reduce) {
+  .pb-fade-in,
+  .pb-page-enter,
+  .pb-stagger > .pb-stagger-item {
+    animation: none;
+  }
+}

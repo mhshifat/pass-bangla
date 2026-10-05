@@ -183,23 +183,24 @@ export async function exportToEncrypted(
   // Use the crypto library for proper encryption
   const crypto = await import("crypto")
   
-  // Derive a key from the user-provided encryption key
-  // In production, use proper key derivation (PBKDF2, Argon2, etc.)
-  const key = crypto.createHash("sha256").update(encryptionKey).digest()
-  const iv = crypto.randomBytes(16)
-  
-  const cipher = crypto.createCipheriv("aes-256-cbc", key, iv)
-  let encrypted = cipher.update(jsonData, "utf8", "hex")
-  encrypted += cipher.final("hex")
-  
+  const salt = crypto.randomBytes(16)
+  const key = crypto.scryptSync(encryptionKey, salt, 32, { N: 16384, r: 8, p: 1 })
+  const iv = crypto.randomBytes(12)
+
+  const cipher = crypto.createCipheriv("aes-256-gcm", key, iv)
+  const encrypted = Buffer.concat([cipher.update(jsonData, "utf8"), cipher.final()])
+  const authTag = cipher.getAuthTag()
+
   return JSON.stringify({
     encrypted: true,
-    version: "1.0",
+    version: "2.0",
     exportDate: new Date().toISOString(),
-    algorithm: "aes-256-cbc",
+    algorithm: "aes-256-gcm",
+    kdf: "scrypt",
+    kdfParams: { N: 16384, r: 8, p: 1, keyLength: 32 },
+    salt: salt.toString("hex"),
     iv: iv.toString("hex"),
-    data: encrypted,
-    // Note: The encryptionKey is used to derive the encryption key
-    // Store this key securely for decryption
+    authTag: authTag.toString("hex"),
+    data: encrypted.toString("hex"),
   }, null, 2)
 }

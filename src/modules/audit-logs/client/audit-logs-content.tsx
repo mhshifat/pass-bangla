@@ -63,7 +63,7 @@ export function AuditLogsContent() {
       page,
       pageSize: 20,
       search: search || undefined,
-      action: action === t("audit.allActions") ? undefined : action,
+      action: action && action !== t("audit.allActions") ? action : undefined,
       status,
     },
     {

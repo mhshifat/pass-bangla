@@ -84,6 +84,7 @@ export function RegisterFormFields({ formAction, isPending, state }: RegisterFor
                     <Input
                       type="text"
                       placeholder={t("auth.namePlaceholder")}
+                      autoComplete="name"
                       className="pl-10"
                       disabled={isPending}
                       {...field}
@@ -107,6 +108,8 @@ export function RegisterFormFields({ formAction, isPending, state }: RegisterFor
                     <Input
                       type="email"
                       placeholder={t("auth.emailPlaceholder")}
+                      // Tells password managers this — not the full name — is the login username
+                      autoComplete="username"
                       className="pl-10"
                       disabled={isPending}
                       {...field}
@@ -129,6 +132,7 @@ export function RegisterFormFields({ formAction, isPending, state }: RegisterFor
                     <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400 z-10" />
                     <PasswordInput
                       placeholder="••••••••"
+                      autoComplete="new-password"
                       className="pl-10"
                       disabled={isPending}
                       showToggleButton={true}
@@ -159,6 +163,7 @@ export function RegisterFormFields({ formAction, isPending, state }: RegisterFor
                     <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <PasswordInput
                       placeholder="••••••••"
+                      autoComplete="new-password"
                       className="pl-10"
                       disabled={isPending}
                       showToggleButton={true}
@@ -184,6 +189,7 @@ export function RegisterFormFields({ formAction, isPending, state }: RegisterFor
                     <Input
                       type="text"
                       placeholder={t("auth.companyNamePlaceholder")}
+                      autoComplete="organization"
                       className="pl-10"
                       disabled={isPending}
                       {...field}

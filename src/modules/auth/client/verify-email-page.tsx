@@ -17,15 +17,41 @@ export function VerifyEmailPage() {
   const router = useRouter()
   const token = searchParams.get("token")
   const [verificationStatus, setVerificationStatus] = React.useState<"pending" | "success" | "error">("pending")
+  const [companySubdomain, setCompanySubdomain] = React.useState<string | null>(null)
+
+  // /admin only exists on the company subdomain. The verification link is often
+  // opened on the main domain (that's where registration happens), so continue
+  // on the company's own address instead of the 404 at passbangla.com/admin.
+  const continueToApp = React.useCallback(() => {
+    const { protocol, host } = window.location
+    const hostname = host.split(":")[0]
+    const parts = hostname.split(".")
+    const isLocalhost = hostname.endsWith("localhost")
+    const onSubdomain = isLocalhost
+      ? parts.length >= 2
+      : parts.length >= 3 && parts[0] !== "www"
+
+    if (onSubdomain || !companySubdomain) {
+      router.replace(onSubdomain ? "/admin" : "/login")
+      return
+    }
+
+    const baseDomain = isLocalhost ? host : host.replace(/^www\./, "")
+    window.location.href = `${protocol}//${companySubdomain}.${baseDomain}/admin`
+  }, [companySubdomain, router])
 
   const utils = trpc.useUtils()
-  const { data: emailStatus } = trpc.auth.checkEmailVerification.useQuery(undefined, {
-    refetchInterval: 2000, // Poll every 2 seconds to check if email is verified
+  // Only watches for the email being verified elsewhere: slow, visible tab only, and it gives up eventually
+  trpc.auth.checkEmailVerification.useQuery(undefined, {
+    refetchInterval: (query) =>
+      query.state.data?.emailVerified || query.state.dataUpdateCount >= 20 ? false : 12000,
+    refetchIntervalInBackground: false,
   })
 
   const verifyMutation = trpc.auth.verifyEmail.useMutation({
     onSuccess: async (data) => {
       console.log("Email verification mutation response:", data)
+      setCompanySubdomain(data.companySubdomain)
       setVerificationStatus("success")
       toast.success(t("auth.emailVerification.success"))
       
@@ -39,12 +65,12 @@ export function VerifyEmailPage() {
     },
   })
 
-  // Check if email is verified and redirect
+  // Once the token has been accepted, continue to the app (the visitor may not be logged in here)
   React.useEffect(() => {
-    if (emailStatus?.emailVerified !== null && verificationStatus === "success") {
-      router.replace("/admin")
+    if (verificationStatus === "success") {
+      continueToApp()
     }
-  }, [emailStatus?.emailVerified, verificationStatus, router])
+  }, [verificationStatus, continueToApp])
 
   React.useEffect(() => {
     if (token) {
@@ -94,7 +120,7 @@ export function VerifyEmailPage() {
               </div>
               <div className="pt-4">
                 <Button 
-                  onClick={() => router.replace("/admin")}
+                  onClick={continueToApp}
                   className="w-full"
                 >
                   {t("common.continue") || "Continue"}

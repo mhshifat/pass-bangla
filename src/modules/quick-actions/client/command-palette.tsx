@@ -43,6 +43,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   const router = useRouter()
   const { hasPermission } = usePermissions()
   const [searchQuery, setSearchQuery] = React.useState("")
+  const [debouncedQuery, setDebouncedQuery] = React.useState("")
   const [isCreatePasswordOpen, setIsCreatePasswordOpen] = React.useState(false)
   const [isShortcutsOpen, setIsShortcutsOpen] = React.useState(false)
 
@@ -52,10 +53,22 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
     { enabled: open && hasPermission("password.view") }
   )
 
-  // Search passwords
+  // Search passwords (debounced so typing does not fire a request per keystroke)
+  React.useEffect(() => {
+    if (searchQuery.length === 0) {
+      setDebouncedQuery("")
+      return
+    }
+    const timer = setTimeout(() => setDebouncedQuery(searchQuery), 250)
+    return () => clearTimeout(timer)
+  }, [searchQuery])
+
   const { data: searchResults } = trpc.quickActions.searchPasswords.useQuery(
-    { query: searchQuery, limit: 10 },
-    { enabled: open && searchQuery.length > 0 && hasPermission("password.view") }
+    { query: debouncedQuery, limit: 10 },
+    {
+      enabled: open && debouncedQuery.length > 0 && hasPermission("password.view"),
+      placeholderData: (previous) => previous,
+    }
   )
 
   const runCommand = React.useCallback(

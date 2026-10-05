@@ -19,7 +19,7 @@ import { trpc } from "@/trpc/client"
 import { toast } from "sonner"
 import { usePermissions } from "@/hooks/use-permissions"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { TagAutocomplete } from "@/modules/passwords/client"
+import { TagAutocomplete } from "@/modules/passwords/client/tag-autocomplete"
 import { useTransition } from "react"
 import {
   AlertDialog,
@@ -123,7 +123,7 @@ export function PasswordDetailsDialog({
   const updateTagsMutation = trpc.passwords.update.useMutation({
     onSuccess: async () => {
       await refetchPasswordData()
-      await utils.passwords.list.invalidate()
+      router.refresh()
       toast.success(t("passwords.tags.tagUpdated"))
       setIsEditingTags(false)
     },
@@ -195,7 +195,6 @@ export function PasswordDetailsDialog({
         toast.success(t("passwords.rotation.policyAssigned"))
         await refetchPasswordData()
         await utils.passwordRotation.getReminders.invalidate()
-        router.refresh()
       } else {
         showErrorFromException(result.error, t("passwords.rotation.policyAssignError"))
       }
@@ -278,9 +277,7 @@ export function PasswordDetailsDialog({
             : t("passwords.favorites.removed")
         )
         await refetchPasswordData()
-        await utils.passwords.list.invalidate()
-        await utils.passwords.getFavorites.invalidate()
-        router.refresh()
+        void utils.passwords.getFavorites.invalidate()
       } else if ("error" in result) {
         showErrorFromException(result.error, t("passwords.favorites.toggleError"))
       }
@@ -313,7 +310,7 @@ export function PasswordDetailsDialog({
         toast.success(t("passwords.breach.safe"))
       }
       setIsCheckingBreach(false)
-      router.refresh()
+      void utils.passwords.getBreachHistory.invalidate()
     },
     onError: (error) => {
       showErrorFromException(error, t("passwords.breach.checkError"))
@@ -420,11 +417,6 @@ export function PasswordDetailsDialog({
         
         // Refetch password data to update the shares list
         await refetchPasswordData()
-        
-        // Invalidate passwords list query to update the table
-        await utils.passwords.list.invalidate()
-        
-        router.refresh()
       } else if (result.error) {
         showErrorFromException(result.error, "Failed to remove password share")
       }
@@ -524,7 +516,13 @@ export function PasswordDetailsDialog({
               <div className="col-span-2 flex flex-col gap-2">
                 <div className="flex items-center gap-2">
                   <Input
-                    type={showPassword ? "text" : "password"}
+                    // Always text: the hidden state already shows bullets, and a
+                    // password-type field makes the browser treat it as a login.
+                    type="text"
+                    autoComplete="off"
+                    data-1p-ignore
+                    data-lpignore="true"
+                    data-bwignore
                     value={
                       isLoading || isDecryptingPassword
                         ? "Loading..."

@@ -6,5 +6,4 @@ export { PWASection } from "./pwa-section"
 export { AppPreviewSection } from "./app-preview-section"
 export { CTASection } from "./cta-section"
 export { Footer } from "./footer"
-export { ThreeBackground } from "./three-background"
 

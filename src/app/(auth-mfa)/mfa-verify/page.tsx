@@ -2,12 +2,11 @@ import { Suspense } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { MfaVerifyForm } from "@/modules/auth/client/mfa-verify/mfa-verify-form"
 import { MfaVerifyPageHeader } from "./mfa-verify-page-header"
-import { serverTrpc } from "@/trpc/server-caller"
+import { getCurrentUserData } from "@/trpc/server-caller"
 import { redirect } from "next/navigation"
 
 export default async function MfaVerifyPage() {
-  const trpc = await serverTrpc();
-  const userData = await trpc.auth.getCurrentUser();
+  const userData = await getCurrentUserData();
   
   // Redirect to admin only if MFA is already verified (not required)
   if (userData?.session?.mfaVerified === true) {

@@ -31183,18 +31183,21 @@ export namespace Prisma {
   export type SettingsMinAggregateOutputType = {
     id: string | null
     key: string | null
+    companyId: string | null
     updatedAt: Date | null
   }
 
   export type SettingsMaxAggregateOutputType = {
     id: string | null
     key: string | null
+    companyId: string | null
     updatedAt: Date | null
   }
 
   export type SettingsCountAggregateOutputType = {
     id: number
     key: number
+    companyId: number
     value: number
     updatedAt: number
     _all: number
@@ -31204,18 +31207,21 @@ export namespace Prisma {
   export type SettingsMinAggregateInputType = {
     id?: true
     key?: true
+    companyId?: true
     updatedAt?: true
   }
 
   export type SettingsMaxAggregateInputType = {
     id?: true
     key?: true
+    companyId?: true
     updatedAt?: true
   }
 
   export type SettingsCountAggregateInputType = {
     id?: true
     key?: true
+    companyId?: true
     value?: true
     updatedAt?: true
     _all?: true
@@ -31296,6 +31302,7 @@ export namespace Prisma {
   export type SettingsGroupByOutputType = {
     id: string
     key: string
+    companyId: string | null
     value: JsonValue
     updatedAt: Date
     _count: SettingsCountAggregateOutputType | null
@@ -31320,6 +31327,7 @@ export namespace Prisma {
   export type SettingsSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     key?: boolean
+    companyId?: boolean
     value?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["settings"]>
@@ -31327,6 +31335,7 @@ export namespace Prisma {
   export type SettingsSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     key?: boolean
+    companyId?: boolean
     value?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["settings"]>
@@ -31334,6 +31343,7 @@ export namespace Prisma {
   export type SettingsSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     key?: boolean
+    companyId?: boolean
     value?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["settings"]>
@@ -31341,11 +31351,12 @@ export namespace Prisma {
   export type SettingsSelectScalar = {
     id?: boolean
     key?: boolean
+    companyId?: boolean
     value?: boolean
     updatedAt?: boolean
   }
 
-  export type SettingsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "key" | "value" | "updatedAt", ExtArgs["result"]["settings"]>
+  export type SettingsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "key" | "companyId" | "value" | "updatedAt", ExtArgs["result"]["settings"]>
 
   export type $SettingsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Settings"
@@ -31353,6 +31364,7 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: string
       key: string
+      companyId: string | null
       value: Prisma.JsonValue
       updatedAt: Date
     }, ExtArgs["result"]["settings"]>
@@ -31780,6 +31792,7 @@ export namespace Prisma {
   interface SettingsFieldRefs {
     readonly id: FieldRef<"Settings", 'String'>
     readonly key: FieldRef<"Settings", 'String'>
+    readonly companyId: FieldRef<"Settings", 'String'>
     readonly value: FieldRef<"Settings", 'Json'>
     readonly updatedAt: FieldRef<"Settings", 'DateTime'>
   }
@@ -59457,6 +59470,7 @@ export namespace Prisma {
   export const SettingsScalarFieldEnum: {
     id: 'id',
     key: 'key',
+    companyId: 'companyId',
     value: 'value',
     updatedAt: 'updatedAt'
   };
@@ -62001,6 +62015,7 @@ export namespace Prisma {
     NOT?: SettingsWhereInput | SettingsWhereInput[]
     id?: StringFilter<"Settings"> | string
     key?: StringFilter<"Settings"> | string
+    companyId?: StringNullableFilter<"Settings"> | string | null
     value?: JsonFilter<"Settings">
     updatedAt?: DateTimeFilter<"Settings"> | Date | string
   }
@@ -62008,23 +62023,27 @@ export namespace Prisma {
   export type SettingsOrderByWithRelationInput = {
     id?: SortOrder
     key?: SortOrder
+    companyId?: SortOrderInput | SortOrder
     value?: SortOrder
     updatedAt?: SortOrder
   }
 
   export type SettingsWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-    key?: string
+    key_companyId?: SettingsKeyCompanyIdCompoundUniqueInput
     AND?: SettingsWhereInput | SettingsWhereInput[]
     OR?: SettingsWhereInput[]
     NOT?: SettingsWhereInput | SettingsWhereInput[]
+    key?: StringFilter<"Settings"> | string
+    companyId?: StringNullableFilter<"Settings"> | string | null
     value?: JsonFilter<"Settings">
     updatedAt?: DateTimeFilter<"Settings"> | Date | string
-  }, "id" | "key">
+  }, "id" | "key_companyId">
 
   export type SettingsOrderByWithAggregationInput = {
     id?: SortOrder
     key?: SortOrder
+    companyId?: SortOrderInput | SortOrder
     value?: SortOrder
     updatedAt?: SortOrder
     _count?: SettingsCountOrderByAggregateInput
@@ -62038,6 +62057,7 @@ export namespace Prisma {
     NOT?: SettingsScalarWhereWithAggregatesInput | SettingsScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"Settings"> | string
     key?: StringWithAggregatesFilter<"Settings"> | string
+    companyId?: StringNullableWithAggregatesFilter<"Settings"> | string | null
     value?: JsonWithAggregatesFilter<"Settings">
     updatedAt?: DateTimeWithAggregatesFilter<"Settings"> | Date | string
   }
@@ -66074,6 +66094,7 @@ export namespace Prisma {
   export type SettingsCreateInput = {
     id?: string
     key: string
+    companyId?: string | null
     value: JsonNullValueInput | InputJsonValue
     updatedAt?: Date | string
   }
@@ -66081,6 +66102,7 @@ export namespace Prisma {
   export type SettingsUncheckedCreateInput = {
     id?: string
     key: string
+    companyId?: string | null
     value: JsonNullValueInput | InputJsonValue
     updatedAt?: Date | string
   }
@@ -66088,6 +66110,7 @@ export namespace Prisma {
   export type SettingsUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     key?: StringFieldUpdateOperationsInput | string
+    companyId?: NullableStringFieldUpdateOperationsInput | string | null
     value?: JsonNullValueInput | InputJsonValue
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -66095,6 +66118,7 @@ export namespace Prisma {
   export type SettingsUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     key?: StringFieldUpdateOperationsInput | string
+    companyId?: NullableStringFieldUpdateOperationsInput | string | null
     value?: JsonNullValueInput | InputJsonValue
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -66102,6 +66126,7 @@ export namespace Prisma {
   export type SettingsCreateManyInput = {
     id?: string
     key: string
+    companyId?: string | null
     value: JsonNullValueInput | InputJsonValue
     updatedAt?: Date | string
   }
@@ -66109,6 +66134,7 @@ export namespace Prisma {
   export type SettingsUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     key?: StringFieldUpdateOperationsInput | string
+    companyId?: NullableStringFieldUpdateOperationsInput | string | null
     value?: JsonNullValueInput | InputJsonValue
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -66116,6 +66142,7 @@ export namespace Prisma {
   export type SettingsUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     key?: StringFieldUpdateOperationsInput | string
+    companyId?: NullableStringFieldUpdateOperationsInput | string | null
     value?: JsonNullValueInput | InputJsonValue
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -69855,9 +69882,15 @@ export namespace Prisma {
     not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
   }
 
+  export type SettingsKeyCompanyIdCompoundUniqueInput = {
+    key: string
+    companyId: string
+  }
+
   export type SettingsCountOrderByAggregateInput = {
     id?: SortOrder
     key?: SortOrder
+    companyId?: SortOrder
     value?: SortOrder
     updatedAt?: SortOrder
   }
@@ -69865,12 +69898,14 @@ export namespace Prisma {
   export type SettingsMaxOrderByAggregateInput = {
     id?: SortOrder
     key?: SortOrder
+    companyId?: SortOrder
     updatedAt?: SortOrder
   }
 
   export type SettingsMinOrderByAggregateInput = {
     id?: SortOrder
     key?: SortOrder
+    companyId?: SortOrder
     updatedAt?: SortOrder
   }
   export type JsonWithAggregatesFilter<$PrismaModel = never> =

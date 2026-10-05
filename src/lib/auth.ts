@@ -1,15 +1,20 @@
-import bcrypt from "bcryptjs"
+import { hash, compare } from "@node-rs/bcrypt"
 
 // Cost factor for login-password hashing. 12 is the modern baseline (≈2^12
-// rounds); bcrypt.compare auto-detects the cost from the stored hash, so
-// existing cost-10 hashes keep verifying and upgrade on next password change.
+// rounds); compare auto-detects the cost from the stored hash, so existing
+// cost-10 hashes (and hashes written by bcryptjs) keep verifying and upgrade
+// on next password change.
 const BCRYPT_COST = 12
 
 export async function hashPassword(password: string): Promise<string> {
-  const salt = await bcrypt.genSalt(BCRYPT_COST)
-  return bcrypt.hash(password, salt)
+  return hash(password, BCRYPT_COST)
 }
 
 export async function verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
-  return bcrypt.compare(password, hashedPassword)
+  try {
+    return await compare(password, hashedPassword)
+  } catch {
+    // A malformed stored hash must fail verification, not crash the request
+    return false
+  }
 }

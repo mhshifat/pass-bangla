@@ -17,6 +17,28 @@
  * for migration strategy.
  */
 
+// Derived CryptoKeys are kept for the lifetime of the page (as promises, so
+// concurrent callers share one derivation). The keys are non-extractable.
+const DERIVED_KEY_CACHE_MAX = 50
+const derivedKeyCache = new Map<string, Promise<CryptoKey>>()
+
+function cachedKey(cacheId: string, derive: () => Promise<CryptoKey>): Promise<CryptoKey> {
+  const cached = derivedKeyCache.get(cacheId)
+  if (cached) return cached
+
+  const promise = derive()
+  if (derivedKeyCache.size >= DERIVED_KEY_CACHE_MAX) {
+    const oldest = derivedKeyCache.keys().next().value
+    if (oldest !== undefined) derivedKeyCache.delete(oldest)
+  }
+  derivedKeyCache.set(cacheId, promise)
+  // A failed derivation must not be served again
+  promise.catch(() => {
+    if (derivedKeyCache.get(cacheId) === promise) derivedKeyCache.delete(cacheId)
+  })
+  return promise
+}
+
 /**
  * Derive a decryption key from user ID
  * Uses PBKDF2 with the same parameters as server-side
@@ -128,7 +150,7 @@ export async function decryptPasswordClient(
     const encrypted = hexToArrayBuffer(encryptedHex);
     
     // Derive decryption key
-    const key = await deriveDecryptionKey(userId);
+    const key = await cachedKey(`user:${userId}`, () => deriveDecryptionKey(userId));
     
     // Decrypt using AES-CBC
     const decrypted = await crypto.subtle.decrypt(
@@ -166,7 +188,7 @@ export async function encryptPasswordClient(
     const iv = crypto.getRandomValues(new Uint8Array(16));
     
     // Derive encryption key
-    const key = await deriveDecryptionKey(userId);
+    const key = await cachedKey(`user:${userId}`, () => deriveDecryptionKey(userId));
     
     // Convert plain text to ArrayBuffer
     const plainTextBuffer = new TextEncoder().encode(plainPassword);
@@ -258,7 +280,7 @@ export async function decryptWithShareToken(
     const encrypted = hexToArrayBuffer(encryptedHex);
     
     // Derive decryption key from share token
-    const key = await deriveShareTokenDecryptionKey(shareToken);
+    const key = await cachedKey(`share:${shareToken}`, () => deriveShareTokenDecryptionKey(shareToken));
     
     // Decrypt using AES-CBC
     const decrypted = await crypto.subtle.decrypt(

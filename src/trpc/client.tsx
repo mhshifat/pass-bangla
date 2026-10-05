@@ -2,7 +2,7 @@
 import superjson from 'superjson';
 import type { QueryClient, DehydratedState } from '@tanstack/react-query';
 import { QueryClientProvider, HydrationBoundary } from '@tanstack/react-query';
-import { httpBatchLink } from '@trpc/client';
+import { httpBatchLink, httpBatchStreamLink, splitLink } from '@trpc/client';
 import { createTRPCReact } from '@trpc/react-query';
 import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
 import { useState } from 'react';
@@ -49,9 +49,20 @@ export function TRPCReactProvider(
   const [trpcClient] = useState(() =>
     trpc.createClient({
       links: [
-        httpBatchLink({
-          transformer: superjson,
-          url: getUrl(),
+        splitLink({
+          condition: (op) => op.type === 'query',
+          // Queries stream: each result is delivered as soon as it is ready
+          // instead of waiting for the slowest query in the batch.
+          true: httpBatchStreamLink({
+            transformer: superjson,
+            url: getUrl(),
+          }),
+          // Mutations must NOT stream: several of them set or clear the session
+          // cookie, and response headers cannot be changed once a stream has started.
+          false: httpBatchLink({
+            transformer: superjson,
+            url: getUrl(),
+          }),
         }),
       ],
     }),

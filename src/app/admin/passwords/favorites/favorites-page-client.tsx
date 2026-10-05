@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { trpc } from "@/trpc/client"
 import { Skeleton } from "@/components/ui/skeleton"
 import { PasswordsTable, type Password } from "@/modules/passwords/client/passwords-table"
-import { PasswordDetailsDialog } from "@/modules/passwords/client"
+import { PasswordDetailsDialog } from "@/modules/passwords/client/password-details-dialog"
 import { usePermissions } from "@/hooks/use-permissions"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Star } from "lucide-react"

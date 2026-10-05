@@ -211,6 +211,7 @@ export function UserFormDialog({
                     <FormControl>
                       <PasswordInput
                         placeholder="••••••••"
+                        storedSecret
                         {...field}
                         showToggleButton={true}
                         showGenerateButton={true}

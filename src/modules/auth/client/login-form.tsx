@@ -9,12 +9,15 @@ import { loginAction, verifyCompanyAction } from "@/app/(auth)/login/actions"
 import { useTranslation } from "react-i18next"
 import { PasskeyLoginButton } from "./passkey-login-button"
 import { Separator } from "@/components/ui/separator"
+import { OAuthButtons, type OAuthProviderId } from "./oauth-buttons"
 
 interface LoginFormProps {
   isMainDomain: boolean
+  oauthProviders?: OAuthProviderId[]
+  oauthError?: string | null
 }
 
-export function LoginForm({ isMainDomain }: LoginFormProps) {
+export function LoginForm({ isMainDomain, oauthProviders = [], oauthError = null }: LoginFormProps) {
   const { t } = useTranslation()
   
   // Use different actions based on domain type
@@ -98,7 +101,9 @@ export function LoginForm({ isMainDomain }: LoginFormProps) {
           <Button type="submit" className="w-full" disabled={isVerifyPending} form="company-verify-form">
             {isVerifyPending ? t("auth.verifying") : t("auth.continue")}
           </Button>
-          
+
+          <OAuthButtons providers={oauthProviders} intent="login" error={oauthError} />
+
           <div className="text-sm text-center text-muted-foreground">
             {t("auth.dontHaveAccount")}{" "}
             <a 
@@ -140,7 +145,9 @@ export function LoginForm({ isMainDomain }: LoginFormProps) {
         </div>
 
         <PasskeyLoginButton />
-        
+
+        <OAuthButtons providers={oauthProviders} intent="login" error={oauthError} showDivider={false} />
+
         <div className="text-sm text-center text-muted-foreground">
           {t("auth.dontHaveAccount")}{" "}
           <a 

@@ -32,6 +32,7 @@ export async function checkPasswordBreach(password: string): Promise<{
       headers: {
         "User-Agent": "PassBangla-Breach-Checker/1.0",
       },
+      signal: AbortSignal.timeout(HIBP_TIMEOUT_MS),
     })
 
     if (!response.ok) {
@@ -77,31 +78,71 @@ export async function checkPasswordBreach(password: string): Promise<{
   }
 }
 
+const HIBP_TIMEOUT_MS = 8000
+const HIBP_CONCURRENCY = 5
+
+function sha1Upper(password: string): string {
+  return crypto.createHash("sha1").update(password).digest("hex").toUpperCase()
+}
+
+/** Fetches one range response; null when the API is unavailable or slow. */
+async function fetchRange(hashPrefix: string): Promise<string | null> {
+  try {
+    const response = await fetch(`${HIBP_API_URL}/${hashPrefix}`, {
+      headers: { "User-Agent": "PassBangla-Breach-Checker/1.0" },
+      signal: AbortSignal.timeout(HIBP_TIMEOUT_MS),
+    })
+    if (!response.ok) {
+      console.error(`HIBP API error: ${response.status} ${response.statusText}`)
+      return null
+    }
+    return await response.text()
+  } catch (error) {
+    console.error("Error checking password breach:", error)
+    return null
+  }
+}
+
 /**
- * Check multiple passwords for breaches
- * @param passwords - Array of plain text passwords to check
- * @returns Array of breach results
+ * Check multiple passwords for breaches. Identical passwords are checked once,
+ * one range request is made per distinct hash prefix, and requests run with a
+ * small concurrency. Results are returned in input order (plaintext is not echoed).
  */
 export async function checkMultiplePasswords(
   passwords: string[]
 ): Promise<Array<{
-  password: string
   isBreached: boolean
   breachCount: number
   hashPrefix: string
 }>> {
-  // Check passwords with a small delay to respect API rate limits
-  const results = []
-  for (const password of passwords) {
-    const result = await checkPasswordBreach(password)
-    results.push({
-      password,
-      ...result,
-    })
-    
-    // Small delay to avoid rate limiting (HIBP allows ~1.5 requests/second)
-    await new Promise((resolve) => setTimeout(resolve, 700))
+  const hashes = passwords.map(sha1Upper)
+  const prefixes = [...new Set(hashes.map((h) => h.substring(0, 5)))]
+  const ranges = new Map<string, string | null>()
+
+  let next = 0
+  const worker = async () => {
+    while (next < prefixes.length) {
+      const prefix = prefixes[next++]!
+      ranges.set(prefix, await fetchRange(prefix))
+    }
   }
-  
-  return results
+  await Promise.all(Array.from({ length: Math.min(HIBP_CONCURRENCY, prefixes.length) }, worker))
+
+  const counts = new Map<string, Map<string, number>>()
+  for (const [prefix, text] of ranges) {
+    const suffixes = new Map<string, number>()
+    if (text) {
+      for (const line of text.split(/\r?\n/)) {
+        const [suffix, count] = line.split(":")
+        if (suffix && count) suffixes.set(suffix.trim(), parseInt(count.trim(), 10) || 0)
+      }
+    }
+    counts.set(prefix, suffixes)
+  }
+
+  return hashes.map((hash) => {
+    const hashPrefix = hash.substring(0, 5)
+    const breachCount = counts.get(hashPrefix)?.get(hash.substring(5)) ?? 0
+    return { isBreached: breachCount > 0, breachCount, hashPrefix }
+  })
 }

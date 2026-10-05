@@ -1,3 +1,5 @@
+import { I18nProvider } from "@/components/providers/i18n-provider"
+import { getServerLanguage } from "@/lib/i18n-server"
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 
@@ -7,7 +9,10 @@ export default async function Layout({ children }: { children: React.ReactNode }
     if (!session?.isLoggedIn) {
         return redirect("/login");
     }
+    const language = await getServerLanguage();
+
     return (
+        <I18nProvider initialLanguage={language}>
         <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
             {/* Modern gradient background - more defined for light theme */}
             <div className="absolute inset-0 bg-linear-to-br from-slate-50 via-blue-50/30 to-purple-50/20 dark:from-background dark:via-background dark:to-muted/20" />
@@ -29,5 +34,6 @@ export default async function Layout({ children }: { children: React.ReactNode }
                 {children}
             </div>
         </div>
+        </I18nProvider>
     );
 }

@@ -40,28 +40,22 @@ export const quickActionsRouter = createTRPCRouter({
         ],
       }
 
-      // Get recent password views from audit logs
-      const recentViews = await prisma.auditLog.findMany({
-        where: {
-          userId: ctx.userId,
-          action: "PASSWORD_VIEWED",
-          resourceId: { not: null },
-        },
-        select: {
-          resourceId: true,
-          createdAt: true,
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-        take: input.limit * 2, // Get more to account for duplicates
-        distinct: ["resourceId"],
-      })
+      // Latest view per password, grouped in SQL and bounded (last 90 days, a few extra
+      // rows in case some passwords are no longer accessible)
+      const since = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)
+      const recentViews = await prisma.$queryRaw<Array<{ resourceId: string; lastViewed: Date }>>`
+        SELECT "resourceId", MAX("createdAt") AS "lastViewed"
+        FROM "AuditLog"
+        WHERE "userId" = ${ctx.userId}
+          AND action = 'PASSWORD_VIEWED'
+          AND "resourceId" IS NOT NULL
+          AND "createdAt" >= ${since}
+        GROUP BY "resourceId"
+        ORDER BY "lastViewed" DESC
+        LIMIT ${input.limit * 3}
+      `
 
-      const passwordIds = recentViews
-        .map((view) => view.resourceId)
-        .filter((id): id is string => id !== null)
-        .slice(0, input.limit)
+      const passwordIds = recentViews.map((view) => view.resourceId)
 
       if (passwordIds.length === 0) {
         return []
@@ -86,7 +80,7 @@ export const quickActionsRouter = createTRPCRouter({
 
       // Sort by most recent view
       const viewMap = new Map(
-        recentViews.map((view) => [view.resourceId, view.createdAt])
+        recentViews.map((view) => [view.resourceId, view.lastViewed])
       )
       passwords.sort((a, b) => {
         const aTime = viewMap.get(a.id)?.getTime() || 0

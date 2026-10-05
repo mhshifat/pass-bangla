@@ -35,8 +35,12 @@ export interface FormattedAuditLog {
   details?: Record<string, unknown>
 }
 
+const ARCHIVE_BATCH_SIZE = 1000
+const ARCHIVE_MAX_BATCHES = 100
+
 /**
- * Archive audit logs older than specified days
+ * Archive audit logs older than specified days.
+ * Permanently deletes the matching rows of ONE company; refuses without a company.
  */
 export async function archiveAuditLogs(
   companyId: string | null,
@@ -46,43 +50,29 @@ export async function archiveAuditLogs(
   archiveId: string
   archivedCount: number
 }> {
+  if (!companyId) {
+    throw new Error("A company is required to archive audit logs")
+  }
+
   const cutoffDate = new Date()
   cutoffDate.setDate(cutoffDate.getDate() - olderThanDays)
 
-  // Build where clause with company filtering
   const where: Prisma.AuditLogWhereInput = {
-    createdAt: {
-      lt: cutoffDate,
-    },
+    createdAt: { lt: cutoffDate },
+    user: { companyId },
   }
 
-  if (companyId) {
-    where.user = {
-      companyId,
-    }
-  }
-
-  // Count logs to archive
-  const count = await prisma.auditLog.count({ where })
+  const [count, oldestLog, newestLog] = await Promise.all([
+    prisma.auditLog.count({ where }),
+    prisma.auditLog.findFirst({ where, orderBy: { createdAt: "asc" }, select: { createdAt: true } }),
+    prisma.auditLog.findFirst({ where, orderBy: { createdAt: "desc" }, select: { createdAt: true } }),
+  ])
 
   if (count === 0) {
     throw new Error("No logs found to archive")
   }
 
-  // Get the date range of logs to archive
-  const oldestLog = await prisma.auditLog.findFirst({
-    where,
-    orderBy: { createdAt: "asc" },
-    select: { createdAt: true },
-  })
-
-  const newestLog = await prisma.auditLog.findFirst({
-    where,
-    orderBy: { createdAt: "desc" },
-    select: { createdAt: true },
-  })
-
-  // Create archive record
+  // Record the archive before deleting anything
   const archive = await prisma.auditLogArchive.create({
     data: {
       companyId,
@@ -94,51 +84,68 @@ export async function archiveAuditLogs(
     },
   })
 
-  // In a real implementation, you would:
-  // 1. Export logs to file (JSON/CSV)
-  // 2. Store file in S3 or similar
-  // 3. Delete logs from database
-  // For now, we'll just mark them as archived by updating the archive record
+  let deletedCount = 0
+  try {
+    // Batched, tenant-scoped delete (nothing is exported: the rows are purged)
+    for (let batch = 0; batch < ARCHIVE_MAX_BATCHES; batch++) {
+      const rows = await prisma.auditLog.findMany({
+        where,
+        select: { id: true },
+        orderBy: { createdAt: "asc" },
+        take: ARCHIVE_BATCH_SIZE,
+      })
+      if (rows.length === 0) break
+      const result = await prisma.auditLog.deleteMany({
+        where: { ...where, id: { in: rows.map((row) => row.id) } },
+      })
+      deletedCount += result.count
+      if (rows.length < ARCHIVE_BATCH_SIZE) break
+    }
+  } catch (error) {
+    await prisma.auditLogArchive.update({
+      where: { id: archive.id },
+      data: { status: "FAILED", logCount: deletedCount },
+    })
+    throw error
+  }
 
-  // Delete archived logs
-  const deleted = await prisma.auditLog.deleteMany({ where })
-
-  // Update archive record
   await prisma.auditLogArchive.update({
     where: { id: archive.id },
-    data: {
-      status: "COMPLETED",
-      logCount: deleted.count,
-    },
+    data: { status: "COMPLETED", logCount: deletedCount },
   })
 
-  // Create audit log for archiving action
   await createAuditLog({
     action: "AUDIT_LOG_ARCHIVED",
     resource: "AuditLogArchive",
     resourceId: archive.id,
     details: {
-      archivedCount: deleted.count,
+      archivedCount: deletedCount,
       olderThanDays,
     },
     userId: archivedBy || null,
+    companyId,
   })
 
   return {
     archiveId: archive.id,
-    archivedCount: deleted.count,
+    archivedCount: deletedCount,
   }
 }
 
+const MAX_ANALYTICS_RANGE_MS = 365 * 24 * 60 * 60 * 1000
+
 /**
- * Get audit log analytics
+ * Get audit log analytics (range capped to 365 days, all queries run in parallel)
  */
 export async function getAuditLogAnalytics(
   companyId: string | null,
   startDate: Date,
   endDate: Date
 ): Promise<AuditLogAnalytics> {
-  // Build where clause with company filtering
+  if (endDate.getTime() - startDate.getTime() > MAX_ANALYTICS_RANGE_MS) {
+    startDate = new Date(endDate.getTime() - MAX_ANALYTICS_RANGE_MS)
+  }
+
   const where: Prisma.AuditLogWhereInput = {
     createdAt: {
       gte: startDate,
@@ -152,236 +159,172 @@ export async function getAuditLogAnalytics(
     }
   }
 
-  // Get total count
-  const totalLogs = await prisma.auditLog.count({ where })
+  const topCount = { _count: { id: "desc" as const } }
 
-  // Get logs by action
-  const logsByActionRaw = await prisma.auditLog.groupBy({
-    by: ["action"],
-    where,
-    _count: {
-      id: true,
-    },
-    orderBy: {
-      _count: {
-        id: "desc",
-      },
-    },
-    take: 10,
-  })
+  const dayQuery = companyId
+    ? prisma.$queryRaw<Array<{ date: string; count: bigint }>>`
+        SELECT
+          DATE_TRUNC('day', al."createdAt")::date::text as date,
+          COUNT(*)::int as count
+        FROM "AuditLog" al
+        INNER JOIN "User" u ON al."userId" = u.id
+        WHERE al."createdAt" >= ${startDate}
+          AND al."createdAt" <= ${endDate}
+          AND u."companyId" = ${companyId}
+        GROUP BY DATE_TRUNC('day', al."createdAt")::date
+        ORDER BY date ASC
+      `
+    : prisma.$queryRaw<Array<{ date: string; count: bigint }>>`
+        SELECT
+          DATE_TRUNC('day', "createdAt")::date::text as date,
+          COUNT(*)::int as count
+        FROM "AuditLog"
+        WHERE "createdAt" >= ${startDate}
+          AND "createdAt" <= ${endDate}
+        GROUP BY DATE_TRUNC('day', "createdAt")::date
+        ORDER BY date ASC
+      `
 
-  const logsByAction = logsByActionRaw.map((item) => ({
-    action: item.action,
-    count: item._count.id,
-  }))
+  const hourQuery = companyId
+    ? prisma.$queryRaw<Array<{ hour: number; count: bigint }>>`
+        SELECT
+          EXTRACT(HOUR FROM al."createdAt")::int as hour,
+          COUNT(*)::int as count
+        FROM "AuditLog" al
+        INNER JOIN "User" u ON al."userId" = u.id
+        WHERE al."createdAt" >= ${startDate}
+          AND al."createdAt" <= ${endDate}
+          AND u."companyId" = ${companyId}
+        GROUP BY EXTRACT(HOUR FROM al."createdAt")
+        ORDER BY hour ASC
+      `
+    : prisma.$queryRaw<Array<{ hour: number; count: bigint }>>`
+        SELECT
+          EXTRACT(HOUR FROM "createdAt")::int as hour,
+          COUNT(*)::int as count
+        FROM "AuditLog"
+        WHERE "createdAt" >= ${startDate}
+          AND "createdAt" <= ${endDate}
+        GROUP BY EXTRACT(HOUR FROM "createdAt")
+        ORDER BY hour ASC
+      `
 
-  // Get logs by status
-  const logsByStatusRaw = await prisma.auditLog.groupBy({
-    by: ["status"],
-    where,
-    _count: {
-      id: true,
-    },
-  })
+  // Top users plus their names (names filtered by company for security)
+  const usersQuery = prisma.auditLog
+    .groupBy({
+      by: ["userId"],
+      where,
+      _count: { id: true },
+      orderBy: topCount,
+      take: 10,
+    })
+    .then(async (logsByUserRaw) => {
+      const userIds = logsByUserRaw
+        .map((item) => item.userId)
+        .filter((id): id is string => id !== null)
 
-  const logsByStatus = logsByStatusRaw.map((item) => ({
-    status: item.status,
-    count: item._count.id,
-  }))
+      const userWhere: Prisma.UserWhereInput = { id: { in: userIds } }
+      if (companyId) {
+        userWhere.companyId = companyId
+      }
 
-  // Get logs by resource
-  const logsByResourceRaw = await prisma.auditLog.groupBy({
-    by: ["resource"],
-    where,
-    _count: {
-      id: true,
-    },
-    orderBy: {
-      _count: {
-        id: "desc",
-      },
-    },
-    take: 10,
-  })
+      const users = userIds.length > 0
+        ? await prisma.user.findMany({ where: userWhere, select: { id: true, name: true } })
+        : []
 
-  const logsByResource = logsByResourceRaw.map((item) => ({
-    resource: item.resource,
-    count: item._count.id,
-  }))
+      const userMap = new Map(users.map((u) => [u.id, u.name]))
+      return logsByUserRaw
+        .filter((item) => item.userId !== null)
+        .map((item) => ({
+          userId: item.userId!,
+          userName: userMap.get(item.userId!) || "Unknown",
+          count: item._count.id,
+        }))
+    })
 
-  // Get logs by user
-  const logsByUserRaw = await prisma.auditLog.groupBy({
-    by: ["userId"],
-    where,
-    _count: {
-      id: true,
-    },
-    orderBy: {
-      _count: {
-        id: "desc",
-      },
-    },
-    take: 10,
-  })
-
-  // Get user names for user IDs (filtered by company for security)
-  const userIds = logsByUserRaw
-    .map((item) => item.userId)
-    .filter((id): id is string => id !== null)
-  
-  const userWhere: Prisma.UserWhereInput = { id: { in: userIds } }
-  if (companyId) {
-    userWhere.companyId = companyId
-  }
-  
-  const users = userIds.length > 0
-    ? await prisma.user.findMany({
-        where: userWhere,
-        select: { id: true, name: true },
-      })
-    : []
-
-  const userMap = new Map(users.map((u) => [u.id, u.name]))
-  const logsByUser = logsByUserRaw
-    .filter((item) => item.userId !== null)
-    .map((item) => ({
-      userId: item.userId!,
-      userName: userMap.get(item.userId!) || "Unknown",
-      count: item._count.id,
-    }))
-
-  // Get logs by day
-  let logsByDayRaw: Array<{ date: string; count: bigint }>
-  if (companyId) {
-    logsByDayRaw = await prisma.$queryRaw<
-      Array<{ date: string; count: bigint }>
-    >`
-      SELECT 
-        DATE_TRUNC('day', al."createdAt")::date::text as date,
-        COUNT(*)::int as count
-      FROM "AuditLog" al
-      INNER JOIN "User" u ON al."userId" = u.id
-      WHERE al."createdAt" >= ${startDate}
-        AND al."createdAt" <= ${endDate}
-        AND u."companyId" = ${companyId}
-      GROUP BY DATE_TRUNC('day', al."createdAt")::date
-      ORDER BY date ASC
-    `
-  } else {
-    logsByDayRaw = await prisma.$queryRaw<
-      Array<{ date: string; count: bigint }>
-    >`
-      SELECT 
-        DATE_TRUNC('day', "createdAt")::date::text as date,
-        COUNT(*)::int as count
-      FROM "AuditLog"
-      WHERE "createdAt" >= ${startDate}
-        AND "createdAt" <= ${endDate}
-      GROUP BY DATE_TRUNC('day', "createdAt")::date
-      ORDER BY date ASC
-    `
-  }
-
-  const logsByDay = logsByDayRaw.map((item) => ({
-    date: item.date,
-    count: Number(item.count),
-  }))
-
-  // Get logs by hour
-  let logsByHourRaw: Array<{ hour: number; count: bigint }>
-  if (companyId) {
-    logsByHourRaw = await prisma.$queryRaw<
-      Array<{ hour: number; count: bigint }>
-    >`
-      SELECT 
-        EXTRACT(HOUR FROM al."createdAt")::int as hour,
-        COUNT(*)::int as count
-      FROM "AuditLog" al
-      INNER JOIN "User" u ON al."userId" = u.id
-      WHERE al."createdAt" >= ${startDate}
-        AND al."createdAt" <= ${endDate}
-        AND u."companyId" = ${companyId}
-      GROUP BY EXTRACT(HOUR FROM al."createdAt")
-      ORDER BY hour ASC
-    `
-  } else {
-    logsByHourRaw = await prisma.$queryRaw<
-      Array<{ hour: number; count: bigint }>
-    >`
-      SELECT 
-        EXTRACT(HOUR FROM "createdAt")::int as hour,
-        COUNT(*)::int as count
-      FROM "AuditLog"
-      WHERE "createdAt" >= ${startDate}
-        AND "createdAt" <= ${endDate}
-      GROUP BY EXTRACT(HOUR FROM "createdAt")
-      ORDER BY hour ASC
-    `
-  }
-
-  const logsByHour = logsByHourRaw.map((item) => ({
-    hour: Number(item.hour),
-    count: Number(item.count),
-  }))
-
-  // Get top IP addresses
-  const topIpAddressesRaw = await prisma.auditLog.groupBy({
-    by: ["ipAddress"],
-    where: {
-      ...where,
-      ipAddress: { not: null },
-    },
-    _count: {
-      id: true,
-    },
-    orderBy: {
-      _count: {
-        id: "desc",
-      },
-    },
-    take: 10,
-  })
-
-  const topIpAddresses = topIpAddressesRaw
-    .filter((item) => item.ipAddress !== null)
-    .map((item) => ({
-      ipAddress: item.ipAddress!,
-      count: item._count.id,
-    }))
-
-  // Get failed actions
-  const failedActionsRaw = await prisma.auditLog.groupBy({
-    by: ["action"],
-    where: {
-      ...where,
-      status: { in: ["FAILED", "BLOCKED"] },
-    },
-    _count: {
-      id: true,
-    },
-    orderBy: {
-      _count: {
-        id: "desc",
-      },
-    },
-    take: 10,
-  })
-
-  const failedActions = failedActionsRaw.map((item) => ({
-    action: item.action,
-    count: item._count.id,
-  }))
+  const [
+    totalLogs,
+    logsByActionRaw,
+    logsByStatusRaw,
+    logsByResourceRaw,
+    logsByUser,
+    logsByDayRaw,
+    logsByHourRaw,
+    topIpAddressesRaw,
+    failedActionsRaw,
+  ] = await Promise.all([
+    prisma.auditLog.count({ where }),
+    prisma.auditLog.groupBy({
+      by: ["action"],
+      where,
+      _count: { id: true },
+      orderBy: topCount,
+      take: 10,
+    }),
+    prisma.auditLog.groupBy({
+      by: ["status"],
+      where,
+      _count: { id: true },
+    }),
+    prisma.auditLog.groupBy({
+      by: ["resource"],
+      where,
+      _count: { id: true },
+      orderBy: topCount,
+      take: 10,
+    }),
+    usersQuery,
+    dayQuery,
+    hourQuery,
+    prisma.auditLog.groupBy({
+      by: ["ipAddress"],
+      where: { ...where, ipAddress: { not: null } },
+      _count: { id: true },
+      orderBy: topCount,
+      take: 10,
+    }),
+    prisma.auditLog.groupBy({
+      by: ["action"],
+      where: { ...where, status: { in: ["FAILED", "BLOCKED"] } },
+      _count: { id: true },
+      orderBy: topCount,
+      take: 10,
+    }),
+  ])
 
   return {
     totalLogs,
-    logsByAction,
-    logsByStatus,
-    logsByResource,
+    logsByAction: logsByActionRaw.map((item) => ({
+      action: item.action,
+      count: item._count.id,
+    })),
+    logsByStatus: logsByStatusRaw.map((item) => ({
+      status: item.status,
+      count: item._count.id,
+    })),
+    logsByResource: logsByResourceRaw.map((item) => ({
+      resource: item.resource,
+      count: item._count.id,
+    })),
     logsByUser,
-    logsByDay,
-    logsByHour,
-    topIpAddresses,
-    failedActions,
+    logsByDay: logsByDayRaw.map((item) => ({
+      date: item.date,
+      count: Number(item.count),
+    })),
+    logsByHour: logsByHourRaw.map((item) => ({
+      hour: Number(item.hour),
+      count: Number(item.count),
+    })),
+    topIpAddresses: topIpAddressesRaw
+      .filter((item) => item.ipAddress !== null)
+      .map((item) => ({
+        ipAddress: item.ipAddress!,
+        count: item._count.id,
+      })),
+    failedActions: failedActionsRaw.map((item) => ({
+      action: item.action,
+      count: item._count.id,
+    })),
   }
 }
 
@@ -471,25 +414,25 @@ export async function searchAuditLogsAdvanced(
     ]
   }
 
-  // Get total count
-  const total = await prisma.auditLog.count({ where })
-
-  // Get paginated logs
-  const logs = await prisma.auditLog.findMany({
-    where,
-    take: pageSize,
-    skip: (page - 1) * pageSize,
-    orderBy: { createdAt: "desc" },
-    include: {
-      user: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
+  // Count and page are independent
+  const [total, logs] = await Promise.all([
+    prisma.auditLog.count({ where }),
+    prisma.auditLog.findMany({
+      where,
+      take: pageSize,
+      skip: (page - 1) * pageSize,
+      orderBy: { createdAt: "desc" },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
         },
       },
-    },
-  })
+    }),
+  ])
 
   // Format logs
   const formattedLogs: FormattedAuditLog[] = logs.map((log) => {

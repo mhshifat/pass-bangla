@@ -31,8 +31,9 @@ const createGeneralSettingsSchema = (t: (key: string) => string) => z.object({
 export function GeneralSettings() {
   const { t } = useTranslation()
   const { hasPermission } = usePermissions()
-  const canEdit = hasPermission("settings.edit")
   const { data: settings, isLoading, error } = trpc.settings.getGeneralSettings.useQuery()
+  // These settings are platform-wide: company users see them read-only
+  const canEdit = hasPermission("settings.edit") && settings?.canEdit === true
   const utils = trpc.useUtils()
   const updateSettings = trpc.settings.updateGeneralSettings.useMutation({
     onSuccess: () => {

@@ -2,71 +2,78 @@
 
 import * as React from "react"
 import { motion, AnimatePresence, type HTMLMotionProps } from "motion/react"
+import { cn } from "@/lib/utils"
 import { DURATION, EASE, SPRING, STAGGER } from "./constants"
+import "./motion.css"
 
 /**
- * Reusable motion primitives shared across the app. All of them respect reduced
- * motion automatically via the app-level {@link MotionProvider} (MotionConfig),
- * which collapses transform/position animations to opacity-only — so callers
- * never need to special-case accessibility.
+ * Reusable motion primitives shared across the app.
+ *
+ * Entrance primitives (FadeIn, Stagger, PageTransition) are plain CSS animations: the
+ * server-rendered markup is visible immediately and fades in without waiting for
+ * hydration. They honour `prefers-reduced-motion` and the app's `.reduced-motion` toggle
+ * through the stylesheet. Interaction primitives (Pressable, AnimatedList) still use
+ * Framer Motion and expect the app-level {@link MotionProvider} above them.
  */
 
 type DivMotionProps = HTMLMotionProps<"div">
+type DivProps = React.ComponentProps<"div">
 
-/** Fade + small rise on mount. Use for sections, cards, panels. */
+/** Fade + small rise on mount. Use for sections, cards, panels. `delay` is in seconds. */
 export function FadeIn({
   children,
   delay = 0,
   y = 8,
+  className,
+  style,
   ...props
-}: DivMotionProps & { delay?: number; y?: number }) {
+}: DivProps & { delay?: number; y?: number }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: DURATION.base, ease: EASE.out, delay }}
+    <div
+      className={cn("pb-fade-in", className)}
+      style={{
+        ...style,
+        ["--pb-y" as string]: `${y}px`,
+        animationDelay: delay ? `${delay * 1000}ms` : undefined,
+      }}
       {...props}
     >
       {children}
-    </motion.div>
+    </div>
   )
 }
 
 /**
  * Container that staggers its {@link StaggerItem} children into view. Pair the
- * two for dashboards, stat-card rows, and lists.
+ * two for dashboards, stat-card rows, and lists. `stagger` is in seconds.
  */
 export function Stagger({
   children,
   stagger = STAGGER,
+  className,
+  style,
   ...props
-}: DivMotionProps & { stagger?: number }) {
+}: DivProps & { stagger?: number }) {
   return (
-    <motion.div
-      initial="hidden"
-      animate="show"
-      variants={{
-        hidden: {},
-        show: { transition: { staggerChildren: stagger } },
-      }}
+    <div
+      className={cn("pb-stagger", className)}
+      style={{ ...style, ["--pb-stagger" as string]: `${stagger * 1000}ms` }}
       {...props}
     >
       {children}
-    </motion.div>
+    </div>
   )
 }
 
-export function StaggerItem({ children, y = 10, ...props }: DivMotionProps & { y?: number }) {
+export function StaggerItem({ children, y = 10, className, style, ...props }: DivProps & { y?: number }) {
   return (
-    <motion.div
-      variants={{
-        hidden: { opacity: 0, y },
-        show: { opacity: 1, y: 0, transition: { duration: DURATION.base, ease: EASE.out } },
-      }}
+    <div
+      className={cn("pb-stagger-item", className)}
+      style={{ ...style, ["--pb-y" as string]: `${y}px` }}
       {...props}
     >
       {children}
-    </motion.div>
+    </div>
   )
 }
 
@@ -123,18 +130,13 @@ export function Pressable({
 /**
  * Route-level enter transition. Wrap a page's content; combine with the global
  * NProgress bar for navigation feedback. Keyed by pathname at the call site to
- * re-trigger on navigation.
+ * re-trigger on navigation. CSS-only, so the page is visible before hydration.
  */
-export function PageTransition({ children, ...props }: DivMotionProps) {
+export function PageTransition({ children, className, ...props }: DivProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: DURATION.base, ease: EASE.out }}
-      {...props}
-    >
+    <div className={cn("pb-page-enter", className)} {...props}>
       {children}
-    </motion.div>
+    </div>
   )
 }
 

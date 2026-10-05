@@ -1,3 +1,5 @@
+import { I18nProvider } from "@/components/providers/i18n-provider"
+import { getServerLanguage } from "@/lib/i18n-server"
 import { Suspense } from "react"
 import { VerifyEmailRequiredPage } from "@/modules/auth/client/verify-email-required-page"
 import { getCurrentUser } from "@/lib/current-user"
@@ -25,10 +27,14 @@ async function VerifyEmailRequiredPageContent() {
   // Prefetch user data for client-side hydration
   const dehydratedState = await prefetchCurrentUser()
 
+  const language = await getServerLanguage()
+
   return (
+    <I18nProvider initialLanguage={language}>
     <HydrationBoundary state={dehydratedState}>
       <VerifyEmailRequiredPage />
     </HydrationBoundary>
+    </I18nProvider>
   )
 }
 

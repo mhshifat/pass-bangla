@@ -1,6 +1,10 @@
+import { after } from "next/server"
 import prisma from "./prisma"
 import { Prisma } from "@/app/generated"
 import { createAuditLog } from "./audit-log"
+import { getSettings } from "./settings-cache"
+import { parseUserAgent } from "./device-parser"
+import { createGeoResolver, type GeoResolver } from "./ip-whitelist"
 
 export type ThreatType = 
   | "BRUTE_FORCE"
@@ -48,19 +52,29 @@ export interface ThreatDetectionConfig {
 /**
  * Get threat detection configuration from settings
  */
-export async function getThreatDetectionConfig(companyId?: string | null): Promise<ThreatDetectionConfig> {
-  const settings = await prisma.settings.findMany({
-    where: {
-      key: {
-        startsWith: "security.threat.",
-      },
-    },
-  })
+const THREAT_SETTING_KEYS = [
+  "security.threat.enabled",
+  "security.threat.rate_limiting.enabled",
+  "security.threat.rate_limiting.login.max_requests",
+  "security.threat.rate_limiting.login.window_minutes",
+  "security.threat.rate_limiting.password_reset.max_requests",
+  "security.threat.rate_limiting.password_reset.window_minutes",
+  "security.threat.rate_limiting.api.max_requests",
+  "security.threat.rate_limiting.api.window_minutes",
+  "security.threat.brute_force.enabled",
+  "security.threat.brute_force.max_attempts",
+  "security.threat.brute_force.lockout_duration_minutes",
+  "security.threat.brute_force.window_minutes",
+  "security.threat.anomaly.enabled",
+  "security.threat.anomaly.check_unusual_location",
+  "security.threat.anomaly.check_unusual_time",
+  "security.threat.anomaly.check_unusual_device",
+  "security.threat.captcha.enabled",
+  "security.threat.captcha.trigger_after_failed_attempts",
+] as const
 
-  const config: Record<string, unknown> = {}
-  settings.forEach((setting) => {
-    config[setting.key] = setting.value
-  })
+export async function getThreatDetectionConfig(companyId?: string | null): Promise<ThreatDetectionConfig> {
+  const config: Record<string, unknown> = Object.fromEntries(await getSettings(THREAT_SETTING_KEYS, companyId))
 
   return {
     enabled: (config["security.threat.enabled"] as boolean) ?? true,
@@ -100,7 +114,9 @@ export async function getThreatDetectionConfig(companyId?: string | null): Promi
 
 /**
  * Check rate limit for an action
- * Returns true if rate limit is exceeded, false otherwise
+ * Counts hits in fixed windows (the window start is rounded down to a multiple
+ * of the window length so every hit in a window lands on the same row) with a
+ * single upsert. `exceeded` is true once more than maxRequests hits were seen.
  */
 export async function checkRateLimit(
   identifier: string,
@@ -109,91 +125,57 @@ export async function checkRateLimit(
   config: RateLimitConfig,
   companyId?: string | null
 ): Promise<{ exceeded: boolean; remaining: number; resetAt: Date }> {
-  const now = new Date()
-  const windowStart = new Date(now.getTime() - config.windowMinutes * 60 * 1000)
-  const windowEnd = new Date(now.getTime() + config.windowMinutes * 60 * 1000)
+  const windowMs = Math.max(1, config.windowMinutes) * 60 * 1000
+  const windowStart = new Date(Math.floor(Date.now() / windowMs) * windowMs)
+  const windowEnd = new Date(windowStart.getTime() + windowMs)
 
-  // Clean up expired rate limit records
-  await prisma.rateLimit.deleteMany({
-    where: {
-      windowEnd: {
-        lt: now,
-      },
-    },
-  })
+  const where = {
+    identifier_identifierType_action_windowStart: { identifier, identifierType, action, windowStart },
+  }
+  const record = await prisma.rateLimit
+    .upsert({
+      where,
+      create: { identifier, identifierType, action, count: 1, windowStart, windowEnd, companyId: companyId || null },
+      update: { count: { increment: 1 } },
+      select: { count: true },
+    })
+    .catch((error: { code?: string }) => {
+      // Two first hits racing to create the row: the loser just increments
+      if (error?.code === "P2002") {
+        return prisma.rateLimit.update({ where, data: { count: { increment: 1 } }, select: { count: true } })
+      }
+      throw error
+    })
 
-  // Find or create rate limit record
-  const existing = await prisma.rateLimit.findUnique({
-    where: {
-      identifier_identifierType_action_windowStart: {
+  // Expired rows are removed occasionally after the response, not on every attempt
+  if (Math.random() < 0.02) {
+    try {
+      after(() => prisma.rateLimit.deleteMany({ where: { windowEnd: { lt: new Date() } } }).catch(() => undefined))
+    } catch {
+      // after() is unavailable outside a request scope
+    }
+  }
+
+  if (record.count > config.maxRequests) {
+    await createThreatEvent({
+      threatType: "RATE_LIMIT_EXCEEDED",
+      severity: "MEDIUM",
+      ipAddress: identifierType === "IP" ? identifier : undefined,
+      details: {
         identifier,
         identifierType,
         action,
-        windowStart,
+        count: record.count,
+        maxRequests: config.maxRequests,
+        windowMinutes: config.windowMinutes,
       },
-    },
-  })
-
-  if (existing) {
-    // Check if limit exceeded
-    if (existing.count >= config.maxRequests) {
-      // Create threat event
-      await createThreatEvent({
-        threatType: "RATE_LIMIT_EXCEEDED",
-        severity: "MEDIUM",
-        ipAddress: identifierType === "IP" ? identifier : undefined,
-        details: {
-          identifier,
-          identifierType,
-          action,
-          count: existing.count,
-          maxRequests: config.maxRequests,
-          windowMinutes: config.windowMinutes,
-        },
-        companyId,
-      })
-
-      return {
-        exceeded: true,
-        remaining: 0,
-        resetAt: existing.windowEnd,
-      }
-    }
-
-    // Increment count
-    await prisma.rateLimit.update({
-      where: { id: existing.id },
-      data: {
-        count: existing.count + 1,
-        updatedAt: now,
-      },
+      companyId,
     })
 
-    return {
-      exceeded: false,
-      remaining: config.maxRequests - existing.count - 1,
-      resetAt: existing.windowEnd,
-    }
+    return { exceeded: true, remaining: 0, resetAt: windowEnd }
   }
 
-  // Create new rate limit record
-  await prisma.rateLimit.create({
-    data: {
-      identifier,
-      identifierType,
-      action,
-      count: 1,
-      windowStart,
-      windowEnd,
-      companyId: companyId || null,
-    },
-  })
-
-  return {
-    exceeded: false,
-    remaining: config.maxRequests - 1,
-    resetAt: windowEnd,
-  }
+  return { exceeded: false, remaining: config.maxRequests - record.count, resetAt: windowEnd }
 }
 
 /**
@@ -261,7 +243,8 @@ export async function detectAnomalies(
     checkUnusualTime: boolean
     checkUnusualDevice: boolean
   },
-  companyId?: string | null
+  companyId?: string | null,
+  resolveGeo: GeoResolver = ipAddress ? createGeoResolver(ipAddress) : async () => null
 ): Promise<{ isAnomaly: boolean; reasons: string[]; severity: ThreatSeverity }> {
   const reasons: string[] = []
   let severity: ThreatSeverity = "LOW"
@@ -288,10 +271,9 @@ export async function detectAnomalies(
 
   // Check unusual location
   if (config.checkUnusualLocation && ipAddress) {
-    const { getIpGeolocation } = await import("./ip-whitelist")
-    const currentGeo = await getIpGeolocation(ipAddress)
-    
-    if (currentGeo && typeof currentGeo === "object" && "countryCode" in currentGeo) {
+    const currentGeo = await resolveGeo()
+
+    if (currentGeo?.countryCode) {
       const previousCountries = recentLogins
         .map((login) => {
           const details = login.details as { countryCode?: string } | null
@@ -301,7 +283,7 @@ export async function detectAnomalies(
 
       if (previousCountries.length > 0) {
         const uniqueCountries = new Set(previousCountries)
-        if (!uniqueCountries.has(currentGeo.countryCode as string)) {
+        if (!uniqueCountries.has(currentGeo.countryCode)) {
           reasons.push("Unusual location detected")
           severity = "MEDIUM"
         }
@@ -327,7 +309,6 @@ export async function detectAnomalies(
 
   // Check unusual device
   if (config.checkUnusualDevice && userAgent) {
-    const { parseUserAgent } = await import("./device-parser")
     const currentDevice = parseUserAgent(userAgent)
     
     const previousDevices = recentLogins

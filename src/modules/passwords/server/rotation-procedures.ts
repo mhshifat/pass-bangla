@@ -3,6 +3,7 @@ import { createTRPCRouter, protectedProcedure } from "@/trpc/init"
 import z from "zod"
 import { TRPCError } from "@trpc/server"
 import { Prisma } from "@/app/generated"
+import { randomInt } from "crypto"
 
 export const passwordRotationRouter = createTRPCRouter({
   // Rotation Policies
@@ -317,8 +318,14 @@ export const passwordRotationRouter = createTRPCRouter({
             isActive: true,
           },
         },
-        include: {
-          rotationPolicy: true,
+        select: {
+          id: true,
+          name: true,
+          username: true,
+          createdAt: true,
+          rotationPolicy: {
+            select: { id: true, name: true, rotationDays: true, reminderDays: true },
+          },
           rotations: {
             where: {
               status: "COMPLETED",
@@ -327,8 +334,11 @@ export const passwordRotationRouter = createTRPCRouter({
               rotatedAt: "desc",
             },
             take: 1,
+            select: { rotatedAt: true },
           },
         },
+        orderBy: { createdAt: "desc" },
+        take: 1000,
       })
 
       const reminders = []
@@ -663,23 +673,28 @@ export const passwordRotationRouter = createTRPCRouter({
         let newPassword = ""
 
         // Ensure at least one of each type
-        newPassword += lowercase[Math.floor(Math.random() * lowercase.length)]
-        newPassword += uppercase[Math.floor(Math.random() * uppercase.length)]
-        newPassword += numbers[Math.floor(Math.random() * numbers.length)]
-        newPassword += special[Math.floor(Math.random() * special.length)]
+        // randomInt is a CSPRNG with built-in rejection sampling (no modulo bias)
+        const pick = (chars: string) => chars[randomInt(chars.length)]!
+        newPassword += pick(lowercase)
+        newPassword += pick(uppercase)
+        newPassword += pick(numbers)
+        newPassword += pick(special)
 
         // Fill the rest randomly
         for (let i = newPassword.length; i < length; i++) {
-          newPassword += allChars[Math.floor(Math.random() * allChars.length)]
+          newPassword += pick(allChars)
         }
 
         // Shuffle the password to avoid predictable pattern
-        newPassword = newPassword
-          .split("")
-          .sort(() => Math.random() - 0.5)
-          .join("")
+        const chars = newPassword.split("")
+        for (let i = chars.length - 1; i > 0; i--) {
+          const j = randomInt(i + 1)
+          const tmp = chars[i]!
+          chars[i] = chars[j]!
+          chars[j] = tmp
+        }
 
-        return newPassword
+        return chars.join("")
       }
 
       const newPassword = generateStrongPassword(16)

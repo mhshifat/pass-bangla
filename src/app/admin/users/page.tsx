@@ -1,6 +1,7 @@
 import { Suspense } from "react"
 import { UsersTableSkeleton, UsersPagination, UserActionsClient } from "@/modules/users/client"
 import { caller } from "@/trpc/server"
+import { getCurrentUserData } from "@/trpc/server-caller"
 import { User } from "@/app/generated"
 import { UsersPageHeader } from "./users-page-header"
 import { UserStatsClient } from "./user-stats-client"
@@ -48,7 +49,7 @@ interface UsersPageProps {
 export default async function UsersPage({ searchParams }: UsersPageProps) {
   const params = await searchParams
   const currentPage = Number(params.page) || 1
-  const { session, user } = await caller.auth.getCurrentUser()
+  const { session, user } = await getCurrentUserData()
   const userStats = await getUserStats(session.userId)
 
   return (

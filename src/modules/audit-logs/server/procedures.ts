@@ -11,6 +11,11 @@ import {
 import { createAuditLog } from "@/lib/audit-log"
 import { Prisma } from "@/app/generated"
 
+// The action list changes rarely and is read on every audit page load
+const ACTION_TYPES_TTL_MS = 5 * 60 * 1000
+const EXPORT_MAX_ROWS = 10000
+const actionTypesCache = new Map<string, { actions: string[]; expires: number }>()
+
 export const auditLogsRouter = createTRPCRouter({
   list: protectedProcedure("audit.view")
     .input(
@@ -72,25 +77,25 @@ export const auditLogsRouter = createTRPCRouter({
         }
       }
 
-      // Get total count for pagination
-      const total = await prisma.auditLog.count({ where })
-
-      // Get paginated logs with user info
-      const logs = await prisma.auditLog.findMany({
-        where,
-        take: pageSize,
-        skip: (page - 1) * pageSize,
-        orderBy: { createdAt: "desc" },
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
+      // Total count and page are independent
+      const [total, logs] = await Promise.all([
+        prisma.auditLog.count({ where }),
+        prisma.auditLog.findMany({
+          where,
+          take: pageSize,
+          skip: (page - 1) * pageSize,
+          orderBy: { createdAt: "desc" },
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
             },
           },
-        },
-      })
+        }),
+      ])
 
       // Format logs for client
       const formattedLogs = logs.map((log) => {
@@ -161,11 +166,30 @@ export const auditLogsRouter = createTRPCRouter({
         }
       }
 
+      // Previous period for comparison
+      const previousStartDate = new Date(startDate)
+      previousStartDate.setDate(previousStartDate.getDate() - days)
+
+      const previousBaseWhere: Prisma.AuditLogWhereInput = {
+        createdAt: {
+          gte: previousStartDate,
+          lt: startDate,
+        },
+      }
+
+      if (companyId) {
+        previousBaseWhere.user = {
+          companyId: companyId,
+        }
+      }
+
       const [
         totalEvents,
         failedLogins,
         passwordChanges,
         securityAlerts,
+        previousFailedLogins,
+        previousSecurityAlerts,
       ] = await Promise.all([
         // Total events
         prisma.auditLog.count({
@@ -195,26 +219,7 @@ export const auditLogsRouter = createTRPCRouter({
             status: { in: ["FAILED", "BLOCKED", "WARNING"] },
           },
         }),
-      ])
 
-      // Calculate previous period for comparison
-      const previousStartDate = new Date(startDate)
-      previousStartDate.setDate(previousStartDate.getDate() - days)
-
-      const previousBaseWhere: Prisma.AuditLogWhereInput = {
-        createdAt: {
-          gte: previousStartDate,
-          lt: startDate,
-        },
-      }
-      
-      if (companyId) {
-        previousBaseWhere.user = {
-          companyId: companyId,
-        }
-      }
-
-      const [previousFailedLogins, previousSecurityAlerts] = await Promise.all([
         prisma.auditLog.count({
           where: {
             ...previousBaseWhere,
@@ -273,15 +278,22 @@ export const auditLogsRouter = createTRPCRouter({
         }
       }
 
-      const actions = await prisma.auditLog.findMany({
+      const cacheKey = companyId ?? ""
+      const cached = actionTypesCache.get(cacheKey)
+      if (cached && cached.expires > Date.now()) return cached.actions
+
+      // SQL GROUP BY returns one row per action instead of one per audit row
+      const actions = await prisma.auditLog.groupBy({
+        by: ["action"],
         where,
-        select: { action: true },
-        distinct: ["action"],
         orderBy: { action: "asc" },
+        take: 500,
       })
 
       // Return action keys for client-side translation
-      return actions.map((a) => a.action)
+      const result = actions.map((a) => a.action)
+      actionTypesCache.set(cacheKey, { actions: result, expires: Date.now() + ACTION_TYPES_TTL_MS })
+      return result
     }),
 
   getUsers: protectedProcedure("audit.view")
@@ -307,50 +319,9 @@ export const auditLogsRouter = createTRPCRouter({
       return users
     }),
 
-  // Test endpoint to verify audit logs are working
-  test: protectedProcedure("audit.view")
-    .query(async ({ ctx }) => {
-      // Use companyId from context (already fetched, no extra query needed)
-      const companyId = ctx.companyId
-
-      const where: Prisma.AuditLogWhereInput = {}
-      if (companyId) {
-        where.user = {
-          companyId: companyId,
-        }
-      }
-
-      const total = await prisma.auditLog.count({ where })
-      
-      const recent = await prisma.auditLog.findMany({
-        where,
-        take: 10,
-        orderBy: { createdAt: "desc" },
-        include: {
-          user: {
-            select: {
-              name: true,
-              email: true,
-            },
-          },
-        },
-      })
-
-      return {
-        total,
-        recent: recent.map(log => ({
-          id: log.id,
-          action: log.action,
-          resource: log.resource,
-          user: log.user?.name || "Unknown",
-          status: log.status,
-          createdAt: log.createdAt.toISOString(),
-        })),
-      }
-    }),
-
   // Advanced Audit Logs - Archive
-  archiveLogs: protectedProcedure("audit.view")
+  // Permanently deletes rows: restricted to the strictest existing permission
+  archiveLogs: protectedProcedure("settings.edit")
     .input(
       z.object({
         olderThanDays: z.number().min(1).max(3650),
@@ -359,6 +330,12 @@ export const auditLogsRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       // Use companyId from context (already fetched, no extra query needed)
       const companyId = ctx.companyId
+      if (!companyId) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "A company is required to archive audit logs",
+        })
+      }
 
       const result = await archiveAuditLogs(
         companyId,
@@ -437,6 +414,7 @@ export const auditLogsRouter = createTRPCRouter({
         },
         status: "SUCCESS",
         userId: ctx.userId || null,
+        companyId: ctx.companyId,
       })
     }),
 
@@ -730,9 +708,9 @@ export const auditLogsRouter = createTRPCRouter({
 
       if (input.hasDetails !== undefined) {
         if (input.hasDetails) {
-          where.details = { not: undefined }
+          where.details = { not: Prisma.DbNull }
         } else {
-          where.details = undefined
+          where.details = { equals: Prisma.DbNull }
         }
       }
 
@@ -746,10 +724,11 @@ export const auditLogsRouter = createTRPCRouter({
         ]
       }
 
-      // Fetch all logs (no pagination for export)
+      // Newest rows first, capped so one export cannot load the whole table
       const logs = await prisma.auditLog.findMany({
         where,
         orderBy: { createdAt: "desc" },
+        take: EXPORT_MAX_ROWS,
         include: {
           user: {
             select: {
@@ -857,6 +836,7 @@ export const auditLogsRouter = createTRPCRouter({
           count: formattedLogs.length,
         },
         userId: ctx.userId || null,
+        companyId,
       })
 
       return {

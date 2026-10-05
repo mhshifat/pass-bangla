@@ -4,7 +4,8 @@ import { MotionConfig } from "motion/react"
 import { useReducedMotion } from "./use-reduced-motion"
 
 /**
- * App-wide motion configuration.
+ * Motion configuration for the signed-in app shell (mounted in AdminLayoutClient, not the
+ * root layout, so marketing and auth pages never load Framer Motion).
  *
  * Wraps the tree in Framer Motion's {@link MotionConfig}. When the user has
  * reduced motion enabled (OS setting or the in-app accessibility toggle), we set

@@ -168,6 +168,7 @@ export function LoginFormFields({ formAction, isPending, state }: LoginFormField
                     <Input
                       type="email"
                       placeholder={t("auth.emailPlaceholder")}
+                      autoComplete="username"
                       className="pl-10"
                       disabled={pending}
                       {...field}
@@ -207,6 +208,7 @@ export function LoginFormFields({ formAction, isPending, state }: LoginFormField
                     <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <PasswordInput
                       placeholder="••••••••"
+                      autoComplete="current-password"
                       className="pl-10"
                       disabled={pending}
                       showToggleButton={true}

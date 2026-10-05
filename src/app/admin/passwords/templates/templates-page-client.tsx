@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { TemplateManagementDialog } from "@/modules/passwords/client"
+import { TemplateManagementDialog } from "@/modules/passwords/client/template-management-dialog"
 import { trpc } from "@/trpc/client"
 import { toast } from "sonner"
 import {

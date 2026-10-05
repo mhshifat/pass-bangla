@@ -1,18 +1,13 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { gsap } from "gsap"
-import { ScrollTrigger } from "gsap/ScrollTrigger"
 import Link from "next/link"
 import { Smartphone, Chrome, Globe, ArrowRight, Check, ExternalLink } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { useTranslation } from "@/hooks/use-translation"
-
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger)
-}
+import { useReveal } from "./use-reveal"
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>
@@ -22,7 +17,7 @@ interface BeforeInstallPromptEvent extends Event {
 export function PWASection() {
   const { t } = useTranslation()
   const sectionRef = useRef<HTMLDivElement>(null)
-  const cardsRef = useRef<HTMLDivElement>(null)
+  useReveal(sectionRef, "[data-platform-card]", 120)
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [isInstalled, setIsInstalled] = useState(() => {
     if (typeof window === "undefined") return false
@@ -154,59 +149,6 @@ export function PWASection() {
     }
   }
 
-  useEffect(() => {
-    if (!sectionRef.current || !cardsRef.current) return
-
-    const ctx = gsap.context(() => {
-      // Animate cards
-      const cards = Array.from(cardsRef.current!.children) as HTMLElement[]
-      
-      if (cards.length === 0) return
-
-      // Set initial state - ensure cards are visible
-      gsap.set(cards, { opacity: 1, y: 0, scale: 1 })
-
-      // Animate cards on scroll
-      cards.forEach((card, index) => {
-        gsap.fromTo(
-          card,
-          {
-            y: 60,
-            opacity: 0,
-            scale: 0.9,
-          },
-          {
-            y: 0,
-            opacity: 1,
-            scale: 1,
-            duration: 0.7,
-            delay: index * 0.12,
-            ease: "power2.out",
-            scrollTrigger: {
-              trigger: sectionRef.current,
-              start: "top 80%",
-              toggleActions: "play none none none",
-            },
-          }
-        )
-      })
-
-      // Continuous float animation - start after initial animation
-      cards.forEach((card, index) => {
-        gsap.to(card, {
-          y: (index % 2 === 0 ? -8 : 8),
-          duration: 3 + Math.random() * 2,
-          repeat: -1,
-          yoyo: true,
-          ease: "sine.inOut",
-          delay: cards.length * 0.12 + index * 0.3,
-        })
-      })
-    }, sectionRef)
-
-    return () => ctx.revert()
-  }, [])
-
   return (
     <section
       ref={sectionRef}
@@ -231,22 +173,20 @@ export function PWASection() {
         </div>
 
         {/* Platform Cards */}
-        <div
-          ref={cardsRef}
-          className="grid md:grid-cols-3 gap-8"
-        >
+        <div className="grid md:grid-cols-3 gap-8">
           {platforms.map((platform, index) => {
             const Icon = platform.icon
             return (
               <div
                 key={index}
+                data-platform-card
+                data-reveal-from="pop"
                 className={cn(
-                  "group relative p-8 rounded-2xl border-2 transition-all duration-300 hover:shadow-2xl opacity-100",
-                  index === 2 
-                    ? "bg-card border-primary/30 hover:border-primary/60 shadow-lg" 
+                  "group relative p-8 rounded-2xl border-2 transition-all duration-300 hover:shadow-2xl",
+                  index === 2
+                    ? "bg-card border-primary/30 hover:border-primary/60 shadow-lg"
                     : "bg-card border-border hover:border-primary/50"
                 )}
-                style={{ opacity: 1 }}
               >
                 {/* Gradient background on hover - stronger for web app */}
                 <div className={cn(

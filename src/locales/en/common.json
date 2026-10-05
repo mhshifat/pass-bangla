@@ -52,7 +52,13 @@
       "accessDenied": "Access Denied",
       "contactAdministrator": "Please contact your administrator to request the required permissions.",
       "permissionRequired": "Permission required to perform this action"
-    }
+    },
+    "confirmAction": "Are you sure you want to {{action}} this {{resource}}?",
+    "page": "Page",
+    "compare": "Compare",
+    "creating": "Creating",
+    "user": "User",
+    "showing": "Showing {{from}} to {{to}} of {{total}}"
   },
   "auth": {
     "login": "Sign in",
@@ -141,6 +147,26 @@
     "findYourCompanyDescription": "Enter your company name to find your login page.",
     "companyNotFound": "Company not found. Please check the company name and try again.",
     "orContinueWith": "Or continue with",
+    "continueWithGoogle": "Continue with Google",
+    "continueWithGithub": "Continue with GitHub",
+    "oauthSignup": {
+      "title": "Finish creating your account",
+      "description": "Signed in with {{provider}}. Choose a name for your company to continue.",
+      "useDifferent": "Use a different sign-up method"
+    },
+    "oauthErrors": {
+      "cancelled": "Sign-in was cancelled.",
+      "invalid_state": "The sign-in request expired. Please try again.",
+      "provider_failed": "We couldn't complete the sign-in with that provider. Please try again.",
+      "unverified_email": "That account has no verified email address. Verify your email with the provider and try again.",
+      "no_account": "No account in this company uses that email. Ask your administrator to invite you, or sign in to a different company.",
+      "multiple_companies": "That email belongs to more than one company. Enter your company name first, then sign in from your company's page.",
+      "expired": "The sign-in link expired. Please try again.",
+      "inactive": "Your account has been deactivated. Please contact your administrator.",
+      "blocked_ip": "Access is not allowed from this IP address.",
+      "blocked_location": "Access is not allowed from this location.",
+      "unavailable": "That sign-in method is not available."
+    },
     "emailRequired": "Email is required",
     "emailVerification": {
       "verified": "Verified",
@@ -170,7 +196,8 @@
     "captchaDescription": "Please solve the math problem to verify you're not a robot",
     "refreshCaptcha": "Refresh CAPTCHA",
     "captchaAnswerRequired": "CAPTCHA answer is required",
-    "captchaInvalid": "Invalid CAPTCHA answer. Please try again."
+    "captchaInvalid": "Invalid CAPTCHA answer. Please try again.",
+    "username": "Username"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -252,6 +279,9 @@
     "deleteUser": "Delete User",
     "resetPassword": "Reset Password",
     "sendEmail": "Send Email",
+    "userExists": "A user with this email already exists.",
+    "sendSignInDetails": "Send sign-in details",
+    "sendOnboarding": "Send onboarding info",
     "fullName": "Full Name",
     "email": "Email",
     "role": "Role",
@@ -313,7 +343,10 @@
     "searchUsers": "Search users...",
     "lastLogin": "Last Login",
     "resetMfa": "Reset MFA",
-    "cannotModifyCreator": "Cannot modify creator account"
+    "cannotModifyCreator": "Cannot modify creator account",
+    "sendEmailDescription": "Send an email to {{userName}} ({{userEmail}})",
+    "sendEmailDescriptionGeneric": "Send an email to this user",
+    "deleteError": "Failed to delete user"
   },
   "passwords": {
     "title": "Passwords",
@@ -894,12 +927,16 @@
       "autoRotateError": "Failed to auto-rotate password",
       "newPasswordTitle": "New Password Generated",
       "newPasswordDescription": "Your password has been rotated. Please copy and save this new password securely:",
-      "copyPasswordHint": "Click the button below to copy the password to your clipboard"
+      "copyPasswordHint": "Click the button below to copy the password to your clipboard",
+      "policyCreateError": "Failed to create rotation policy",
+      "policyUpdateError": "Failed to update rotation policy"
     },
     "shares": {
       "title": "Shared Passwords",
       "description": "Manage all team shares and temporary share links you have created."
-    }
+    },
+    "paginationInfo": "Showing {{start}} to {{end}} of {{total}} passwords",
+    "createError": "Failed to create password"
   },
   "teams": {
     "title": "Teams",
@@ -942,7 +979,9 @@
     "manager": "Manager",
     "members": "Members",
     "passwords": "Passwords",
-    "created": "Created"
+    "created": "Created",
+    "createError": "Failed to create team",
+    "updateError": "Failed to update team"
   },
   "qrCode": {
     "generateQrCode": "Generate QR Code",
@@ -994,7 +1033,10 @@
     "customRoles": "Custom Roles",
     "customRolesDescription": "User-created roles",
     "permissions": "Permissions",
-    "permissionsDescription": "Available permissions"
+    "permissionsDescription": "Available permissions",
+    "createError": "Failed to create role",
+    "updateError": "Failed to update role",
+    "deleteError": "Failed to delete role"
   },
   "settings": {
     "title": "Settings",
@@ -1449,7 +1491,10 @@
       "mfaSettingsSaved": "MFA settings saved successfully",
       "mfaSettingsFailed": "Failed to save MFA settings",
       "loadFailed": "Failed to load settings: {{error}}"
-    }
+    },
+    "emailSettingsError": "Failed to save email settings",
+    "mfaSettingsSaved": "MFA settings saved successfully",
+    "mfaSettingsFailed": "Failed to save MFA settings"
   },
   "audit": {
     "title": "Audit Logs",
@@ -2163,7 +2208,20 @@
       "format": "Format",
       "startDate": "Start Date",
       "endDate": "End Date",
-      "selectDate": "Select date"
+      "selectDate": "Select date",
+      "advancedOptions": "Advanced Options",
+      "selectFields": "Select Fields",
+      "sortBy": "Sort By",
+      "sortOrder": "Order",
+      "descending": "Descending",
+      "ascending": "Ascending",
+      "filters": "Filters",
+      "filterByUsers": "Filter by Users",
+      "loadingUsers": "Loading users...",
+      "filterByActions": "Filter by Actions",
+      "filterByResources": "Filter by Resources",
+      "filterByStatus": "Filter by Status",
+      "recordLimit": "Record Limit"
     },
     "templates": {
       "noTemplates": "No templates found",
@@ -2180,7 +2238,8 @@
         "createdAt": "Created At",
         "actions": "Actions"
       }
-    }
+    },
+    "deleteWarning": "This action cannot be undone. The report will be permanently deleted."
   },
   "insights": {
     "title": "Insights & Analytics",
@@ -2305,7 +2364,8 @@
     "recentPasswords": "Recent Passwords",
     "actions": {
       "title": "Actions",
-      "createPassword": "Create Password"
+      "createPassword": "Create Password",
+      "createUser": "Create user"
     },
     "navigate": {
       "title": "Navigation",
@@ -2328,7 +2388,8 @@
         "general": "General",
         "actions": "Actions",
         "navigation": "Navigation"
-      }
+      },
+      "openPalette": "Open command palette"
     }
   },
   "clipboard": {
@@ -2344,7 +2405,9 @@
     "copyUsername": "Copy Username",
     "copyUrl": "Copy URL",
     "decryptionFailed": "Failed to decrypt password. Please try again or contact support if the issue persists.",
-    "userNotAuthenticated": "User not authenticated. Please log in again."
+    "userNotAuthenticated": "User not authenticated. Please log in again.",
+    "totpNotReady": "TOTP code is not ready yet. Please wait a moment and try again.",
+    "decryptFailed": "Failed to decrypt TOTP code"
   },
   "accessibility": {
     "title": "Accessibility",

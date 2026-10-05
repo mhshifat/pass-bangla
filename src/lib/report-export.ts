@@ -1,5 +1,4 @@
 import { ReportData } from "./report-generator"
-import ExcelJS from "exceljs"
 
 /**
  * Helper function to ensure a value is a Date object
@@ -431,6 +430,7 @@ export async function exportReportToPDF(reportData: ReportData): Promise<Buffer>
  * Export report to Excel format
  */
 export async function exportReportToExcel(reportData: ReportData): Promise<Buffer> {
+  const ExcelJS = (await import("exceljs")).default
   const workbook = new ExcelJS.Workbook()
   const worksheet = workbook.addWorksheet("Report")
 

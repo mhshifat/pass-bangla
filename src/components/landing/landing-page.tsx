@@ -1,5 +1,6 @@
 "use client"
 
+import "./landing.css"
 import { LandingHeader } from "./landing-header"
 import { HeroSection } from "./hero-section"
 import { FeaturesSection } from "./features-section"
@@ -25,4 +26,3 @@ export function LandingPage() {
     </div>
   )
 }
-

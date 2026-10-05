@@ -27,7 +27,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Tag } from "@/app/generated"
-import { TagManagementDialog } from "@/modules/passwords/client"
+import { TagManagementDialog } from "@/modules/passwords/client/tag-management-dialog"
 
 export function TagsPageClient() {
   const { t } = useTranslation()

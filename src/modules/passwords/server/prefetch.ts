@@ -26,9 +26,8 @@ export async function prefetchPasswordsData() {
   
   try {
     // Prefetch export filters and rotation reminders in parallel
-    const [exportFilters, reminders30, reminders365] = await Promise.allSettled([
+    const [exportFilters, reminders365] = await Promise.allSettled([
       trpc.passwords.getExportFilters(),
-      trpc.passwordRotation.getReminders({ daysAhead: 30 }),
       trpc.passwordRotation.getReminders({ daysAhead: 365 }),
     ]);
 
@@ -37,13 +36,6 @@ export async function prefetchPasswordsData() {
       queryClient.setQueryData(
         [['passwords', 'getExportFilters'], { input: undefined, type: 'query' }],
         exportFilters.value
-      );
-    }
-
-    if (reminders30.status === 'fulfilled') {
-      queryClient.setQueryData(
-        [['passwordRotation', 'getReminders'], { input: { daysAhead: 30 }, type: 'query' }],
-        reminders30.value
       );
     }
 
@@ -273,7 +265,7 @@ export async function prefetchDuplicatesData() {
 
     if (reused.status === 'fulfilled') {
       queryClient.setQueryData(
-        [['passwords', 'findReused'], { input: {}, type: 'query' }],
+        [['passwords', 'findReused'], { input: undefined, type: 'query' }],
         reused.value
       );
     }

@@ -1,21 +1,15 @@
 "use client"
 
-import { useEffect, useRef } from "react"
-import { gsap } from "gsap"
-import { ScrollTrigger } from "gsap/ScrollTrigger"
+import { useRef } from "react"
 import { Shield, Lock, Key, Eye, Server, CheckCircle2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "@/hooks/use-translation"
-
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger)
-}
+import { useReveal } from "./use-reveal"
 
 export function SecuritySection() {
   const { t } = useTranslation()
   const sectionRef = useRef<HTMLDivElement>(null)
-  const leftRef = useRef<HTMLDivElement>(null)
-  const rightRef = useRef<HTMLDivElement>(null)
+  useReveal(sectionRef, ".security-card, [data-shield]", 150)
 
   const securityFeatures = [
     {
@@ -50,98 +44,6 @@ export function SecuritySection() {
     },
   ]
 
-  useEffect(() => {
-    if (!sectionRef.current || !leftRef.current || !rightRef.current) return
-
-    const ctx = gsap.context(() => {
-      const leftItems = Array.from(leftRef.current!.children) as HTMLElement[]
-      const rightItems = Array.from(rightRef.current!.children) as HTMLElement[]
-      
-      // Animate left side - use fromTo to ensure visibility
-      leftItems.forEach((item, index) => {
-        gsap.fromTo(
-          item,
-          {
-            x: -50,
-            opacity: 0,
-          },
-          {
-            x: 0,
-            opacity: 1,
-            duration: 0.8,
-            delay: index * 0.15,
-            ease: "power3.out",
-            scrollTrigger: {
-              trigger: sectionRef.current,
-              start: "top 85%",
-              toggleActions: "play none none none",
-            },
-          }
-        )
-      })
-
-      // Animate right side - use fromTo to ensure visibility
-      rightItems.forEach((item, index) => {
-        gsap.fromTo(
-          item,
-          {
-            x: 50,
-            opacity: 0,
-          },
-          {
-            x: 0,
-            opacity: 1,
-            duration: 0.8,
-            delay: index * 0.15,
-            ease: "power3.out",
-            scrollTrigger: {
-              trigger: sectionRef.current,
-              start: "top 85%",
-              toggleActions: "play none none none",
-            },
-          }
-        )
-      })
-
-      // Animate center shield
-      const shield = sectionRef.current?.querySelector("[data-shield]") as HTMLElement
-      if (shield) {
-        gsap.fromTo(
-          shield,
-          {
-            scale: 0,
-            rotation: -180,
-            opacity: 0,
-          },
-          {
-            scale: 1,
-            rotation: 0,
-            opacity: 1,
-            duration: 1.2,
-            ease: "back.out(1.7)",
-            scrollTrigger: {
-              trigger: sectionRef.current,
-              start: "top 85%",
-              toggleActions: "play none none none",
-            },
-            onComplete: () => {
-              // Continuous pulse after animation
-              gsap.to(shield, {
-                scale: 1.05,
-                duration: 2,
-                repeat: -1,
-                yoyo: true,
-                ease: "sine.inOut",
-              })
-            },
-          }
-        )
-      }
-    }, sectionRef)
-
-    return () => ctx.revert()
-  }, [])
-
   return (
     <section
       ref={sectionRef}
@@ -169,17 +71,17 @@ export function SecuritySection() {
 
         <div className="grid lg:grid-cols-3 gap-12 items-center">
           {/* Left Column - Security Features */}
-          <div ref={leftRef} className="space-y-6">
+          <div className="space-y-6">
             {securityFeatures.slice(0, 3).map((feature, index) => {
               const Icon = feature.icon
               return (
                 <div
                   key={index}
+                  data-reveal-from="left"
                   className={cn(
-                    "security-card flex gap-4 p-5 rounded-xl bg-card border border-border hover:border-primary/50 transition-all opacity-100 h-[140px]",
+                    "security-card flex gap-4 p-5 rounded-xl bg-card border border-border hover:border-primary/50 transition-all h-[140px]",
                     index === 0 ? "ml-0" : index === 1 ? "-ml-4" : "-ml-8"
                   )}
-                  style={{ opacity: 1 }}
                 >
                   <div className="p-3 rounded-lg bg-primary/10 text-primary shrink-0 h-fit">
                     <Icon className="h-5 w-5" />
@@ -199,6 +101,8 @@ export function SecuritySection() {
           <div className="flex justify-center">
             <div
               data-shield
+              data-reveal-from="spin"
+              data-reveal-keep
               className="relative p-8 rounded-full bg-linear-to-br from-primary/20 to-purple-600/20 border-2 border-primary/30"
             >
               <Shield className="h-24 w-24 md:h-32 md:w-32 text-primary" />
@@ -207,17 +111,17 @@ export function SecuritySection() {
           </div>
 
           {/* Right Column - Security Features */}
-          <div ref={rightRef} className="space-y-6">
+          <div className="space-y-6">
             {securityFeatures.slice(3, 6).map((feature, index) => {
               const Icon = feature.icon
               return (
                 <div
                   key={index}
+                  data-reveal-from="right"
                   className={cn(
-                    "security-card flex gap-4 p-5 rounded-xl bg-card border border-border hover:border-primary/50 transition-all opacity-100 h-[140px]",
+                    "security-card flex gap-4 p-5 rounded-xl bg-card border border-border hover:border-primary/50 transition-all h-[140px]",
                     index === 0 ? "-mr-8" : index === 1 ? "-mr-4" : "mr-0"
                   )}
-                  style={{ opacity: 1 }}
                 >
                   <div className="p-3 rounded-lg bg-primary/10 text-primary shrink-0 h-fit">
                     <Icon className="h-5 w-5" />

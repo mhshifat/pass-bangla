@@ -5,7 +5,7 @@
  * It uses the @simplewebauthn/server library for server-side operations.
  */
 
-import prisma from "@/lib/prisma"
+import { getSettings } from "@/lib/settings-cache"
 import {
     generateRegistrationOptions,
     verifyRegistrationResponse,
@@ -84,19 +84,10 @@ type WebAuthnCredentialsCheck = {
     error?: string
 }
 
-export async function checkWebAuthnCredentials(): Promise<WebAuthnCredentialsCheck> {
-    const settings = await prisma.settings.findMany({
-        where: {
-            key: {
-                in: ["mfa.webauthn.rp_id", "mfa.webauthn.rp_name", "mfa.webauthn.origin"],
-            },
-        },
-    })
-
-    const config: Record<string, string> = {}
-    settings.forEach((setting) => {
-        config[setting.key] = setting.value as string
-    })
+export async function checkWebAuthnCredentials(companyId?: string | null): Promise<WebAuthnCredentialsCheck> {
+    const config = Object.fromEntries(
+        await getSettings(["mfa.webauthn.rp_id", "mfa.webauthn.rp_name", "mfa.webauthn.origin"], companyId)
+    ) as Record<string, string>
 
     if (!config["mfa.webauthn.rp_id"] || !config["mfa.webauthn.rp_name"] || !config["mfa.webauthn.origin"]) {
         return {

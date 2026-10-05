@@ -5,7 +5,7 @@ import { serverTrpc } from '@/trpc/server-caller';
 
 /**
  * Prefetch insights page data on the server
- * This prefetches all insights data to avoid exposing sensitive analytics in client-side API calls
+ * Only the default (overview) tab is prefetched; the other tabs load their data when opened
  */
 export async function prefetchInsightsData() {
   const queryClient = makeQueryClient();
@@ -13,43 +13,16 @@ export async function prefetchInsightsData() {
   
   try {
     const [
-      userEngagement,
-      trends,
-      teamCollaboration,
       securityPosture,
       passwordHealthScore,
       onboardingStatus,
       accessibilityPrefs
     ] = await Promise.allSettled([
-      trpc.insights.userEngagement({}),
-      trpc.insights.trends({ metric: 'passwords', period: '30d' }),
-      trpc.insights.teamCollaboration({}),
       trpc.insights.securityPosture({}),
       trpc.insights.passwordHealthScore({}),
       trpc.users.getOnboardingStatus(),
       trpc.users.getAccessibilityPreferences(),
     ]);
-
-    if (userEngagement.status === 'fulfilled') {
-      queryClient.setQueryData(
-        [['insights', 'userEngagement'], { input: {}, type: 'query' }],
-        userEngagement.value
-      );
-    }
-
-    if (trends.status === 'fulfilled') {
-      queryClient.setQueryData(
-        [['insights', 'trends'], { input: { metric: 'passwords', period: '30d' }, type: 'query' }],
-        trends.value
-      );
-    }
-
-    if (teamCollaboration.status === 'fulfilled') {
-      queryClient.setQueryData(
-        [['insights', 'teamCollaboration'], { input: {}, type: 'query' }],
-        teamCollaboration.value
-      );
-    }
 
     if (securityPosture.status === 'fulfilled') {
       queryClient.setQueryData(

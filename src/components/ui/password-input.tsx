@@ -12,7 +12,26 @@ interface PasswordInputProps extends React.InputHTMLAttributes<HTMLInputElement>
   onGeneratePassword?: (password: string) => void
   showGenerateButton?: boolean
   showToggleButton?: boolean
+  /**
+   * The value is a secret being stored (a vault entry, API token, another user's
+   * password…), not the signed-in user's own credential for this site. Renders a
+   * CSS-masked text input so browser password managers don't offer to save or
+   * "update" it as the PassBangla login.
+   */
+  storedSecret?: boolean
 }
+
+// Opt-outs honoured by Chrome/Firefox and the common password manager extensions
+const STORED_SECRET_PROPS = {
+  autoComplete: "off",
+  autoCorrect: "off",
+  autoCapitalize: "off",
+  spellCheck: false,
+  "data-1p-ignore": true,
+  "data-lpignore": "true",
+  "data-bwignore": true,
+  "data-form-type": "other",
+} as const
 
 /**
  * Cryptographically-secure random integer in [0, max) using rejection sampling
@@ -79,7 +98,7 @@ export function generateStrongPassword(length: number = 16): string {
 }
 
 export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
-  ({ className, onGenerate, onGeneratePassword, showGenerateButton = false, showToggleButton = true, type = "password", ...props }, ref) => {
+  ({ className, onGenerate, onGeneratePassword, showGenerateButton = false, showToggleButton = true, storedSecret = false, type = "password", ...props }, ref) => {
     const [showPassword, setShowPassword] = React.useState(false)
 
     const handleGenerate = () => {
@@ -96,10 +115,14 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
     }
 
     const hasButtons = showGenerateButton || showToggleButton
-    const inputType = showPassword ? "text" : "password"
+    // A stored secret is never type="password": the browser treats any submitted
+    // password field as this site's login. It is masked with CSS instead.
+    const inputType = storedSecret || showPassword ? "text" : "password"
+    const secretProps = storedSecret ? STORED_SECRET_PROPS : {}
+    const maskClass = storedSecret && !showPassword ? "[-webkit-text-security:disc]" : undefined
 
     if (!hasButtons) {
-      return <Input ref={ref} type={inputType} className={className} {...props} />
+      return <Input ref={ref} type={inputType} className={cn(maskClass, className)} {...secretProps} {...props} />
     }
 
     // Calculate padding based on number of buttons
@@ -111,7 +134,8 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
         <Input
           ref={ref}
           type={inputType}
-          className={cn(paddingRight, className)}
+          className={cn(paddingRight, maskClass, className)}
+          {...secretProps}
           {...props}
         />
         <div className="absolute right-0 top-0 h-full flex items-center">

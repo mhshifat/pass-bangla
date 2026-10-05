@@ -1,8 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
-import { gsap } from "gsap"
-import { ScrollTrigger } from "gsap/ScrollTrigger"
+import { useRef } from "react"
 import {
   Lock,
   Shield,
@@ -19,15 +17,12 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "@/hooks/use-translation"
-
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger)
-}
+import { useReveal } from "./use-reveal"
 
 export function FeaturesSection() {
   const { t } = useTranslation()
   const sectionRef = useRef<HTMLDivElement>(null)
-  const cardsRef = useRef<HTMLDivElement>(null)
+  useReveal(sectionRef, ".feature-card", 80)
 
   const features = [
     {
@@ -104,47 +99,6 @@ export function FeaturesSection() {
     },
   ]
 
-  useEffect(() => {
-    if (!sectionRef.current || !cardsRef.current) return
-
-    const ctx = gsap.context(() => {
-      const cards = Array.from(cardsRef.current!.children) as HTMLElement[]
-      
-      // Only animate if cards exist
-      if (cards.length === 0) return
-
-      // Set initial state - ensure cards are visible
-      gsap.set(cards, { opacity: 1, y: 0, scale: 1 })
-
-      // Animate cards on scroll with smooth reveal
-      cards.forEach((card, index) => {
-        gsap.fromTo(
-          card,
-          {
-            y: 60,
-            opacity: 0,
-            scale: 0.9,
-          },
-          {
-            y: 0,
-            opacity: 1,
-            scale: 1,
-            duration: 0.6,
-            delay: index * 0.08,
-            ease: "power2.out",
-            scrollTrigger: {
-              trigger: sectionRef.current,
-              start: "top 80%",
-              toggleActions: "play none none none",
-            },
-          }
-        )
-      })
-    }, sectionRef)
-
-    return () => ctx.revert()
-  }, [])
-
   return (
     <section
       ref={sectionRef}
@@ -166,17 +120,14 @@ export function FeaturesSection() {
         </div>
 
         {/* Features Grid */}
-        <div
-          ref={cardsRef}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((feature, index) => {
             const Icon = feature.icon
             return (
               <div
                 key={index}
-                className="feature-card group relative p-6 rounded-xl bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 opacity-100"
-                style={{ opacity: 1 }}
+                data-reveal-from="pop"
+                className="feature-card group relative p-6 rounded-xl bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
               >
                 {/* Icon */}
                 <div className={cn("mb-4 p-3 rounded-lg bg-muted w-fit", feature.color)}>

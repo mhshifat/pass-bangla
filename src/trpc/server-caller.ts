@@ -13,3 +13,14 @@ export const serverTrpc = cache(async () => {
   const context = await createTRPCContext();
   return createCaller(context);
 });
+
+/**
+ * Result of `auth.getCurrentUser` for the current request.
+ * Layout prefetch, route guards and pages all go through this, so the
+ * procedure runs once per request however many of them ask.
+ * Rejects (like the procedure) when the visitor is not authenticated.
+ */
+export const getCurrentUserData = cache(async () => {
+  const trpc = await serverTrpc();
+  return trpc.auth.getCurrentUser();
+});

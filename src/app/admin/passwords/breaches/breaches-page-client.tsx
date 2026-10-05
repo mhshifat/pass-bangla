@@ -49,16 +49,34 @@ export function BreachesPageClient() {
     { enabled: true }
   )
 
-  const checkAllMutation = trpc.passwords.checkAllPasswordsBreach.useMutation({
-    onSuccess: (result) => {
-      toast.success(t("passwords.breach.checkAllSuccess", { checked: result.checked, breached: result.breached }))
+  const checkAllMutation = trpc.passwords.checkAllPasswordsBreach.useMutation()
+  const [isCheckingAll, setIsCheckingAll] = useState(false)
+  const [checkProgress, setCheckProgress] = useState<{ done: number; total: number } | null>(null)
+
+  // The server checks one chunk per call; loop until it reports no next chunk
+  const handleCheckAll = async () => {
+    setIsCheckingAll(true)
+    let offset = 0
+    let checked = 0
+    let breached = 0
+    try {
+      for (;;) {
+        const result = await checkAllMutation.mutateAsync({ offset })
+        checked += result.checked
+        breached += result.breached
+        setCheckProgress({ done: checked, total: result.total })
+        if (result.nextOffset === null) break
+        offset = result.nextOffset
+      }
+      toast.success(t("passwords.breach.checkAllSuccess", { checked, breached }))
       refetch()
-      router.refresh()
-    },
-    onError: (error) => {
+    } catch (error) {
       showErrorFromException(error, t("passwords.breach.checkAllError"))
-    },
-  })
+    } finally {
+      setIsCheckingAll(false)
+      setCheckProgress(null)
+    }
+  }
 
   const handleResolve = (breachId: string) => {
     setResolvingBreachId(breachId)
@@ -132,11 +150,13 @@ export function BreachesPageClient() {
               {t("common.refresh")}
             </Button>
             <Button
-              onClick={() => checkAllMutation.mutate()}
-              disabled={checkAllMutation.isPending}
+              onClick={handleCheckAll}
+              disabled={isCheckingAll}
             >
               <Shield className="h-4 w-4 mr-2" />
-              {checkAllMutation.isPending ? t("passwords.breach.checkingAll") : t("passwords.breach.checkAll")}
+              {isCheckingAll
+                ? `${t("passwords.breach.checkingAll")}${checkProgress ? ` (${checkProgress.done}/${checkProgress.total})` : ""}`
+                : t("passwords.breach.checkAll")}
             </Button>
           </div>
         </div>

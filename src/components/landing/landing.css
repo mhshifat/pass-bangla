@@ -1,0 +1,106 @@
+/*
+ * Landing page motion, in CSS instead of GSAP.
+ * Everything here is decorative: content is in the HTML and visible without JavaScript;
+ * scroll reveals only kick in once the `useReveal` hook marks off-screen elements.
+ */
+
+/* ---- Hero entrance (runs as soon as CSS is applied) ---- */
+@keyframes pb-hero-rise {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes pb-hero-logo-in {
+  from { opacity: 0; transform: scale(0.4) rotate(-90deg); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes pb-pulse-soft {
+  from { transform: scale(1); }
+  to { transform: scale(1.05); }
+}
+@keyframes pb-pulse-faint {
+  from { transform: scale(1); }
+  to { transform: scale(1.02); }
+}
+@keyframes pb-float {
+  from { transform: translate(0, 0) rotate(0deg); }
+  to { transform: translate(var(--float-x, 10px), var(--float-y, -20px)) rotate(var(--float-r, 5deg)); }
+}
+
+.pb-hero-rise {
+  animation: pb-hero-rise 500ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--rise-delay, 0ms);
+}
+.pb-hero-logo {
+  animation:
+    pb-hero-logo-in 700ms cubic-bezier(0.34, 1.56, 0.64, 1) both,
+    pb-pulse-soft 2s ease-in-out 700ms infinite alternate;
+}
+.pb-float {
+  animation: pb-float var(--float-duration, 4s) ease-in-out infinite alternate;
+  animation-delay: var(--float-delay, 0ms);
+}
+.pb-pulse-cta {
+  animation: pb-pulse-faint 2s ease-in-out infinite alternate;
+}
+
+/* ---- Scroll reveals (attributes set by useReveal) ---- */
+@keyframes pb-reveal-up {
+  from { opacity: 0; transform: translateY(50px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes pb-reveal-pop {
+  from { opacity: 0; transform: translateY(60px) scale(0.9); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes pb-reveal-left {
+  from { opacity: 0; transform: translateX(-50px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes pb-reveal-right {
+  from { opacity: 0; transform: translateX(50px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes pb-reveal-spin {
+  from { opacity: 0; transform: scale(0) rotate(-180deg); }
+  to { opacity: 1; transform: none; }
+}
+
+[data-reveal="pending"] {
+  opacity: 0;
+}
+[data-reveal="in"] {
+  animation: pb-reveal-up 800ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--reveal-delay, 0ms);
+}
+[data-reveal="in"][data-reveal-from="pop"] {
+  animation-name: pb-reveal-pop;
+  animation-duration: 600ms;
+}
+[data-reveal="in"][data-reveal-from="left"] {
+  animation-name: pb-reveal-left;
+}
+[data-reveal="in"][data-reveal-from="right"] {
+  animation-name: pb-reveal-right;
+}
+[data-reveal="in"][data-reveal-from="spin"] {
+  animation:
+    pb-reveal-spin 1200ms cubic-bezier(0.34, 1.56, 0.64, 1) both,
+    pb-pulse-soft 2s ease-in-out 1200ms infinite alternate;
+}
+[data-reveal="in"][data-reveal-from="zoom"] {
+  animation-name: pb-reveal-pop;
+  animation-duration: 1000ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pb-hero-rise,
+  .pb-hero-logo,
+  .pb-float,
+  .pb-pulse-cta,
+  [data-reveal="in"] {
+    animation: none;
+  }
+  [data-reveal="pending"] {
+    opacity: 1;
+  }
+}

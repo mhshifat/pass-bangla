@@ -13,7 +13,10 @@ import { reportsRouter } from "@/modules/reports/server/procedures"
 import { insightsRouter } from "@/modules/insights/server/procedures"
 import { quickActionsRouter } from "@/modules/quick-actions/server/procedures"
 
+import { healthRouter } from "@/modules/health/server/procedures"
+
 export const appRouter = createTRPCRouter({
+  health: healthRouter,
   auth: authRouter,
   users: usersRouter,
   settings: settingsRouter,

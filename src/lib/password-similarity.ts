@@ -4,37 +4,49 @@
  */
 
 /**
+ * Levenshtein distance using two rolling rows. Returns `maxDistance + 1` as soon
+ * as the distance is certain to exceed `maxDistance`.
+ */
+export function levenshteinWithin(str1: string, str2: string, maxDistance: number = Infinity): number {
+  let a = str1
+  let b = str2
+  if (a.length < b.length) {
+    const tmp = a
+    a = b
+    b = tmp
+  }
+  const m = a.length
+  const n = b.length
+  if (m - n > maxDistance) return maxDistance + 1
+
+  let prev = new Array<number>(n + 1)
+  let curr = new Array<number>(n + 1)
+  for (let j = 0; j <= n; j++) prev[j] = j
+
+  for (let i = 1; i <= m; i++) {
+    curr[0] = i
+    let rowMin = curr[0]
+    const ca = a.charCodeAt(i - 1)
+    for (let j = 1; j <= n; j++) {
+      const cost = ca === b.charCodeAt(j - 1) ? 0 : 1
+      const v = Math.min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + cost)
+      curr[j] = v
+      if (v < rowMin) rowMin = v
+    }
+    if (rowMin > maxDistance) return maxDistance + 1
+    const tmp = prev
+    prev = curr
+    curr = tmp
+  }
+
+  return prev[n]
+}
+
+/**
  * Calculate Levenshtein distance between two strings
  */
 export function levenshteinDistance(str1: string, str2: string): number {
-  const m = str1.length
-  const n = str2.length
-  const dp: number[][] = []
-
-  // Initialize DP table
-  for (let i = 0; i <= m; i++) {
-    dp[i] = [i]
-  }
-  for (let j = 0; j <= n; j++) {
-    dp[0][j] = j
-  }
-
-  // Fill DP table
-  for (let i = 1; i <= m; i++) {
-    for (let j = 1; j <= n; j++) {
-      if (str1[i - 1] === str2[j - 1]) {
-        dp[i][j] = dp[i - 1][j - 1]
-      } else {
-        dp[i][j] = Math.min(
-          dp[i - 1][j] + 1, // deletion
-          dp[i][j - 1] + 1, // insertion
-          dp[i - 1][j - 1] + 1 // substitution
-        )
-      }
-    }
-  }
-
-  return dp[m][n]
+  return levenshteinWithin(str1, str2)
 }
 
 /**
@@ -65,7 +77,13 @@ export function arePasswordsSimilar(
   threshold: number = 0.8
 ): boolean {
   if (password1 === password2) return true
-  return calculateSimilarity(password1, password2) >= threshold
+  const maxLength = Math.max(password1.length, password2.length)
+  if (maxLength === 0) return true
+  // similarity >= threshold  <=>  distance <= (1 - threshold) * maxLength
+  const maxDistance = Math.floor((1 - threshold) * maxLength + 1e-9)
+  const distance = levenshteinWithin(password1, password2, maxDistance)
+  if (distance > maxDistance) return false
+  return 1 - distance / maxLength >= threshold
 }
 
 /**

@@ -1,4 +1,7 @@
+import { headers } from "next/headers"
 import prisma from "@/lib/prisma"
+import type { Prisma } from "@/app/generated"
+import { getSetting } from "@/lib/settings-cache"
 
 /**
  * Check if an IP address matches a CIDR range
@@ -36,61 +39,36 @@ export async function isIpWhitelisted(
     return { allowed: true } // Allow if no IP provided (e.g., localhost)
   }
 
-  // Check user-specific whitelist first
-  if (userId) {
-    const userWhitelist = await prisma.ipWhitelist.findMany({
-      where: {
-        userId,
-        isActive: true,
-      },
+  // Entries only matter when whitelisting is enforced, so check the (cached) flag first
+  if ((await getSetting("security.ip_whitelist_enabled", companyId)) !== true) {
+    return { allowed: true }
+  }
+
+  const scopes: Prisma.IpWhitelistWhereInput[] = []
+  if (userId) scopes.push({ userId })
+  // Company-wide entries
+  if (companyId) scopes.push({ companyId, userId: null })
+
+  if (scopes.length > 0) {
+    const entries = await prisma.ipWhitelist.findMany({
+      where: { isActive: true, OR: scopes },
+      select: { ipAddress: true },
     })
 
-    for (const entry of userWhitelist) {
+    for (const entry of entries) {
       if (ipMatchesCidr(ipAddress, entry.ipAddress)) {
         return { allowed: true }
       }
     }
   }
 
-  // Check company-wide whitelist
-  if (companyId) {
-    const companyWhitelist = await prisma.ipWhitelist.findMany({
-      where: {
-        companyId,
-        userId: null, // Company-wide entries
-        isActive: true,
-      },
-    })
-
-    for (const entry of companyWhitelist) {
-      if (ipMatchesCidr(ipAddress, entry.ipAddress)) {
-        return { allowed: true }
-      }
-    }
+  return {
+    allowed: false,
+    reason: "IP address is not whitelisted",
   }
-
-  // Check if IP whitelisting is enforced
-  const ipWhitelistEnabled = await prisma.settings.findUnique({
-    where: { key: "security.ip_whitelist_enabled" },
-  })
-
-  if (ipWhitelistEnabled?.value === true) {
-    // IP whitelisting is enabled and IP is not whitelisted
-    return {
-      allowed: false,
-      reason: "IP address is not whitelisted",
-    }
-  }
-
-  // IP whitelisting is not enforced, allow access
-  return { allowed: true }
 }
 
-/**
- * Get geolocation information for an IP address
- * Uses a free geolocation API (ipapi.co or similar)
- */
-export async function getIpGeolocation(ipAddress: string): Promise<{
+export interface IpGeolocation {
   country?: string
   countryCode?: string
   city?: string
@@ -98,218 +76,210 @@ export async function getIpGeolocation(ipAddress: string): Promise<{
   isp?: string
   isVpn?: boolean
   isProxy?: boolean
-} | null> {
+}
+
+/** Resolves the geolocation of one IP; memoised so a login looks it up at most once. */
+export type GeoResolver = () => Promise<IpGeolocation | null>
+
+const GEO_CACHE_TTL_MS = 60 * 60 * 1000
+const GEO_MISS_TTL_MS = 60 * 1000
+const GEO_CACHE_MAX = 500
+const geoCache = new Map<string, { geo: IpGeolocation | null; expires: number }>()
+
+function isPrivateIp(ip: string): boolean {
+  return (
+    ip === "127.0.0.1" ||
+    ip === "::1" ||
+    ip.startsWith("192.168.") ||
+    ip.startsWith("10.") ||
+    /^172\.(1[6-9]|2\d|3[01])\./.test(ip)
+  )
+}
+
+/**
+ * Country sent by Vercel's edge. Only trusted on Vercel, where the platform
+ * overwrites any client-supplied value; elsewhere a client could forge it.
+ */
+async function getVercelCountryCode(): Promise<string | null> {
+  if (!process.env.VERCEL) return null
   try {
-    // Skip for localhost/private IPs
-    if (
-      ipAddress === "127.0.0.1" ||
-      ipAddress === "::1" ||
-      ipAddress.startsWith("192.168.") ||
-      ipAddress.startsWith("10.") ||
-      ipAddress.startsWith("172.16.") ||
-      ipAddress.startsWith("172.17.") ||
-      ipAddress.startsWith("172.18.") ||
-      ipAddress.startsWith("172.19.") ||
-      ipAddress.startsWith("172.20.") ||
-      ipAddress.startsWith("172.21.") ||
-      ipAddress.startsWith("172.22.") ||
-      ipAddress.startsWith("172.23.") ||
-      ipAddress.startsWith("172.24.") ||
-      ipAddress.startsWith("172.25.") ||
-      ipAddress.startsWith("172.26.") ||
-      ipAddress.startsWith("172.27.") ||
-      ipAddress.startsWith("172.28.") ||
-      ipAddress.startsWith("172.29.") ||
-      ipAddress.startsWith("172.30.") ||
-      ipAddress.startsWith("172.31.")
-    ) {
-      return null
-    }
-
-    // Use ipapi.co free API (no key required for basic usage)
-    // You can also use other services like ip-api.com, ipgeolocation.io, etc.
-    const apiKey = process.env.IP_GEOLOCATION_API_KEY
-    const apiUrl = apiKey
-      ? `https://ipapi.co/${ipAddress}/json/?key=${apiKey}`
-      : `https://ipapi.co/${ipAddress}/json/`
-
-    const response = await fetch(apiUrl, {
-      headers: {
-        "User-Agent": "PassBangla/1.0",
-      },
-    })
-
-    if (!response.ok) {
-      console.warn(`Failed to fetch geolocation for IP ${ipAddress}: ${response.statusText}`)
-      return null
-    }
-
-    const data = await response.json()
-
-    // Check for API errors
-    if (data.error) {
-      console.warn(`Geolocation API error for IP ${ipAddress}: ${data.reason || "Unknown error"}`)
-      return null
-    }
-
-    return {
-      country: data.country_name,
-      countryCode: data.country_code,
-      city: data.city,
-      region: data.region,
-      isp: data.org,
-      // Note: ipapi.co doesn't provide VPN detection in free tier
-      // You may need to use a different service or API key for VPN detection
-      isVpn: data.vpn === true || data.proxy === true,
-      isProxy: data.proxy === true,
-    }
-  } catch (error) {
-    console.error(`Error fetching geolocation for IP ${ipAddress}:`, error)
+    const code = (await headers()).get("x-vercel-ip-country")?.toUpperCase()
+    // XX = unknown, T1 = Tor
+    return code && /^[A-Z]{2}$/.test(code) && code !== "XX" && code !== "T1" ? code : null
+  } catch {
     return null
   }
 }
 
+function countryName(code: string): string | undefined {
+  try {
+    return new Intl.DisplayNames(["en"], { type: "region" }).of(code)
+  } catch {
+    return undefined
+  }
+}
+
 /**
- * Check if an IP address is allowed based on geographic restrictions
+ * Get geolocation information for the IP of the current request.
+ * Uses the Vercel country header when present, otherwise ipapi.co (1.5s timeout,
+ * cached per IP in memory). Returns null when the location cannot be determined.
+ */
+export async function getIpGeolocation(ipAddress: string): Promise<IpGeolocation | null> {
+  // Skip for localhost/private IPs
+  if (!ipAddress || isPrivateIp(ipAddress)) return null
+
+  const vercelCountry = await getVercelCountryCode()
+  if (vercelCountry) {
+    return { countryCode: vercelCountry, country: countryName(vercelCountry) }
+  }
+
+  const cached = geoCache.get(ipAddress)
+  if (cached && cached.expires > Date.now()) return cached.geo
+
+  let geo: IpGeolocation | null = null
+  try {
+    // ipapi.co free API (no key required for basic usage)
+    const apiKey = process.env.IP_GEOLOCATION_API_KEY
+    const apiUrl = apiKey
+      ? `https://ipapi.co/${encodeURIComponent(ipAddress)}/json/?key=${apiKey}`
+      : `https://ipapi.co/${encodeURIComponent(ipAddress)}/json/`
+
+    const response = await fetch(apiUrl, {
+      headers: { "User-Agent": "PassBangla/1.0" },
+      signal: AbortSignal.timeout(1500),
+    })
+
+    if (!response.ok) {
+      console.warn(`Failed to fetch geolocation for IP ${ipAddress}: ${response.statusText}`)
+    } else {
+      const data = await response.json()
+      if (data.error) {
+        console.warn(`Geolocation API error for IP ${ipAddress}: ${data.reason || "Unknown error"}`)
+      } else {
+        geo = {
+          country: data.country_name,
+          countryCode: data.country_code,
+          city: data.city,
+          region: data.region,
+          isp: data.org,
+          // ipapi.co doesn't report VPN/proxy on the free plan
+          isVpn: data.vpn === true || data.proxy === true,
+          isProxy: data.proxy === true,
+        }
+      }
+    }
+  } catch (error) {
+    console.error(`Error fetching geolocation for IP ${ipAddress}:`, error)
+  }
+
+  if (geoCache.size >= GEO_CACHE_MAX) {
+    geoCache.delete(geoCache.keys().next().value as string)
+  }
+  geoCache.set(ipAddress, { geo, expires: Date.now() + (geo ? GEO_CACHE_TTL_MS : GEO_MISS_TTL_MS) })
+  return geo
+}
+
+export function createGeoResolver(ipAddress: string): GeoResolver {
+  let pending: Promise<IpGeolocation | null> | undefined
+  return () => (pending ??= getIpGeolocation(ipAddress))
+}
+
+/**
+ * Check if an IP address is allowed based on geographic restrictions.
+ * The location is only looked up when the user or company has restrictions.
  */
 export async function checkGeographicRestriction(
   ipAddress: string,
   userId?: string,
-  companyId?: string
+  companyId?: string,
+  resolveGeo: GeoResolver = createGeoResolver(ipAddress)
 ): Promise<{ allowed: boolean; reason?: string; countryCode?: string }> {
-  // Get geolocation for the IP
-  const geo = await getIpGeolocation(ipAddress)
+  const scopes: Prisma.GeographicRestrictionWhereInput[] = []
+  if (userId) scopes.push({ userId })
+  // Company-wide entries
+  if (companyId) scopes.push({ companyId, userId: null })
+
+  const rules =
+    scopes.length > 0
+      ? await prisma.geographicRestriction.findMany({
+          where: { isActive: true, OR: scopes },
+          select: { userId: true, countryCode: true, action: true },
+        })
+      : []
+
+  // Without any rule neither a block nor an allow-list can apply
+  if (rules.length === 0) {
+    return { allowed: true }
+  }
+
+  const geo = await resolveGeo()
 
   if (!geo || !geo.countryCode) {
     // If we can't determine location, allow by default (fail open)
     return { allowed: true }
   }
 
-  // Check user-specific restrictions first
-  if (userId) {
-    const userRestrictions = await prisma.geographicRestriction.findMany({
-      where: {
-        userId,
-        isActive: true,
-      },
-    })
+  const countryCode = geo.countryCode
+  const where = geo.country || countryCode
+  const userRules = rules.filter((r) => r.userId !== null)
+  const companyRules = rules.filter((r) => r.userId === null)
 
-    for (const restriction of userRestrictions) {
-      if (restriction.countryCode === geo.countryCode) {
-        if (restriction.action === "BLOCK") {
-          return {
-            allowed: false,
-            reason: `Access from ${geo.country || geo.countryCode} is blocked`,
-            countryCode: geo.countryCode,
-          }
-        }
-        // If action is ALLOW and country matches, allow access
-        if (restriction.action === "ALLOW") {
-          return { allowed: true, countryCode: geo.countryCode }
-        }
-      }
+  // User-specific restrictions first, then company-wide
+  for (const restriction of [...userRules, ...companyRules]) {
+    if (restriction.countryCode !== countryCode) continue
+    if (restriction.action === "BLOCK") {
+      return { allowed: false, reason: `Access from ${where} is blocked`, countryCode }
+    }
+    // If action is ALLOW and country matches, allow access
+    if (restriction.action === "ALLOW") {
+      return { allowed: true, countryCode }
     }
   }
 
-  // Check company-wide restrictions
-  if (companyId) {
-    const companyRestrictions = await prisma.geographicRestriction.findMany({
-      where: {
-        companyId,
-        userId: null, // Company-wide entries
-        isActive: true,
-      },
-    })
-
-    for (const restriction of companyRestrictions) {
-      if (restriction.countryCode === geo.countryCode) {
-        if (restriction.action === "BLOCK") {
-          return {
-            allowed: false,
-            reason: `Access from ${geo.country || geo.countryCode} is blocked`,
-            countryCode: geo.countryCode,
-          }
-        }
-        // If action is ALLOW and country matches, allow access
-        if (restriction.action === "ALLOW") {
-          return { allowed: true, countryCode: geo.countryCode }
-        }
-      }
+  // If restrictions are enforced and there are ALLOW rules, only listed countries get in
+  if ((await getSetting("security.geographic_restriction_enabled", companyId)) === true) {
+    const allowRules = rules.filter((r) => r.action === "ALLOW")
+    if (allowRules.length > 0 && !allowRules.some((rule) => rule.countryCode === countryCode)) {
+      return { allowed: false, reason: `Access from ${where} is not allowed`, countryCode }
     }
   }
 
-  // Check if geographic restrictions are enforced
-  const geoRestrictionEnabled = await prisma.settings.findUnique({
-    where: { key: "security.geographic_restriction_enabled" },
-  })
-
-  if (geoRestrictionEnabled?.value === true) {
-    // If restrictions are enabled and we have ALLOW rules, check if country is in allow list
-    const allowRules = await prisma.geographicRestriction.findMany({
-      where: {
-        OR: [{ userId }, { companyId, userId: null }],
-        action: "ALLOW",
-        isActive: true,
-      },
-    })
-
-    if (allowRules.length > 0) {
-      // If there are ALLOW rules, only allow if country is in the list
-      const isAllowed = allowRules.some((rule) => rule.countryCode === geo.countryCode)
-      if (!isAllowed) {
-        return {
-          allowed: false,
-          reason: `Access from ${geo.country || geo.countryCode} is not allowed`,
-          countryCode: geo.countryCode,
-        }
-      }
-    }
-  }
-
-  return { allowed: true, countryCode: geo.countryCode }
+  return { allowed: true, countryCode }
 }
 
 /**
- * Check for suspicious location based on user's login history
+ * Check for suspicious location based on the countries stored with the user's
+ * previous successful logins. Older login rows without a stored country are skipped.
  */
 export async function checkSuspiciousLocation(
   ipAddress: string,
-  userId: string
+  userId: string,
+  resolveGeo: GeoResolver = createGeoResolver(ipAddress)
 ): Promise<{ suspicious: boolean; reason?: string; geo?: unknown }> {
-  // Get geolocation for current IP
-  const currentGeo = await getIpGeolocation(ipAddress)
+  const currentGeo = await resolveGeo()
 
   if (!currentGeo || !currentGeo.countryCode) {
     return { suspicious: false }
   }
 
-  // Get user's recent login history (last 10 logins)
+  // Recent login history (last 10 logins in 90 days)
   const recentLogins = await prisma.auditLog.findMany({
     where: {
       userId,
       action: "LOGIN_SUCCESS",
-      ipAddress: { not: null },
       createdAt: {
-        gte: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000), // Last 90 days
+        gte: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
       },
     },
     orderBy: { createdAt: "desc" },
     take: 10,
-    select: {
-      ipAddress: true,
-      createdAt: true,
-    },
+    select: { details: true },
   })
 
-  // Get unique countries from recent logins
   const recentCountries = new Set<string>()
   for (const login of recentLogins) {
-    if (login.ipAddress) {
-      const geo = await getIpGeolocation(login.ipAddress)
-      if (geo?.countryCode) {
-        recentCountries.add(geo.countryCode)
-      }
-    }
+    const code = (login.details as { countryCode?: unknown } | null)?.countryCode
+    if (typeof code === "string" && code) recentCountries.add(code)
   }
 
   // If user has never logged in from this country before, it's suspicious

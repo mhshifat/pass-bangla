@@ -1,5 +1,9 @@
 import { decryptPassword } from "@/lib/crypto"
 import { decryptFromStorage } from "@/lib/server-crypto-migration"
+const MAX_EXPORT_ROWS = 5000
+const MAX_BULK_IDS = 500
+const IMPORT_CHUNK_SIZE = 200
+import { loadDecryptedVault, groupByIdenticalSecret, groupBySimilarSecret } from "./vault-scan"
 import prisma from "@/lib/prisma"
 import { createTRPCRouter, protectedProcedure, baseProcedure } from "@/trpc/init"
 import z from "zod"
@@ -9,6 +13,44 @@ import {
   // checkPasswordHistory,
 } from "@/lib/password-policy"
 import { Prisma } from "@/app/generated"
+import { randomUUID } from "crypto"
+
+/** One query for the whole id set; any existing password the caller does not own rejects the request. */
+async function resolveOwnedPasswords(
+  passwordIds: string[],
+  userId: string,
+  verb: string
+): Promise<Array<{ id: string }>> {
+  const rows = await prisma.password.findMany({
+    where: { id: { in: [...new Set(passwordIds)] } },
+    select: { id: true, ownerId: true },
+  })
+  const unauthorized = rows.filter((p) => p.ownerId !== userId)
+  if (unauthorized.length > 0) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: `You do not have permission to ${verb} ${unauthorized.length} password(s)`,
+    })
+  }
+  return rows.map((p) => ({ id: p.id }))
+}
+
+/** One summary audit entry per bulk action. */
+async function bulkAudit(
+  ctx: { userId: string; companyId: string | null },
+  action: string,
+  ids: string[],
+  details: Record<string, unknown>
+) {
+  const { createAuditLog } = await import("@/lib/audit-log")
+  await createAuditLog({
+    action,
+    resource: "Password",
+    details: { ...details, passwordIds: ids.slice(0, 100), total: ids.length },
+    userId: ctx.userId,
+    companyId: ctx.companyId,
+  })
+}
 
 export const passwordsRouter = createTRPCRouter({
   list: protectedProcedure("password.view")
@@ -453,10 +495,30 @@ export const passwordsRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       // Get user's companyId for policy validation
-      const user = await prisma.user.findUnique({
-        where: { id: ctx.userId },
-        select: { companyId: true },
-      })
+      const user = { companyId: ctx.companyId }
+
+      // Tags and folder must belong to the caller's company; validate before writing anything
+      const companyScope = ctx.companyId ?? ""
+      const [tenantTags, folder] = await Promise.all([
+        input.tagIds && input.tagIds.length > 0
+          ? prisma.tag.findMany({
+              where: { id: { in: input.tagIds }, companyId: companyScope },
+              select: { id: true },
+            })
+          : Promise.resolve(null),
+        input.folderId
+          ? prisma.folder.findFirst({
+              where: { id: input.folderId, companyId: companyScope },
+              select: { id: true },
+            })
+          : Promise.resolve(null),
+      ])
+      if (input.folderId && !folder) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Folder not found" })
+      }
+      if (input.tagIds && input.tagIds.length > 0 && tenantTags?.length !== new Set(input.tagIds).size) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "One or more tags not found" })
+      }
 
       // Only enforce password policy for manually created passwords (web app).
       // Extension-captured credentials from external sites are stored as-is.
@@ -524,20 +586,6 @@ export const passwordsRouter = createTRPCRouter({
 
       // Assign tags if provided
       if (input.tagIds && input.tagIds.length > 0) {
-        // Verify tags exist
-        const tags = await prisma.tag.findMany({
-          where: {
-            id: { in: input.tagIds },
-          },
-        })
-
-        if (tags.length !== input.tagIds.length) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "One or more tags not found",
-          })
-        }
-
         // Create password-tag relationships
         await prisma.passwordTag.createMany({
           data: input.tagIds.map((tagId) => ({
@@ -548,35 +596,37 @@ export const passwordsRouter = createTRPCRouter({
         })
       }
 
-      // Save password history (initial version)
+      // Save password history (initial version) and the audit log together —
+      // they are independent writes, so there is no reason to run them one after the other
       const { savePasswordHistory } = await import("@/lib/password-history")
-      await savePasswordHistory(
-        password.id,
-        {
-          name: input.name,
-          username: input.username,
-          password: encryptedPassword,
-          url: input.url || null,
-          notes: input.notes || null,
-          folderId: input.folderId || null,
-          strength,
-          hasTotp: !!input.totpSecret,
-          totpSecret: encryptedTotpSecret,
-          expiresAt: null,
-        },
-        ctx.userId,
-        "CREATE"
-      )
-
-      // Create audit log
       const { createAuditLog } = await import("@/lib/audit-log")
-      await createAuditLog({
-        action: "PASSWORD_CREATED",
-        resource: "Password",
-        resourceId: password.id,
-        details: { name: password.name, hasTotp: password.hasTotp, tagIds: input.tagIds },
-        userId: ctx.userId,
-      })
+      await Promise.all([
+        savePasswordHistory(
+          password.id,
+          {
+            name: input.name,
+            username: input.username,
+            password: encryptedPassword,
+            url: input.url || null,
+            notes: input.notes || null,
+            folderId: input.folderId || null,
+            strength,
+            hasTotp: !!input.totpSecret,
+            totpSecret: encryptedTotpSecret,
+            expiresAt: null,
+          },
+          ctx.userId,
+          "CREATE"
+        ),
+        createAuditLog({
+          action: "PASSWORD_CREATED",
+          resource: "Password",
+          resourceId: password.id,
+          details: { name: password.name, hasTotp: password.hasTotp, tagIds: input.tagIds },
+          userId: ctx.userId,
+          companyId: ctx.companyId,
+        }),
+      ])
 
       return { password }
     }),
@@ -602,27 +652,50 @@ export const passwordsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      // Check if password exists and user owns it, get current data for history
-      const existingPassword = await prisma.password.findFirst({
-        where: {
-          id: input.id,
-          ownerId: ctx.userId,
-        },
-        select: {
-          id: true,
-          ownerId: true,
-          name: true,
-          username: true,
-          password: true,
-          url: true,
-          notes: true,
-          folderId: true,
-          strength: true,
-          hasTotp: true,
-          totpSecret: true,
-          expiresAt: true,
-        },
-      })
+      const tagIdsArray = input.tagIds
+      const companyScope = ctx.companyId ?? ""
+
+      // Independent lookups run together; ownership is enforced on the password row below
+      const [existingPassword, currentTags, tenantTags, folder] = await Promise.all([
+        prisma.password.findFirst({
+          where: {
+            id: input.id,
+            ownerId: ctx.userId,
+          },
+          select: {
+            id: true,
+            ownerId: true,
+            name: true,
+            username: true,
+            password: true,
+            url: true,
+            notes: true,
+            folderId: true,
+            strength: true,
+            hasTotp: true,
+            totpSecret: true,
+            expiresAt: true,
+          },
+        }),
+        tagIdsArray !== undefined
+          ? prisma.passwordTag.findMany({
+              where: { passwordId: input.id },
+              select: { tagId: true },
+            })
+          : Promise.resolve(null),
+        tagIdsArray !== undefined && tagIdsArray.length > 0
+          ? prisma.tag.findMany({
+              where: { id: { in: tagIdsArray }, companyId: companyScope },
+              select: { id: true },
+            })
+          : Promise.resolve(null),
+        input.folderId
+          ? prisma.folder.findFirst({
+              where: { id: input.folderId, companyId: companyScope },
+              select: { id: true },
+            })
+          : Promise.resolve(null),
+      ])
 
       if (!existingPassword) {
         throw new TRPCError({
@@ -631,37 +704,52 @@ export const passwordsRouter = createTRPCRouter({
         })
       }
 
-      // Save current state to history before updating
-      const { savePasswordHistory } = await import("@/lib/password-history")
-      await savePasswordHistory(
-        input.id,
-        {
-          name: existingPassword.name,
-          username: existingPassword.username,
-          password: existingPassword.password,
-          url: existingPassword.url,
-          notes: existingPassword.notes,
-          folderId: existingPassword.folderId,
-          strength: existingPassword.strength,
-          hasTotp: existingPassword.hasTotp,
-          totpSecret: existingPassword.totpSecret,
-          expiresAt: existingPassword.expiresAt,
-        },
-        ctx.userId,
-        "UPDATE"
-      )
+      if (input.folderId && !folder) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Folder not found",
+        })
+      }
+
+      if (tagIdsArray !== undefined && tagIdsArray.length > 0 && tenantTags?.length !== new Set(tagIdsArray).size) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "One or more tags not found",
+        })
+      }
 
       // AT-REST ENCRYPTION: hardened storage key (master secret + owner id)
-      const { encryptForStorage } = await import("@/lib/server-crypto-migration")
-      const encryptedPassword = encryptForStorage(input.password, ctx.userId)
+      const { encryptForStorage, decryptFromStorage: decryptStored } = await import("@/lib/server-crypto-migration")
 
-      // Encrypt TOTP secret if provided (using same method)
       // Normalize TOTP secret: remove spaces and convert to uppercase (Google format)
-      let encryptedTotpSecret: string | null = null
-      if (input.totpSecret) {
-        const normalizedSecret = input.totpSecret.replace(/\s+/g, "").toUpperCase().trim()
-        encryptedTotpSecret = encryptForStorage(normalizedSecret, ctx.userId)
+      const normalizedTotp = input.totpSecret
+        ? input.totpSecret.replace(/s+/g, "").toUpperCase().trim()
+        : null
+
+      // Only re-encrypt (and keep a history version) when a secret actually changed;
+      // legacy-format ciphertext is upgraded on save.
+      const isUnchanged = (stored: string | null, next: string | null): boolean => {
+        if (stored === null || next === null) return stored === next
+        try {
+          return decryptStored(stored, ctx.userId) === next
+        } catch {
+          return false
+        }
       }
+      const passwordChanged = !isUnchanged(existingPassword.password, input.password)
+      const totpChanged = !isUnchanged(existingPassword.totpSecret, normalizedTotp)
+      const secretChanged = passwordChanged || totpChanged
+
+      const encryptedPassword =
+        passwordChanged || !existingPassword.password.startsWith("v2:")
+          ? encryptForStorage(input.password, ctx.userId)
+          : existingPassword.password
+      const encryptedTotpSecret =
+        normalizedTotp === null
+          ? null
+          : totpChanged || !existingPassword.totpSecret?.startsWith("v2:")
+            ? encryptForStorage(normalizedTotp, ctx.userId)
+            : existingPassword.totpSecret
 
       // Calculate password strength
       let strength: "STRONG" | "MEDIUM" | "WEAK" = "MEDIUM"
@@ -671,87 +759,70 @@ export const passwordsRouter = createTRPCRouter({
         strength = "WEAK"
       }
 
-      // Update password
-      const password = await prisma.password.update({
-        where: { id: input.id },
-        data: {
-          name: input.name,
-          username: input.username,
-          password: encryptedPassword,
-          url: input.url || null,
-          folderId: input.folderId || null,
-          notes: input.notes || null,
-          strength,
-          hasTotp: !!input.totpSecret,
-          totpSecret: encryptedTotpSecret,
-        },
-        select: {
-          id: true,
-          name: true,
-          username: true,
-          url: true,
-          folderId: true,
-          strength: true,
-          hasTotp: true,
-          updatedAt: true,
-        },
-      })
+      const currentTagIds = currentTags?.map((pt) => pt.tagId) ?? []
+      const tagsToAdd = tagIdsArray ? tagIdsArray.filter((tagId) => !currentTagIds.includes(tagId)) : []
+      const tagsToRemove = tagIdsArray ? currentTagIds.filter((tagId) => !tagIdsArray.includes(tagId)) : []
 
-      // Update tags if provided
-      if (input.tagIds !== undefined) {
-        // Get current tags
-        const currentTags = await prisma.passwordTag.findMany({
-          where: { passwordId: input.id },
-          select: { tagId: true },
-        })
-        const currentTagIds = currentTags.map((pt) => pt.tagId)
-
-        // Store tagIds in a variable to help TypeScript understand it's defined
-        const tagIdsArray = input.tagIds
-
-        // Verify new tags exist
-        if (tagIdsArray.length > 0) {
-          const tags = await prisma.tag.findMany({
-            where: {
-              id: { in: tagIdsArray },
-            },
-          })
-
-          if (tags.length !== tagIdsArray.length) {
-            throw new TRPCError({
-              code: "NOT_FOUND",
-              message: "One or more tags not found",
+      const { savePasswordHistory } = await import("@/lib/password-history")
+      const [password] = await Promise.all([
+        prisma.password.update({
+          where: { id: input.id },
+          data: {
+            name: input.name,
+            username: input.username,
+            password: encryptedPassword,
+            url: input.url || null,
+            folderId: input.folderId || null,
+            notes: input.notes || null,
+            strength,
+            hasTotp: !!input.totpSecret,
+            totpSecret: encryptedTotpSecret,
+          },
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            url: true,
+            folderId: true,
+            strength: true,
+            hasTotp: true,
+            updatedAt: true,
+          },
+        }),
+        // History keeps the version being replaced
+        secretChanged
+          ? savePasswordHistory(
+              input.id,
+              {
+                name: existingPassword.name,
+                username: existingPassword.username,
+                password: existingPassword.password,
+                url: existingPassword.url,
+                notes: existingPassword.notes,
+                folderId: existingPassword.folderId,
+                strength: existingPassword.strength,
+                hasTotp: existingPassword.hasTotp,
+                totpSecret: existingPassword.totpSecret,
+                expiresAt: existingPassword.expiresAt,
+              },
+              ctx.userId,
+              "UPDATE"
+            )
+          : Promise.resolve(),
+        tagsToAdd.length > 0
+          ? prisma.passwordTag.createMany({
+              data: tagsToAdd.map((tagId) => ({ passwordId: input.id, tagId })),
+              skipDuplicates: true,
             })
-          }
-        }
+          : Promise.resolve(),
+        tagsToRemove.length > 0
+          ? prisma.passwordTag.deleteMany({
+              where: { passwordId: input.id, tagId: { in: tagsToRemove } },
+            })
+          : Promise.resolve(),
+      ])
 
-        // Find tags to add and remove
-        const tagsToAdd = tagIdsArray.filter((tagId) => !currentTagIds.includes(tagId))
-        const tagsToRemove = currentTagIds.filter((tagId) => !tagIdsArray.includes(tagId))
-
-        // Add new tags
-        if (tagsToAdd.length > 0) {
-          await prisma.passwordTag.createMany({
-            data: tagsToAdd.map((tagId) => ({
-              passwordId: input.id,
-              tagId,
-            })),
-            skipDuplicates: true,
-          })
-        }
-
-        // Remove tags
-        if (tagsToRemove.length > 0) {
-          await prisma.passwordTag.deleteMany({
-            where: {
-              passwordId: input.id,
-              tagId: { in: tagsToRemove },
-            },
-          })
-        }
-      }
-
-      // Create audit log
+      // Create audit log (deferred until after the response)
       const { createAuditLog } = await import("@/lib/audit-log")
       await createAuditLog({
         action: "PASSWORD_UPDATED",
@@ -759,6 +830,7 @@ export const passwordsRouter = createTRPCRouter({
         resourceId: password.id,
         details: { name: password.name, tagIds: input.tagIds },
         userId: ctx.userId,
+        companyId: ctx.companyId,
       })
 
       return { password }
@@ -1289,6 +1361,7 @@ export const passwordsRouter = createTRPCRouter({
           id: input.id,
           ownerId: ctx.userId,
         },
+        select: { id: true, name: true },
       })
 
       if (!existingPassword) {
@@ -1298,7 +1371,13 @@ export const passwordsRouter = createTRPCRouter({
         })
       }
 
-      // Create audit log before deletion
+      // Delete the password (cascade will handle related records)
+      await prisma.password.delete({
+        where: {
+          id: input.id,
+        },
+      })
+
       const { createAuditLog } = await import("@/lib/audit-log")
       await createAuditLog({
         action: "PASSWORD_DELETED",
@@ -1306,13 +1385,7 @@ export const passwordsRouter = createTRPCRouter({
         resourceId: input.id,
         details: { name: existingPassword.name },
         userId: ctx.userId,
-      })
-
-      // Delete the password (cascade will handle related records)
-      await prisma.password.delete({
-        where: {
-          id: input.id,
-        },
+        companyId: ctx.companyId,
       })
 
       return { success: true }
@@ -1354,101 +1427,55 @@ export const passwordsRouter = createTRPCRouter({
         ],
       }
 
-      // Get all accessible passwords for counting, including share expiration info
-      // We need to get all shares to check expiration, so we'll fetch them separately
-      const allPasswords = await prisma.password.findMany({
-        where,
-        select: {
-          id: true,
-          strength: true,
-          expiresAt: true, // Password's own expiration
-          isFavorite: true,
-          createdAt: true,
-          ownerId: true,
-        },
-      })
-
-      // Get all shares for these passwords to check expiration
-      const passwordIds = allPasswords.map((p) => p.id)
-      const allShares = await prisma.passwordShare.findMany({
-        where: {
-          passwordId: { in: passwordIds },
-          OR: [
-            // Shares for teams the user is in
-            ...(teamIds.length > 0 ? [{ teamId: { in: teamIds } }] : []),
-            // All shares for passwords the user owns (to check all share expirations)
-            {
-              password: {
-                ownerId: ctx.userId,
-              },
-            },
-          ],
-        },
-        select: {
-          passwordId: true,
-          expiresAt: true,
-          teamId: true,
-        },
-      })
-
-      // Map shares to passwords
-      const sharesByPasswordId = new Map<string, typeof allShares>()
-      for (const share of allShares) {
-        if (!sharesByPasswordId.has(share.passwordId)) {
-          sharesByPasswordId.set(share.passwordId, [])
-        }
-        sharesByPasswordId.get(share.passwordId)!.push(share)
-      }
-
-      const total = allPasswords.length
-
-      // Count by strength
-      const strongCount = allPasswords.filter((p) => p.strength === "STRONG").length
-      const weakCount = allPasswords.filter((p) => p.strength === "WEAK").length
-      const mediumCount = allPasswords.filter((p) => p.strength === "MEDIUM").length
-
-      // Count expiring soon (within 7 days)
-      // Check both password expiration and share expiration
       const now = new Date()
       const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
-      const expiringSoon = allPasswords.filter((p) => {
-        // Check password's own expiration (for passwords the user owns)
-        if (p.ownerId === ctx.userId && p.expiresAt && p.expiresAt > now && p.expiresAt <= sevenDaysFromNow) {
-          return true
-        }
-        
-        // Check share expiration
-        // Get shares for this password that the user has access to
-        const shares = sharesByPasswordId.get(p.id) || []
-        
-        // Check if any share expires within 7 days
-        // For owned passwords: check all shares
-        // For shared passwords: check shares for teams the user is in
-        return shares.some((share) => {
-          if (!share.expiresAt) return false
-          
-          const expiresAt = new Date(share.expiresAt)
-          const isExpiringSoon = expiresAt > now && expiresAt <= sevenDaysFromNow
-          
-          if (!isExpiringSoon) return false
-          
-          // If user owns the password, include all shares
-          if (p.ownerId === ctx.userId) return true
-          
-          // If user doesn't own it, only include shares for teams they're in
-          return share.teamId !== null && teamIds.includes(share.teamId)
-        })
-      }).length
+      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+      const expiringWindow = { gt: now, lte: sevenDaysFromNow }
+
+      // Bounded aggregates over the same accessible set, run together
+      const [byStrength, expiringSoon, recentCount, favoritesCount] = await Promise.all([
+        prisma.password.groupBy({
+          by: ["strength"],
+          where,
+          _count: { _all: true },
+        }),
+        // Own expiry or a share expiring: all shares for owned passwords,
+        // only the user's teams' shares for passwords shared with them
+        prisma.password.count({
+          where: {
+            AND: [
+              where,
+              {
+                OR: [
+                  { ownerId: ctx.userId, expiresAt: expiringWindow },
+                  { ownerId: ctx.userId, sharedWith: { some: { expiresAt: expiringWindow } } },
+                  ...(teamIds.length > 0
+                    ? [
+                        {
+                          ownerId: { not: ctx.userId },
+                          sharedWith: { some: { teamId: { in: teamIds }, expiresAt: expiringWindow } },
+                        },
+                      ]
+                    : []),
+                ],
+              },
+            ],
+          },
+        }),
+        prisma.password.count({ where: { AND: [where, { createdAt: { gte: thirtyDaysAgo } }] } }),
+        // Favorites only count for the owner
+        prisma.password.count({ where: { ownerId: ctx.userId, isFavorite: true } }),
+      ])
+
+      const countFor = (strength: "STRONG" | "MEDIUM" | "WEAK") =>
+        byStrength.find((g) => g.strength === strength)?._count._all ?? 0
+      const strongCount = countFor("STRONG")
+      const mediumCount = countFor("MEDIUM")
+      const weakCount = countFor("WEAK")
+      const total = byStrength.reduce((sum, g) => sum + g._count._all, 0)
 
       // Calculate percentage of strong passwords
       const strongPercentage = total > 0 ? Math.round((strongCount / total) * 100) : 0
-
-      // Count passwords created in the last 30 days
-      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
-      const recentCount = allPasswords.filter((p) => p.createdAt >= thirtyDaysAgo).length
-
-      // Count favorite passwords (only owned by user)
-      const favoritesCount = allPasswords.filter((p) => p.isFavorite && p.ownerId === ctx.userId).length
 
       return {
         total,
@@ -1496,38 +1523,51 @@ export const passwordsRouter = createTRPCRouter({
             folderId: z.string().optional().nullable(),
             totpSecret: z.string().optional().nullable(),
           })
-        ),
+        ).min(1).max(2000),
         skipInvalid: z.boolean().default(true),
       })
     )
     .mutation(async ({ input, ctx }) => {
+      // Imported third-party passwords are stored as-is: company password policy is not enforced here
       const { createAuditLog } = await import("@/lib/audit-log")
+      const { encryptForStorage } = await import("@/lib/server-crypto-migration")
       const created: string[] = []
       const errors: string[] = []
 
+      // Folders must belong to the caller's company; checked once for the whole file
+      const folderIds = [...new Set(input.passwords.map((p) => p.folderId).filter((f): f is string => !!f))]
+      const validFolders = new Set(
+        folderIds.length > 0
+          ? (
+              await prisma.folder.findMany({
+                where: { id: { in: folderIds }, companyId: ctx.companyId ?? "" },
+                select: { id: true },
+              })
+            ).map((f) => f.id)
+          : []
+      )
+
+      const passwordRows: Prisma.PasswordCreateManyInput[] = []
+      const historyRows: Prisma.PasswordHistoryCreateManyInput[] = []
+
       for (let i = 0; i < input.passwords.length; i++) {
-        const item = input.passwords[i]
+        const item = input.passwords[i]!
 
         try {
-          // Validate required fields
           if (!item.name || !item.username || !item.password) {
             if (!input.skipInvalid) {
               errors.push(`Row ${i + 1}: Missing required fields`)
             }
             continue
           }
-
-          // AT-REST ENCRYPTION: hardened storage key (master secret + owner id)
-          const { encryptForStorage } = await import("@/lib/server-crypto-migration")
-          const encryptedPassword = encryptForStorage(item.password, ctx.userId)
-
-          // Encrypt TOTP secret if provided (using same method)
-          let encryptedTotpSecret: string | null = null
-          if (item.totpSecret) {
-            encryptedTotpSecret = encryptForStorage(item.totpSecret, ctx.userId)
+          if (item.folderId && !validFolders.has(item.folderId)) {
+            errors.push(`Row ${i + 1}: Folder not found`)
+            continue
           }
 
-          // Calculate password strength
+          const encryptedPassword = encryptForStorage(item.password, ctx.userId)
+          const encryptedTotpSecret = item.totpSecret ? encryptForStorage(item.totpSecret, ctx.userId) : null
+
           let strength: "STRONG" | "MEDIUM" | "WEAK" = "MEDIUM"
           if (item.password.length >= 16 && /[A-Z]/.test(item.password) && /[a-z]/.test(item.password) && /[0-9]/.test(item.password) && /[^A-Za-z0-9]/.test(item.password)) {
             strength = "STRONG"
@@ -1535,40 +1575,62 @@ export const passwordsRouter = createTRPCRouter({
             strength = "WEAK"
           }
 
-          // Create password
-          const password = await prisma.password.create({
-            data: {
-              name: item.name,
-              username: item.username,
-              password: encryptedPassword,
-              url: item.url || null,
-              folderId: item.folderId || null,
-              notes: item.notes || null,
-              strength,
-              hasTotp: !!item.totpSecret,
-              totpSecret: encryptedTotpSecret,
-              ownerId: ctx.userId,
-              companyId: ctx.companyId || null,
-            },
-            select: {
-              id: true,
-              name: true,
-            },
+          const id = randomUUID()
+          passwordRows.push({
+            id,
+            name: item.name,
+            username: item.username,
+            password: encryptedPassword,
+            url: item.url || null,
+            folderId: item.folderId || null,
+            notes: item.notes || null,
+            strength,
+            hasTotp: !!item.totpSecret,
+            totpSecret: encryptedTotpSecret,
+            ownerId: ctx.userId,
+            companyId: ctx.companyId || null,
           })
-
-          created.push(password.id)
-
-          // Create audit log
-          await createAuditLog({
-            action: "PASSWORD_CREATED",
-            resource: "Password",
-            resourceId: password.id,
-            details: { name: password.name, imported: true },
-            userId: ctx.userId,
+          historyRows.push({
+            passwordId: id,
+            name: item.name,
+            username: item.username,
+            password: encryptedPassword,
+            url: item.url || null,
+            notes: item.notes || null,
+            folderId: item.folderId || null,
+            strength,
+            hasTotp: !!item.totpSecret,
+            totpSecret: encryptedTotpSecret,
+            expiresAt: null,
+            changedBy: ctx.userId,
+            changeType: "CREATE",
           })
         } catch (error) {
           errors.push(`Row ${i + 1}: ${error instanceof Error ? error.message : "Unknown error"}`)
         }
+      }
+
+      for (let start = 0; start < passwordRows.length; start += IMPORT_CHUNK_SIZE) {
+        const chunk = passwordRows.slice(start, start + IMPORT_CHUNK_SIZE)
+        try {
+          await prisma.password.createMany({ data: chunk })
+          await prisma.passwordHistory.createMany({
+            data: historyRows.slice(start, start + IMPORT_CHUNK_SIZE),
+          })
+          for (const row of chunk) created.push(row.id as string)
+        } catch (error) {
+          errors.push(`Rows ${start + 1}-${start + chunk.length}: ${error instanceof Error ? error.message : "Unknown error"}`)
+        }
+      }
+
+      if (created.length > 0) {
+        await createAuditLog({
+          action: "PASSWORD_IMPORTED",
+          resource: "Password",
+          details: { imported: true, count: created.length, errors: errors.length },
+          userId: ctx.userId,
+          companyId: ctx.companyId,
+        })
       }
 
       return {
@@ -1644,28 +1706,36 @@ export const passwordsRouter = createTRPCRouter({
       }
 
       // Fetch passwords with related data (include totpSecret for export)
-      const passwords = await prisma.password.findMany({
+      const rows = await prisma.password.findMany({
         where: passwordWhere,
-        include: {
-          folder: {
-            select: {
-              name: true,
-            },
-          },
-          tags: {
-            include: {
-              tag: {
-                select: {
-                  name: true,
-                },
-              },
-            },
-          },
+        select: {
+          name: true,
+          username: true,
+          password: true,
+          ownerId: true,
+          url: true,
+          notes: true,
+          strength: true,
+          hasTotp: true,
+          totpSecret: true,
+          expiresAt: true,
+          createdAt: true,
+          updatedAt: true,
+          folder: { select: { name: true } },
+          tags: { select: { tag: { select: { name: true } } } },
         },
         orderBy: {
           createdAt: "desc",
         },
+        take: MAX_EXPORT_ROWS + 1,
       })
+      if (rows.length > MAX_EXPORT_ROWS) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Too many passwords to export at once (limit ${MAX_EXPORT_ROWS}). Narrow the export with a folder, tag or date filter.`,
+        })
+      }
+      const passwords = rows
 
       // Decrypt passwords and format for export
       // Use user-specific key decryption (passwords are encrypted per-user)
@@ -1809,6 +1879,7 @@ export const passwordsRouter = createTRPCRouter({
           dateTo: input.dateTo,
         },
         userId: ctx.userId,
+        companyId: ctx.companyId,
       })
 
       return {
@@ -1825,30 +1896,21 @@ export const passwordsRouter = createTRPCRouter({
       // filter option lists never surface another company's folder/tag names.
       const companyId = ctx.companyId
 
-      const folders = await prisma.folder.findMany({
-        where: companyId ? { companyId } : undefined,
-        select: {
-          id: true,
-          name: true,
-        },
-        orderBy: {
-          name: "asc",
-        },
-      })
+      // A caller without a company matches nothing rather than every tenant
+      const scope = companyId ?? ""
 
-      // Get tags (if tags are used)
-      const tags = await prisma.tag.findMany({
-        where: companyId ? { companyId } : undefined,
-        select: {
-          id: true,
-          name: true,
-          color: true,
-          icon: true,
-        },
-        orderBy: {
-          name: "asc",
-        },
-      })
+      const [folders, tags] = await Promise.all([
+        prisma.folder.findMany({
+          where: { companyId: scope },
+          select: { id: true, name: true },
+          orderBy: { name: "asc" },
+        }),
+        prisma.tag.findMany({
+          where: { companyId: scope },
+          select: { id: true, name: true, color: true, icon: true },
+          orderBy: { name: "asc" },
+        }),
+      ])
 
       return {
         folders,
@@ -1859,50 +1921,20 @@ export const passwordsRouter = createTRPCRouter({
   bulkDelete: protectedProcedure("password.delete")
     .input(
       z.object({
-        passwordIds: z.array(z.string()).min(1, "At least one password ID is required"),
+        passwordIds: z.array(z.string()).min(1, "At least one password ID is required").max(MAX_BULK_IDS),
       })
     )
     .mutation(async ({ input, ctx }) => {
-      // Verify user owns all passwords or has permission to delete shared passwords
-      const passwords = await prisma.password.findMany({
-        where: {
-          id: { in: input.passwordIds },
-        },
-        select: {
-          id: true,
-          ownerId: true,
-          name: true,
-        },
-      })
+      const owned = await resolveOwnedPasswords(input.passwordIds, ctx.userId, "delete")
 
-      // Check ownership - user can only delete their own passwords
-      const unauthorized = passwords.filter((p) => p.ownerId !== ctx.userId)
-      if (unauthorized.length > 0) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: `You don't have permission to delete ${unauthorized.length} password(s)`,
-        })
-      }
-
-      // Delete passwords
-      const { createAuditLog } = await import("@/lib/audit-log")
       const deleted = await prisma.password.deleteMany({
         where: {
-          id: { in: input.passwordIds },
+          id: { in: owned.map((p) => p.id) },
           ownerId: ctx.userId, // Double-check ownership
         },
       })
 
-      // Create audit log for each deleted password
-      for (const password of passwords) {
-        await createAuditLog({
-          action: "PASSWORD_DELETED",
-          resource: "Password",
-          resourceId: password.id,
-          details: { name: password.name, bulk: true },
-          userId: ctx.userId,
-        })
-      }
+      await bulkAudit(ctx, "PASSWORD_DELETED", owned.map((p) => p.id), { bulk: true, count: deleted.count })
 
       return {
         success: true,
@@ -1913,48 +1945,30 @@ export const passwordsRouter = createTRPCRouter({
   bulkMoveToFolder: protectedProcedure("password.edit")
     .input(
       z.object({
-        passwordIds: z.array(z.string()).min(1, "At least one password ID is required"),
+        passwordIds: z.array(z.string()).min(1, "At least one password ID is required").max(MAX_BULK_IDS),
         folderId: z.string().nullable(),
       })
     )
     .mutation(async ({ input, ctx }) => {
-      // Verify user owns all passwords
-      const passwords = await prisma.password.findMany({
-        where: {
-          id: { in: input.passwordIds },
-        },
-        select: {
-          id: true,
-          ownerId: true,
-          name: true,
-        },
-      })
-
-      const unauthorized = passwords.filter((p) => p.ownerId !== ctx.userId)
-      if (unauthorized.length > 0) {
+      const [owned, folder] = await Promise.all([
+        resolveOwnedPasswords(input.passwordIds, ctx.userId, "move"),
+        input.folderId
+          ? prisma.folder.findFirst({
+              where: { id: input.folderId, companyId: ctx.companyId ?? "" },
+              select: { id: true },
+            })
+          : Promise.resolve(null),
+      ])
+      if (input.folderId && !folder) {
         throw new TRPCError({
-          code: "FORBIDDEN",
-          message: `You don't have permission to move ${unauthorized.length} password(s)`,
+          code: "NOT_FOUND",
+          message: "Folder not found",
         })
       }
 
-      // Verify folder exists if folderId is provided
-      if (input.folderId) {
-        const folder = await prisma.folder.findUnique({
-          where: { id: input.folderId },
-        })
-        if (!folder) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Folder not found",
-          })
-        }
-      }
-
-      // Update passwords
       const updated = await prisma.password.updateMany({
         where: {
-          id: { in: input.passwordIds },
+          id: { in: owned.map((p) => p.id) },
           ownerId: ctx.userId,
         },
         data: {
@@ -1962,17 +1976,11 @@ export const passwordsRouter = createTRPCRouter({
         },
       })
 
-      // Create audit log
-      const { createAuditLog } = await import("@/lib/audit-log")
-      for (const password of passwords) {
-        await createAuditLog({
-          action: "PASSWORD_UPDATED",
-          resource: "Password",
-          resourceId: password.id,
-          details: { name: password.name, folderId: input.folderId, bulk: true },
-          userId: ctx.userId,
-        })
-      }
+      await bulkAudit(ctx, "PASSWORD_UPDATED", owned.map((p) => p.id), {
+        folderId: input.folderId,
+        bulk: true,
+        count: updated.count,
+      })
 
       return {
         success: true,
@@ -1983,110 +1991,54 @@ export const passwordsRouter = createTRPCRouter({
   bulkAssignTags: protectedProcedure("password.edit")
     .input(
       z.object({
-        passwordIds: z.array(z.string()).min(1, "At least one password ID is required"),
-        tagIds: z.array(z.string()).min(1, "At least one tag ID is required"),
+        passwordIds: z.array(z.string()).min(1, "At least one password ID is required").max(MAX_BULK_IDS),
+        tagIds: z.array(z.string()).min(1, "At least one tag ID is required").max(100),
       })
     )
     .mutation(async ({ input, ctx }) => {
-      // Verify user owns all passwords
-      const passwords = await prisma.password.findMany({
-        where: {
-          id: { in: input.passwordIds },
-        },
-        select: {
-          id: true,
-          ownerId: true,
-        },
-      })
+      const tagIds = [...new Set(input.tagIds)]
+      const [owned, tags] = await Promise.all([
+        resolveOwnedPasswords(input.passwordIds, ctx.userId, "modify"),
+        prisma.tag.findMany({
+          where: { id: { in: tagIds }, companyId: ctx.companyId ?? "" },
+          select: { id: true },
+        }),
+      ])
 
-      const unauthorized = passwords.filter((p) => p.ownerId !== ctx.userId)
-      if (unauthorized.length > 0) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: `You don't have permission to modify ${unauthorized.length} password(s)`,
-        })
-      }
-
-      // Verify tags exist
-      const tags = await prisma.tag.findMany({
-        where: {
-          id: { in: input.tagIds },
-        },
-      })
-
-      if (tags.length !== input.tagIds.length) {
+      if (tags.length !== tagIds.length) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "One or more tags not found",
         })
       }
 
-      // Assign tags to all passwords (using upsert to avoid duplicates)
-      const { createAuditLog } = await import("@/lib/audit-log")
-      
-      for (const passwordId of input.passwordIds) {
-        for (const tagId of input.tagIds) {
-          await prisma.passwordTag.upsert({
-            where: {
-              passwordId_tagId: {
-                passwordId,
-                tagId,
-              },
-            },
-            update: {},
-            create: {
-              passwordId,
-              tagId,
-            },
-          })
-        }
+      const ids = owned.map((p) => p.id)
+      await prisma.passwordTag.createMany({
+        data: ids.flatMap((passwordId) => tagIds.map((tagId) => ({ passwordId, tagId }))),
+        skipDuplicates: true,
+      })
 
-        // Create audit log
-        await createAuditLog({
-          action: "PASSWORD_UPDATED",
-          resource: "Password",
-          resourceId: passwordId,
-          details: { tagIds: input.tagIds, bulk: true },
-          userId: ctx.userId,
-        })
-      }
+      await bulkAudit(ctx, "PASSWORD_UPDATED", ids, { tagIds, bulk: true })
 
       return {
         success: true,
-        updated: input.passwordIds.length,
+        updated: ids.length,
       }
     }),
 
   bulkRemoveTags: protectedProcedure("password.edit")
     .input(
       z.object({
-        passwordIds: z.array(z.string()).min(1, "At least one password ID is required"),
-        tagIds: z.array(z.string()).optional(),
+        passwordIds: z.array(z.string()).min(1, "At least one password ID is required").max(MAX_BULK_IDS),
+        tagIds: z.array(z.string()).max(100).optional(),
       })
     )
     .mutation(async ({ input, ctx }) => {
-      // Verify user owns all passwords
-      const passwords = await prisma.password.findMany({
-        where: {
-          id: { in: input.passwordIds },
-        },
-        select: {
-          id: true,
-          ownerId: true,
-        },
-      })
+      const owned = await resolveOwnedPasswords(input.passwordIds, ctx.userId, "modify")
+      const ids = owned.map((p) => p.id)
 
-      const unauthorized = passwords.filter((p) => p.ownerId !== ctx.userId)
-      if (unauthorized.length > 0) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: `You don't have permission to modify ${unauthorized.length} password(s)`,
-        })
-      }
-
-      // Remove tags
       const where: Prisma.PasswordTagWhereInput = {
-        passwordId: { in: input.passwordIds },
+        passwordId: { in: ids },
       }
 
       if (input.tagIds && input.tagIds.length > 0) {
@@ -2097,17 +2049,7 @@ export const passwordsRouter = createTRPCRouter({
         where,
       })
 
-      // Create audit log
-      const { createAuditLog } = await import("@/lib/audit-log")
-      for (const password of passwords) {
-        await createAuditLog({
-          action: "PASSWORD_UPDATED",
-          resource: "Password",
-          resourceId: password.id,
-          details: { removedTagIds: input.tagIds, bulk: true },
-          userId: ctx.userId,
-        })
-      }
+      await bulkAudit(ctx, "PASSWORD_UPDATED", ids, { removedTagIds: input.tagIds, bulk: true })
 
       return {
         success: true,
@@ -2118,36 +2060,19 @@ export const passwordsRouter = createTRPCRouter({
   bulkShare: protectedProcedure("password.edit")
     .input(
       z.object({
-        passwordIds: z.array(z.string()).min(1, "At least one password ID is required"),
+        passwordIds: z.array(z.string()).min(1, "At least one password ID is required").max(MAX_BULK_IDS),
         teamId: z.string(),
         expiresAt: z.string().optional(),
       })
     )
     .mutation(async ({ input, ctx }) => {
-      // Verify user owns all passwords
-      const passwords = await prisma.password.findMany({
-        where: {
-          id: { in: input.passwordIds },
-        },
-        select: {
-          id: true,
-          ownerId: true,
-          name: true,
-        },
-      })
-
-      const unauthorized = passwords.filter((p) => p.ownerId !== ctx.userId)
-      if (unauthorized.length > 0) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: `You don't have permission to share ${unauthorized.length} password(s)`,
-        })
-      }
-
-      // Verify team exists
-      const team = await prisma.team.findUnique({
-        where: { id: input.teamId },
-      })
+      const [owned, team] = await Promise.all([
+        resolveOwnedPasswords(input.passwordIds, ctx.userId, "share"),
+        prisma.team.findFirst({
+          where: { id: input.teamId, companyId: ctx.companyId },
+          select: { id: true },
+        }),
+      ])
 
       if (!team) {
         throw new TRPCError({
@@ -2156,75 +2081,42 @@ export const passwordsRouter = createTRPCRouter({
         })
       }
 
-      // Share passwords with team
       const expiresAt = input.expiresAt ? new Date(input.expiresAt) : null
-      const { createAuditLog } = await import("@/lib/audit-log")
+      const ids = owned.map((p) => p.id)
 
-      for (const passwordId of input.passwordIds) {
-        // Check if already shared with this team
-        const existingShare = await prisma.passwordShare.findFirst({
-          where: {
-            passwordId,
-            teamId: input.teamId,
-          },
+      const existing = await prisma.passwordShare.findMany({
+        where: { passwordId: { in: ids }, teamId: input.teamId },
+        select: { passwordId: true },
+      })
+      const alreadyShared = new Set(existing.map((s) => s.passwordId))
+      const toShare = ids.filter((id) => !alreadyShared.has(id))
+
+      if (toShare.length > 0) {
+        await prisma.passwordShare.createMany({
+          data: toShare.map((passwordId) => ({ passwordId, teamId: input.teamId, expiresAt })),
         })
-
-        if (!existingShare) {
-          await prisma.passwordShare.create({
-            data: {
-              passwordId,
-              teamId: input.teamId,
-              expiresAt,
-            },
-          })
-
-          // Create audit log
-          await createAuditLog({
-            action: "PASSWORD_SHARED",
-            resource: "Password",
-            resourceId: passwordId,
-            details: { teamId: input.teamId, expiresAt, bulk: true },
-            userId: ctx.userId,
-          })
-        }
+        await bulkAudit(ctx, "PASSWORD_SHARED", toShare, { teamId: input.teamId, expiresAt, bulk: true })
       }
 
       return {
         success: true,
-        shared: input.passwordIds.length,
+        shared: ids.length,
       }
     }),
 
   bulkUnshare: protectedProcedure("password.edit")
     .input(
       z.object({
-        passwordIds: z.array(z.string()).min(1, "At least one password ID is required"),
+        passwordIds: z.array(z.string()).min(1, "At least one password ID is required").max(MAX_BULK_IDS),
         teamId: z.string().optional(),
       })
     )
     .mutation(async ({ input, ctx }) => {
-      // Verify user owns all passwords
-      const passwords = await prisma.password.findMany({
-        where: {
-          id: { in: input.passwordIds },
-        },
-        select: {
-          id: true,
-          ownerId: true,
-        },
-      })
+      const owned = await resolveOwnedPasswords(input.passwordIds, ctx.userId, "unshare")
+      const ids = owned.map((p) => p.id)
 
-      const unauthorized = passwords.filter((p) => p.ownerId !== ctx.userId)
-      if (unauthorized.length > 0) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: `You don't have permission to unshare ${unauthorized.length} password(s)`,
-        })
-      }
-
-      // Unshare passwords
       const where: Prisma.PasswordShareWhereInput = {
-        passwordId: { in: input.passwordIds },
+        passwordId: { in: ids },
       }
 
       if (input.teamId) {
@@ -2235,17 +2127,7 @@ export const passwordsRouter = createTRPCRouter({
         where,
       })
 
-      // Create audit log
-      const { createAuditLog } = await import("@/lib/audit-log")
-      for (const password of passwords) {
-        await createAuditLog({
-          action: "PASSWORD_UNSHARED",
-          resource: "Password",
-          resourceId: password.id,
-          details: { teamId: input.teamId, bulk: true },
-          userId: ctx.userId,
-        })
-      }
+      await bulkAudit(ctx, "PASSWORD_UNSHARED", ids, { teamId: input.teamId, bulk: true, removed: deleted.count })
 
       return {
         success: true,
@@ -2256,34 +2138,17 @@ export const passwordsRouter = createTRPCRouter({
   bulkUpdateStrength: protectedProcedure("password.edit")
     .input(
       z.object({
-        passwordIds: z.array(z.string()).min(1, "At least one password ID is required"),
+        passwordIds: z.array(z.string()).min(1, "At least one password ID is required").max(MAX_BULK_IDS),
         strength: z.enum(["WEAK", "MEDIUM", "STRONG"]),
       })
     )
     .mutation(async ({ input, ctx }) => {
-      // Verify user owns all passwords
-      const passwords = await prisma.password.findMany({
-        where: {
-          id: { in: input.passwordIds },
-        },
-        select: {
-          id: true,
-          ownerId: true,
-        },
-      })
+      const owned = await resolveOwnedPasswords(input.passwordIds, ctx.userId, "update")
+      const ids = owned.map((p) => p.id)
 
-      const unauthorized = passwords.filter((p) => p.ownerId !== ctx.userId)
-      if (unauthorized.length > 0) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: `You don't have permission to update ${unauthorized.length} password(s)`,
-        })
-      }
-
-      // Update password strength
       const updated = await prisma.password.updateMany({
         where: {
-          id: { in: input.passwordIds },
+          id: { in: ids },
           ownerId: ctx.userId,
         },
         data: {
@@ -2291,17 +2156,7 @@ export const passwordsRouter = createTRPCRouter({
         },
       })
 
-      // Create audit log
-      const { createAuditLog } = await import("@/lib/audit-log")
-      for (const password of passwords) {
-        await createAuditLog({
-          action: "PASSWORD_UPDATED",
-          resource: "Password",
-          resourceId: password.id,
-          details: { strength: input.strength, bulk: true },
-          userId: ctx.userId,
-        })
-      }
+      await bulkAudit(ctx, "PASSWORD_UPDATED", ids, { strength: input.strength, bulk: true })
 
       return {
         success: true,
@@ -2633,86 +2488,9 @@ export const passwordsRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx }) => {
-      // Note: input.threshold is available but not yet used
-      // Get all passwords owned by the current user
-      // This ensures we only detect duplicates in passwords the user owns
-      const passwords = await prisma.password.findMany({
-        where: {
-          ownerId: ctx.userId,
-        },
-        select: {
-          id: true,
-          name: true,
-          username: true,
-          password: true,
-          url: true,
-          ownerId: true,
-          owner: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-        },
-      })
-
-      // Decrypt and group passwords by their decrypted value
-      const passwordGroups = new Map<string, Array<typeof passwords[0] & { decryptedPassword: string }>>()
-
-      for (const pwd of passwords) {
-        try {
-          // Try new user-specific encryption first
-          let decrypted: string
-          try {
-            decrypted = decryptFromStorage(pwd.password, pwd.ownerId)
-          } catch {
-            // Fallback to old server-side encryption
-            decrypted = decryptPassword(pwd.password)
-          }
-          // Normalize whitespace for comparison
-          const normalized = decrypted.trim()
-          if (!passwordGroups.has(normalized)) {
-            passwordGroups.set(normalized, [])
-          }
-          passwordGroups.get(normalized)!.push({ ...pwd, decryptedPassword: normalized })
-        } catch (error) {
-          // Skip passwords that can't be decrypted
-          console.error(`Failed to decrypt password ${pwd.id}:`, error)
-          continue
-        }
-      }
-
-      // Filter to only groups with duplicates (2+ passwords)
-      const duplicates: Array<{
-        password: string
-        count: number
-        entries: Array<{
-          id: string
-          name: string
-          username: string
-          url: string | null
-          ownerId: string
-          owner: { id: string; name: string; email: string }
-        }>
-      }> = []
-
-      for (const [decryptedPassword, entries] of passwordGroups.entries()) {
-        if (entries.length > 1) {
-          duplicates.push({
-            password: decryptedPassword,
-            count: entries.length,
-            entries: entries.map((e) => ({
-              id: e.id,
-              name: e.name,
-              username: e.username,
-              url: e.url,
-              ownerId: e.ownerId,
-              owner: e.owner,
-            })),
-          })
-        }
-      }
+      // Metadata only: plaintext is revealed on demand through getPassword (permission-checked, audited)
+      const entries = await loadDecryptedVault(ctx.session, ctx.userId)
+      const duplicates = groupByIdenticalSecret(entries, true)
 
       return {
         duplicates,
@@ -2723,80 +2501,8 @@ export const passwordsRouter = createTRPCRouter({
 
   findReused: protectedProcedure("password.view")
     .query(async ({ ctx }) => {
-      // Get all passwords owned by the current user
-      const passwords = await prisma.password.findMany({
-        where: {
-          ownerId: ctx.userId,
-        },
-        select: {
-          id: true,
-          name: true,
-          username: true,
-          password: true,
-          url: true,
-          ownerId: true,
-          owner: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-        },
-      })
-
-      // Group by decrypted password value
-      const passwordMap = new Map<string, Array<typeof passwords[0] & { decryptedPassword: string }>>()
-
-      for (const pwd of passwords) {
-        try {
-          // Try new user-specific encryption first
-          let decrypted: string
-          try {
-            decrypted = decryptFromStorage(pwd.password, pwd.ownerId)
-          } catch {
-            // Fallback to old server-side encryption
-            decrypted = decryptPassword(pwd.password)
-          }
-          if (!passwordMap.has(decrypted)) {
-            passwordMap.set(decrypted, [])
-          }
-          passwordMap.get(decrypted)!.push({ ...pwd, decryptedPassword: decrypted })
-        } catch {
-          continue
-        }
-      }
-
-      // Find passwords used in multiple entries (reused)
-      const reused: Array<{
-        password: string
-        count: number
-        entries: Array<{
-          id: string
-          name: string
-          username: string
-          url: string | null
-          ownerId: string
-          owner: { id: string; name: string; email: string }
-        }>
-      }> = []
-
-      for (const [decryptedPassword, entries] of passwordMap.entries()) {
-        if (entries.length > 1) {
-          reused.push({
-            password: decryptedPassword,
-            count: entries.length,
-            entries: entries.map((e) => ({
-              id: e.id,
-              name: e.name,
-              username: e.username,
-              url: e.url,
-              ownerId: e.ownerId,
-              owner: e.owner,
-            })),
-          })
-        }
-      }
+      const entries = await loadDecryptedVault(ctx.session, ctx.userId)
+      const reused = groupByIdenticalSecret(entries, false)
 
       return {
         reused,
@@ -2812,110 +2518,9 @@ export const passwordsRouter = createTRPCRouter({
       })
     )
     .query(async ({ input, ctx }) => {
-      const { calculateSimilarity, arePasswordsSimilar } = await import("@/lib/password-similarity")
       const threshold = input.threshold ?? 0.8
-
-      // Get all passwords owned by the current user
-      const passwords = await prisma.password.findMany({
-        where: {
-          ownerId: ctx.userId,
-        },
-        select: {
-          id: true,
-          name: true,
-          username: true,
-          password: true,
-          url: true,
-          ownerId: true,
-          owner: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-        },
-      })
-
-      // Decrypt all passwords
-      const decryptedPasswords = passwords
-        .map((pwd) => {
-          try {
-            // Try new user-specific encryption first
-            let decrypted: string
-            try {
-              decrypted = decryptFromStorage(pwd.password, pwd.ownerId)
-            } catch {
-              // Fallback to old server-side encryption
-              decrypted = decryptPassword(pwd.password)
-            }
-            return {
-              ...pwd,
-              decryptedPassword: decrypted,
-            }
-          } catch {
-            return null
-          }
-        })
-        .filter((p): p is NonNullable<typeof p> => p !== null)
-
-      // Find similar passwords
-      const similarGroups: Array<{
-        entries: Array<{
-          id: string
-          name: string
-          username: string
-          url: string | null
-          ownerId: string
-          owner: { id: string; name: string; email: string }
-          password: string
-        }>
-        similarity: number
-      }> = []
-
-      const processed = new Set<string>()
-
-      for (let i = 0; i < decryptedPasswords.length; i++) {
-        if (processed.has(decryptedPasswords[i].id)) continue
-
-        const group = [decryptedPasswords[i]]
-        processed.add(decryptedPasswords[i].id)
-
-        for (let j = i + 1; j < decryptedPasswords.length; j++) {
-          if (processed.has(decryptedPasswords[j].id)) continue
-
-          if (arePasswordsSimilar(decryptedPasswords[i].decryptedPassword, decryptedPasswords[j].decryptedPassword, threshold)) {
-            group.push(decryptedPasswords[j])
-            processed.add(decryptedPasswords[j].id)
-          }
-        }
-
-        if (group.length > 1) {
-          // Calculate average similarity
-          let totalSimilarity = 0
-          let comparisons = 0
-          for (let k = 0; k < group.length; k++) {
-            for (let l = k + 1; l < group.length; l++) {
-              totalSimilarity += calculateSimilarity(group[k].decryptedPassword, group[l].decryptedPassword)
-              comparisons++
-            }
-          }
-          const avgSimilarity = comparisons > 0 ? totalSimilarity / comparisons : 0
-
-          similarGroups.push({
-            entries: group.map((e) => ({
-              id: e.id,
-              name: e.name,
-              username: e.username,
-              url: e.url,
-              ownerId: e.ownerId,
-              owner: e.owner,
-              password: e.decryptedPassword,
-            })),
-            similarity: avgSimilarity,
-          })
-        }
-      }
+      const entries = await loadDecryptedVault(ctx.session, ctx.userId)
+      const similarGroups = groupBySimilarSecret(entries, threshold)
 
       return {
         similarGroups,
@@ -3108,99 +2713,93 @@ export const passwordsRouter = createTRPCRouter({
     }),
 
   checkAllPasswordsBreach: protectedProcedure("password.view")
-    .mutation(async ({ ctx }) => {
-      // Get all passwords owned by the user
-      const passwords = await prisma.password.findMany({
-        where: {
-          ownerId: ctx.userId,
-        },
-        select: {
-          id: true,
-          password: true,
-          name: true,
-          ownerId: true,
-        },
-      })
+    .input(
+      z
+        .object({
+          offset: z.number().int().min(0).default(0),
+          limit: z.number().int().min(1).max(50).default(25),
+        })
+        .optional()
+    )
+    .mutation(async ({ input, ctx }) => {
+      const offset = input?.offset ?? 0
+      const limit = input?.limit ?? 25
+
+      // One chunk per call; the client loops with nextOffset so no request nears the time limit
+      const [total, passwords] = await Promise.all([
+        prisma.password.count({ where: { ownerId: ctx.userId } }),
+        prisma.password.findMany({
+          where: { ownerId: ctx.userId },
+          orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+          skip: offset,
+          take: limit,
+          select: {
+            id: true,
+            password: true,
+            name: true,
+            ownerId: true,
+          },
+        }),
+      ])
 
       const { checkMultiplePasswords } = await import("@/lib/breach-detection")
       const { createAuditLog } = await import("@/lib/audit-log")
 
-      const results = []
-      let breachedCount = 0
-
-      // Decrypt and check each password
+      const decrypted: Array<{ id: string; name: string; plain: string }> = []
       for (const pwd of passwords) {
         try {
-          // Try both encryption methods
-          let decryptedPassword: string
+          let plain: string
           try {
-            // Try new user-specific encryption first
-            const { decryptFromStorage } = await import("@/lib/server-crypto-migration")
-            decryptedPassword = decryptFromStorage(pwd.password, pwd.ownerId)
+            plain = decryptFromStorage(pwd.password, pwd.ownerId)
           } catch {
-            // Fallback to old server-side encryption
-            try {
-              decryptedPassword = decryptPassword(pwd.password)
-            } catch (decryptError) {
-              // Skip passwords that can't be decrypted
-              console.error(`Failed to decrypt password ${pwd.id}:`, decryptError)
-              continue
-            }
+            plain = decryptPassword(pwd.password)
           }
-          const breachResult = await checkMultiplePasswords([decryptedPassword])
-          
-          if (breachResult.length > 0) {
-            const result = breachResult[0]
-            
-            // Save breach record
-            const breach = await prisma.passwordBreach.create({
-              data: {
-                passwordId: pwd.id,
-                isBreached: result.isBreached,
-                breachCount: result.breachCount,
-                hashPrefix: result.hashPrefix,
-                checkedBy: ctx.userId,
-              },
-            })
-
-            if (result.isBreached) {
-              breachedCount++
-            }
-
-            results.push({
-              passwordId: pwd.id,
-              passwordName: pwd.name,
-              isBreached: result.isBreached,
-              breachCount: result.breachCount,
-              breachId: breach.id,
-            })
-
-            // Create audit log
-            await createAuditLog({
-              action: result.isBreached ? "PASSWORD_BREACH_DETECTED" : "PASSWORD_BREACH_CHECKED",
-              resource: "Password",
-              resourceId: pwd.id,
-              details: {
-                isBreached: result.isBreached,
-                breachCount: result.breachCount,
-                passwordName: pwd.name,
-                bulkCheck: true,
-              },
-              userId: ctx.userId,
-            })
-          }
-        } catch (error) {
-          // Skip passwords that can't be decrypted
-          console.error(`Failed to check password ${pwd.id}:`, error)
-          continue
+          decrypted.push({ id: pwd.id, name: pwd.name, plain })
+        } catch (decryptError) {
+          console.error(`Failed to decrypt password ${pwd.id}:`, decryptError)
         }
       }
+
+      const breachResults = await checkMultiplePasswords(decrypted.map((d) => d.plain))
+
+      const created = await prisma.passwordBreach.createManyAndReturn({
+        data: decrypted.map((d, i) => ({
+          passwordId: d.id,
+          isBreached: breachResults[i]!.isBreached,
+          breachCount: breachResults[i]!.breachCount,
+          hashPrefix: breachResults[i]!.hashPrefix,
+          checkedBy: ctx.userId,
+        })),
+        select: { id: true, passwordId: true },
+      })
+      const breachIdByPassword = new Map(created.map((c) => [c.passwordId, c.id]))
+
+      const results = decrypted.map((d, i) => ({
+        passwordId: d.id,
+        passwordName: d.name,
+        isBreached: breachResults[i]!.isBreached,
+        breachCount: breachResults[i]!.breachCount,
+        breachId: breachIdByPassword.get(d.id) ?? "",
+      }))
+      const breachedCount = results.filter((r) => r.isBreached).length
+
+      await createAuditLog({
+        action: breachedCount > 0 ? "PASSWORD_BREACH_DETECTED" : "PASSWORD_BREACH_CHECKED",
+        resource: "Password",
+        details: { bulkCheck: true, checked: results.length, breached: breachedCount, offset },
+        userId: ctx.userId,
+        companyId: ctx.companyId,
+      })
+
+      const nextOffset = offset + passwords.length < total && passwords.length > 0 ? offset + passwords.length : null
 
       return {
         success: true,
         checked: passwords.length,
         breached: breachedCount,
         results,
+        total,
+        nextOffset,
       }
     }),
 
@@ -3508,10 +3107,7 @@ export const passwordsRouter = createTRPCRouter({
     )
     .query(async ({ input, ctx }) => {
       // Get user's company ID
-      const user = await prisma.user.findUnique({
-        where: { id: ctx.userId },
-        select: { companyId: true },
-      })
+      const user = { companyId: ctx.companyId }
 
       // Get tags that are used by passwords from the same company
       const tagWhere: Prisma.TagWhereInput = {
@@ -3606,10 +3202,12 @@ export const passwordsRouter = createTRPCRouter({
         where: {
           ownerId: ctx.userId,
         },
-        include: {
+        select: {
           tags: {
-            include: {
-              tag: true,
+            select: {
+              tag: {
+                select: { id: true, name: true, color: true, icon: true },
+              },
             },
           },
         },
@@ -3684,40 +3282,29 @@ export const passwordsRouter = createTRPCRouter({
     .query(async ({ input = {}, ctx }) => {
       const { limit = 10 } = input
 
-      // Get all tags
-      const allTags = await prisma.tag.findMany({
-        select: {
-          id: true,
-          name: true,
-          color: true,
-          icon: true,
-        },
-      })
-
-      // Get user's password IDs
-      const userPasswordIds = await prisma.password.findMany({
-        where: {
-          ownerId: ctx.userId,
-        },
-        select: {
-          id: true,
-        },
-      })
-
-      const passwordIds = userPasswordIds.map((p) => p.id)
-
-      // Count tag usage for user's passwords
-      const tagUsageCounts = await prisma.passwordTag.groupBy({
-        by: ["tagId"],
-        where: {
-          passwordId: {
-            in: passwordIds,
+      // Tags of the caller's company only (a caller without a company sees none)
+      const [allTags, totalPasswords, tagUsageCounts] = await Promise.all([
+        prisma.tag.findMany({
+          where: { companyId: ctx.companyId ?? "" },
+          select: {
+            id: true,
+            name: true,
+            color: true,
+            icon: true,
           },
-        },
-        _count: {
-          id: true,
-        },
-      })
+        }),
+        prisma.password.count({ where: { ownerId: ctx.userId } }),
+        prisma.passwordTag.groupBy({
+          by: ["tagId"],
+          where: {
+            password: { ownerId: ctx.userId },
+            tag: { companyId: ctx.companyId ?? "" },
+          },
+          _count: {
+            id: true,
+          },
+        }),
+      ])
 
       // Create a map of tagId to usage count
       const usageMap = new Map(
@@ -3733,8 +3320,6 @@ export const passwordsRouter = createTRPCRouter({
         .filter((tag) => tag.usageCount > 0) // Only include tags that are used
         .sort((a, b) => b.usageCount - a.usageCount)
         .slice(0, limit)
-
-      const totalPasswords = passwordIds.length
 
       return tagsWithUsage.map((tag) => ({
         id: tag.id,
@@ -3825,9 +3410,9 @@ export const passwordsRouter = createTRPCRouter({
       }
       const { id, ...updateData } = input
 
-      // Check if tag exists
-      const existingTag = await prisma.tag.findUnique({
-        where: { id },
+      // Check if tag exists in the caller's company
+      const existingTag = await prisma.tag.findFirst({
+        where: { id, companyId: ctx.companyId },
       })
 
       if (!existingTag) {
@@ -3857,7 +3442,7 @@ export const passwordsRouter = createTRPCRouter({
       }
 
       const tag = await prisma.tag.update({
-        where: { id },
+        where: { id: existingTag.id },
         data: {
           ...(updateData.name && { name: updateData.name }),
           color: updateData.color !== undefined ? updateData.color : existingTag.color,
@@ -4153,10 +3738,7 @@ export const passwordsRouter = createTRPCRouter({
       const { category, service, includeSystem, includePublic, includeOwn } = input
 
       // Get user's company ID
-      const user = await prisma.user.findUnique({
-        where: { id: ctx.userId },
-        select: { companyId: true },
-      })
+      const user = { companyId: ctx.companyId }
 
       const orConditions: Prisma.PasswordTemplateWhereInput[] = []
 
@@ -4228,10 +3810,7 @@ export const passwordsRouter = createTRPCRouter({
     )
     .query(async ({ input, ctx }) => {
       // Get user's company ID
-      const user = await prisma.user.findUnique({
-        where: { id: ctx.userId },
-        select: { companyId: true },
-      })
+      const user = { companyId: ctx.companyId }
 
       const template = await prisma.passwordTemplate.findFirst({
         where: {
@@ -4269,10 +3848,7 @@ export const passwordsRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       // Get user's company ID
-      const user = await prisma.user.findUnique({
-        where: { id: ctx.userId },
-        select: { companyId: true },
-      })
+      const user = { companyId: ctx.companyId }
 
       const template = await prisma.passwordTemplate.create({
         data: {
@@ -4308,10 +3884,7 @@ export const passwordsRouter = createTRPCRouter({
       const { id, ...data } = input
 
       // Get user's company ID
-      const user = await prisma.user.findUnique({
-        where: { id: ctx.userId },
-        select: { companyId: true },
-      })
+      const user = { companyId: ctx.companyId }
 
       // Verify ownership (user can't edit system templates)
       // User can edit their own templates or company templates
@@ -4357,10 +3930,7 @@ export const passwordsRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       // Get user's company ID
-      const user = await prisma.user.findUnique({
-        where: { id: ctx.userId },
-        select: { companyId: true },
-      })
+      const user = { companyId: ctx.companyId }
 
       // Verify ownership (user can't delete system templates)
       // User can delete their own templates or company templates
@@ -4397,10 +3967,7 @@ export const passwordsRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       // Get user's company ID
-      const user = await prisma.user.findUnique({
-        where: { id: ctx.userId },
-        select: { companyId: true },
-      })
+      const user = { companyId: ctx.companyId }
 
       // Build OR conditions for template access
       const templateWhere: Prisma.PasswordTemplateWhereInput = {
@@ -4447,9 +4014,9 @@ export const passwordsRouter = createTRPCRouter({
   deleteTag: protectedProcedure("password.edit")
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input, ctx }) => {
-      // Check if tag exists
-      const tag = await prisma.tag.findUnique({
-        where: { id: input.id },
+      // Check if tag exists in the caller's company
+      const tag = await prisma.tag.findFirst({
+        where: { id: input.id, companyId: ctx.companyId ?? "" },
         include: {
           _count: {
             select: {
@@ -4468,7 +4035,7 @@ export const passwordsRouter = createTRPCRouter({
 
       // Delete tag (cascade will remove PasswordTag relations)
       await prisma.tag.delete({
-        where: { id: input.id },
+        where: { id: tag.id },
       })
 
       // Create audit log
@@ -4582,7 +4149,7 @@ export const passwordsRouter = createTRPCRouter({
         shareToken: z.string(),
       })
     )
-    .query(async ({ input }) => {
+    .mutation(async ({ input }) => {
       const temporaryShare = await prisma.temporaryPasswordShare.findUnique({
         where: { shareToken: input.shareToken },
         select: {
@@ -4665,57 +4232,21 @@ export const passwordsRouter = createTRPCRouter({
         // headers() is unavailable outside a request context (e.g. tests) — ignore
       }
 
-      // Increment access count, update accessedAt, and append an access log row
-      await prisma.temporaryPasswordShare.update({
-        where: { id: temporaryShare.id },
-        data: {
-          accessCount: { increment: 1 },
-          accessedAt: new Date(),
-          accesses: {
-            create: {
-              ipAddress,
-              userAgent,
-            },
-          },
-        },
-      })
-
-      // If one-time share, mark as revoked after access
-      if (temporaryShare.isOneTime) {
-        await prisma.temporaryPasswordShare.update({
-          where: { id: temporaryShare.id },
-          data: {
-            revokedAt: new Date(),
-          },
-        })
-      }
-
-      // Decrypt password - handle both old and new encryption methods
+      // Decrypt before consuming so a decryption failure never burns an access
       let decryptedPassword: string
       let decryptedTotpSecret: string | null = null
-      
-      // Try new encryption method first (user-specific key)
+      const ownerId = temporaryShare.password.ownerId
       try {
         const { decryptFromStorage } = await import("@/lib/server-crypto-migration")
-        const passwordOwner = await prisma.password.findUnique({
-          where: { id: temporaryShare.passwordId },
-          select: { ownerId: true },
-        })
-        
-        if (passwordOwner?.ownerId) {
-          decryptedPassword = decryptFromStorage(temporaryShare.password.password, passwordOwner.ownerId)
-          // Only decrypt TOTP secret if includeTotp is true
-          if (temporaryShare.includeTotp && temporaryShare.password.totpSecret) {
-            decryptedTotpSecret = decryptFromStorage(temporaryShare.password.totpSecret, passwordOwner.ownerId)
-          }
-        } else {
-          throw new Error("Password owner not found")
+        decryptedPassword = decryptFromStorage(temporaryShare.password.password, ownerId)
+        // Only decrypt TOTP secret if includeTotp is true
+        if (temporaryShare.includeTotp && temporaryShare.password.totpSecret) {
+          decryptedTotpSecret = decryptFromStorage(temporaryShare.password.totpSecret, ownerId)
         }
       } catch {
         // Try old encryption method (backward compatibility)
         try {
           decryptedPassword = decryptPassword(temporaryShare.password.password)
-          // Only decrypt TOTP secret if includeTotp is true
           if (temporaryShare.includeTotp && temporaryShare.password.totpSecret) {
             decryptedTotpSecret = decryptPassword(temporaryShare.password.totpSecret)
           }
@@ -4727,6 +4258,42 @@ export const passwordsRouter = createTRPCRouter({
           })
         }
       }
+
+      // Atomically claim one access: the conditions are re-checked inside the UPDATE, so
+      // concurrent opens can never exceed maxAccesses and a one-time link is revoked in
+      // the same statement that consumes it.
+      const now = new Date()
+      const claimed = await prisma.temporaryPasswordShare.updateMany({
+        where: {
+          id: temporaryShare.id,
+          revokedAt: null,
+          AND: [
+            { OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] },
+            {
+              OR: [
+                { maxAccesses: null },
+                { accessCount: { lt: prisma.temporaryPasswordShare.fields.maxAccesses } },
+              ],
+            },
+          ],
+        },
+        data: {
+          accessCount: { increment: 1 },
+          accessedAt: now,
+          ...(temporaryShare.isOneTime ? { revokedAt: now } : {}),
+        },
+      })
+
+      if (claimed.count === 0) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "This share link is no longer available",
+        })
+      }
+
+      await prisma.temporaryShareAccess.create({
+        data: { shareId: temporaryShare.id, ipAddress, userAgent },
+      })
 
       // For temporary shares with TOTP, we return the encrypted TOTP secret
       // so the client can generate TOTP codes client-side and update them every 30 seconds
@@ -4791,9 +4358,48 @@ export const passwordsRouter = createTRPCRouter({
         }
       }
 
+      // Status filter is applied in SQL so only one page is ever fetched
+      const now = new Date()
+      const notExpired: Prisma.TemporaryPasswordShareWhereInput = {
+        OR: [{ expiresAt: null }, { expiresAt: { gte: now } }],
+      }
+      const exhausted: Prisma.TemporaryPasswordShareWhereInput = {
+        maxAccesses: { gt: 0 },
+        accessCount: { gte: prisma.temporaryPasswordShare.fields.maxAccesses },
+      }
+      const status = input?.status
+      const statusWhere: Prisma.TemporaryPasswordShareWhereInput[] =
+        status === "revoked"
+          ? [{ revokedAt: { not: null } }]
+          : status === "expired"
+            ? [{ revokedAt: null }, { expiresAt: { lt: now } }]
+            : status === "exhausted"
+              ? [{ revokedAt: null }, notExpired, exhausted]
+              : status === "active"
+                ? [{ revokedAt: null }, notExpired, { NOT: exhausted }]
+                : []
+      if (statusWhere.length > 0) {
+        where.AND = statusWhere
+      }
+
+      const total = await prisma.temporaryPasswordShare.count({ where })
+      const totalPages = Math.max(1, Math.ceil(total / pageSize))
+      const safePage = Math.min(page, totalPages)
+
       const shares = await prisma.temporaryPasswordShare.findMany({
         where,
-        include: {
+        select: {
+          id: true,
+          shareToken: true,
+          passwordId: true,
+          expiresAt: true,
+          maxAccesses: true,
+          accessCount: true,
+          isOneTime: true,
+          includeTotp: true,
+          revokedAt: true,
+          createdAt: true,
+          accessedAt: true,
           password: {
             select: {
               id: true,
@@ -4803,10 +4409,11 @@ export const passwordsRouter = createTRPCRouter({
           },
         },
         orderBy: { createdAt: "desc" },
+        skip: (safePage - 1) * pageSize,
+        take: pageSize,
       })
 
-      const now = new Date()
-      const enriched = shares.map((share) => {
+      const paged = shares.map((share) => {
         let computedStatus: "active" | "revoked" | "expired" | "exhausted"
         if (share.revokedAt) {
           computedStatus = "revoked"
@@ -4836,17 +4443,6 @@ export const passwordsRouter = createTRPCRouter({
           shareUrl: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/share/${share.shareToken}`,
         }
       })
-
-      const filtered =
-        input?.status && input.status !== "all"
-          ? enriched.filter((s) => s.status === input!.status)
-          : enriched
-
-      const total = filtered.length
-      const totalPages = Math.max(1, Math.ceil(total / pageSize))
-      const safePage = Math.min(page, totalPages)
-      const start = (safePage - 1) * pageSize
-      const paged = filtered.slice(start, start + pageSize)
 
       return {
         shares: paged,
@@ -4941,18 +4537,30 @@ export const passwordsRouter = createTRPCRouter({
       const page = input?.page ?? 1
       const pageSize = input?.pageSize ?? 20
 
-      const shares = await prisma.passwordShare.findMany({
-        where: {
-          teamId: { not: null },
-          password: {
-            ownerId: ctx.userId,
-            ...(input?.search
-              ? {
-                  name: { contains: input.search, mode: "insensitive" },
-                }
-              : {}),
-          },
+      const now = new Date()
+      const shareWhere: Prisma.PasswordShareWhereInput = {
+        teamId: { not: null },
+        password: {
+          ownerId: ctx.userId,
+          ...(input?.search
+            ? {
+                name: { contains: input.search, mode: "insensitive" },
+              }
+            : {}),
         },
+        ...(input?.status === "expired"
+          ? { expiresAt: { lt: now } }
+          : input?.status === "active"
+            ? { OR: [{ expiresAt: null }, { expiresAt: { gte: now } }] }
+            : {}),
+      }
+
+      const total = await prisma.passwordShare.count({ where: shareWhere })
+      const totalPages = Math.max(1, Math.ceil(total / pageSize))
+      const safePage = Math.min(page, totalPages)
+
+      const shares = await prisma.passwordShare.findMany({
+        where: shareWhere,
         select: {
           id: true,
           permission: true,
@@ -4974,10 +4582,11 @@ export const passwordsRouter = createTRPCRouter({
           },
         },
         orderBy: { createdAt: "desc" },
+        skip: (safePage - 1) * pageSize,
+        take: pageSize,
       })
 
-      const now = new Date()
-      const enriched = shares.map((s) => ({
+      const paged = shares.map((s) => ({
         id: s.id,
         passwordId: s.password.id,
         passwordName: s.password.name,
@@ -4994,17 +4603,6 @@ export const passwordsRouter = createTRPCRouter({
             : ("active" as const),
       }))
 
-      const filtered =
-        input?.status && input.status !== "all"
-          ? enriched.filter((s) => s.status === input!.status)
-          : enriched
-
-      const total = filtered.length
-      const totalPages = Math.max(1, Math.ceil(total / pageSize))
-      const safePage = Math.min(page, totalPages)
-      const start = (safePage - 1) * pageSize
-      const paged = filtered.slice(start, start + pageSize)
-
       return {
         shares: paged,
         pagination: {
@@ -5020,69 +4618,53 @@ export const passwordsRouter = createTRPCRouter({
     .query(async ({ ctx }) => {
       const now = new Date()
 
-      const [tempShares, teamShares] = await Promise.all([
-        prisma.temporaryPasswordShare.findMany({
-          where: { createdBy: ctx.userId },
-          select: {
-            id: true,
-            accessCount: true,
-            maxAccesses: true,
-            expiresAt: true,
-            revokedAt: true,
-          },
+      const mine: Prisma.TemporaryPasswordShareWhereInput = { createdBy: ctx.userId }
+      const notExpired: Prisma.TemporaryPasswordShareWhereInput = {
+        OR: [{ expiresAt: null }, { expiresAt: { gte: now } }],
+      }
+      const exhausted: Prisma.TemporaryPasswordShareWhereInput = {
+        maxAccesses: { gt: 0 },
+        accessCount: { gte: prisma.temporaryPasswordShare.fields.maxAccesses },
+      }
+      const teamMine: Prisma.PasswordShareWhereInput = {
+        teamId: { not: null },
+        password: { ownerId: ctx.userId },
+      }
+
+      const [
+        tempTotal,
+        tempRevoked,
+        tempExpired,
+        tempExhausted,
+        tempAccesses,
+        teamTotal,
+        teamExpired,
+      ] = await Promise.all([
+        prisma.temporaryPasswordShare.count({ where: mine }),
+        prisma.temporaryPasswordShare.count({ where: { ...mine, revokedAt: { not: null } } }),
+        prisma.temporaryPasswordShare.count({ where: { ...mine, revokedAt: null, expiresAt: { lt: now } } }),
+        prisma.temporaryPasswordShare.count({
+          where: { ...mine, revokedAt: null, AND: [notExpired, exhausted] },
         }),
-        prisma.passwordShare.findMany({
-          where: {
-            teamId: { not: null },
-            password: { ownerId: ctx.userId },
-          },
-          select: {
-            id: true,
-            expiresAt: true,
-          },
-        }),
+        prisma.temporaryPasswordShare.aggregate({ where: mine, _sum: { accessCount: true } }),
+        prisma.passwordShare.count({ where: teamMine }),
+        prisma.passwordShare.count({ where: { ...teamMine, expiresAt: { lt: now } } }),
       ])
 
-      let tempActive = 0
-      let tempRevoked = 0
-      let tempExpired = 0
-      let tempExhausted = 0
-      let tempTotalAccesses = 0
-      for (const s of tempShares) {
-        tempTotalAccesses += s.accessCount
-        if (s.revokedAt) {
-          tempRevoked++
-        } else if (s.expiresAt && s.expiresAt < now) {
-          tempExpired++
-        } else if (s.maxAccesses && s.accessCount >= s.maxAccesses) {
-          tempExhausted++
-        } else {
-          tempActive++
-        }
-      }
-
-      let teamActive = 0
-      let teamExpired = 0
-      for (const s of teamShares) {
-        if (s.expiresAt && s.expiresAt < now) {
-          teamExpired++
-        } else {
-          teamActive++
-        }
-      }
+      const tempActive = tempTotal - tempRevoked - tempExpired - tempExhausted
 
       return {
         temporary: {
-          total: tempShares.length,
+          total: tempTotal,
           active: tempActive,
           revoked: tempRevoked,
           expired: tempExpired,
           exhausted: tempExhausted,
-          totalAccesses: tempTotalAccesses,
+          totalAccesses: tempAccesses._sum.accessCount ?? 0,
         },
         team: {
-          total: teamShares.length,
-          active: teamActive,
+          total: teamTotal,
+          active: teamTotal - teamExpired,
           expired: teamExpired,
         },
       }

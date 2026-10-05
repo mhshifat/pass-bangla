@@ -17,8 +17,12 @@ export function VerifyEmailRequiredPage() {
   const [emailSent, setEmailSent] = React.useState(false)
   const [isChecking, setIsChecking] = React.useState(false)
 
+  // Poll slowly, only while the tab is visible, and stop once verified or after ~5 minutes;
+  // "Check again" and refocusing the tab still refresh the status on demand
   const { data: emailStatus } = trpc.auth.checkEmailVerification.useQuery(undefined, {
-    refetchInterval: 3000, // Poll every 3 seconds to check if email is verified
+    refetchInterval: (query) =>
+      query.state.data?.emailVerified || query.state.dataUpdateCount >= 25 ? false : 12000,
+    refetchIntervalInBackground: false,
   })
 
   const resendMutation = trpc.auth.resendVerificationEmail.useMutation({
@@ -37,7 +41,7 @@ export function VerifyEmailRequiredPage() {
 
   // Check if email is verified and redirect
   React.useEffect(() => {
-    if (emailStatus?.emailVerified !== null) {
+    if (emailStatus?.emailVerified) {
       router.replace("/admin")
     }
   }, [emailStatus?.emailVerified, router])

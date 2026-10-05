@@ -4,36 +4,50 @@ import { useState, useEffect } from "react"
 import { useActionState } from "react"
 import { Button } from "@/components/ui/button"
 import { Plus, Upload, Download } from "lucide-react"
-import { PasswordFormDialog, ImportPasswordDialog, ExportPasswordDialog } from "@/modules/passwords/client"
+import dynamic from "next/dynamic"
+import { useEverOpened } from "@/modules/passwords/client/use-ever-opened"
 import { toast } from "sonner"
 import { showErrorFromException } from "@/lib/error-toast"
-import { useRouter } from "next/navigation"
 import { createPasswordAction } from "./actions"
 import { usePermissions } from "@/hooks/use-permissions"
 import { useTranslation } from "react-i18next"
+
+const PasswordFormDialog = dynamic(
+  () => import("@/modules/passwords/client/password-form-dialog").then((m) => m.PasswordFormDialog),
+  { ssr: false }
+)
+const ImportPasswordDialog = dynamic(
+  () => import("@/modules/passwords/client/import-password-dialog").then((m) => m.ImportPasswordDialog),
+  { ssr: false }
+)
+const ExportPasswordDialog = dynamic(
+  () => import("@/modules/passwords/client/export-password-dialog").then((m) => m.ExportPasswordDialog),
+  { ssr: false }
+)
 
 export function PasswordsContent() {
   const { t } = useTranslation()
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false)
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false)
-  const router = useRouter()
+  const createMounted = useEverOpened(isCreateDialogOpen)
+  const importMounted = useEverOpened(isImportDialogOpen)
+  const exportMounted = useEverOpened(isExportDialogOpen)
   const { hasPermission } = usePermissions()
   const [state, formAction, isPending] = useActionState(createPasswordAction, null)
 
   useEffect(() => {
     if (state?.success) {
       toast.success(t("passwords.addPassword") + " " + t("common.success").toLowerCase())
-      // Defer state update to prevent cascading renders
+      // Defer state update to prevent cascading renders; the action already revalidated the page
       const timer = setTimeout(() => {
         setIsCreateDialogOpen(false)
-        router.refresh()
       }, 0)
       return () => clearTimeout(timer)
     } else if (state?.error) {
       showErrorFromException(state.error, t("passwords.createError"))
     }
-  }, [state, router, t])
+  }, [state, t])
 
   const canCreate = hasPermission("password.create")
   const canImport = hasPermission("password.create")
@@ -65,24 +79,27 @@ export function PasswordsContent() {
           </Button>
         )}
       </div>
-      <PasswordFormDialog
-        open={isCreateDialogOpen}
-        onOpenChange={setIsCreateDialogOpen}
-        formAction={formAction}
-        isPending={isPending}
-        state={state}
-      />
-      <ImportPasswordDialog
-        open={isImportDialogOpen}
-        onOpenChange={setIsImportDialogOpen}
-        onSuccess={() => router.refresh()}
-      />
-      <ExportPasswordDialog
-        open={isExportDialogOpen}
-        onOpenChange={setIsExportDialogOpen}
-        onSuccess={() => router.refresh()}
-      />
+      {createMounted && (
+        <PasswordFormDialog
+          open={isCreateDialogOpen}
+          onOpenChange={setIsCreateDialogOpen}
+          formAction={formAction}
+          isPending={isPending}
+          state={state}
+        />
+      )}
+      {importMounted && (
+        <ImportPasswordDialog
+          open={isImportDialogOpen}
+          onOpenChange={setIsImportDialogOpen}
+        />
+      )}
+      {exportMounted && (
+        <ExportPasswordDialog
+          open={isExportDialogOpen}
+          onOpenChange={setIsExportDialogOpen}
+        />
+      )}
     </>
   )
 }
-

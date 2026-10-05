@@ -1,5 +1,3 @@
-"use server"
-
 import prisma from "@/lib/prisma"
 import { decrypt } from "@/lib/crypto"
 import { createAuditLog } from "@/lib/audit-log"
@@ -70,7 +68,7 @@ export async function exportUserData(
   }
 
   // Verify company access
-  if (companyId && user.companyId !== companyId) {
+  if (user.companyId !== companyId) {
     throw new Error("Unauthorized access")
   }
 
@@ -231,6 +229,7 @@ export async function exportUserData(
     resourceId: exportRecord.id,
     details: { exportType },
     userId,
+    companyId: user.companyId,
   })
 
   return {
@@ -261,7 +260,7 @@ export async function deleteUserData(
   }
 
   // Verify company access
-  if (companyId && user.companyId !== companyId) {
+  if (user.companyId !== companyId) {
     throw new Error("Unauthorized access")
   }
 
@@ -330,6 +329,7 @@ export async function deleteUserData(
     resourceId: userId,
     details: { deletionScope: scope, deletedItems },
     userId,
+    companyId: user.companyId,
   })
 
   return {
@@ -338,12 +338,39 @@ export async function deleteUserData(
   }
 }
 
+// Retention deletes run in bounded batches so one large backlog cannot hold a
+// long lock or run past the function time limit; the next run continues.
+const CLEANUP_BATCH_SIZE = 1000
+const CLEANUP_MAX_BATCHES = 20
+
+async function deleteInBatches(
+  findIds: (take: number) => Promise<{ id: string }[]>,
+  deleteByIds: (ids: string[]) => Promise<{ count: number }>
+): Promise<number> {
+  let total = 0
+  for (let batch = 0; batch < CLEANUP_MAX_BATCHES; batch++) {
+    const rows = await findIds(CLEANUP_BATCH_SIZE)
+    if (rows.length === 0) break
+    const result = await deleteByIds(rows.map((row) => row.id))
+    total += result.count
+    if (rows.length < CLEANUP_BATCH_SIZE) break
+  }
+  return total
+}
+
 /**
- * Clean up expired data based on retention policy
+ * Clean up expired data based on retention policy.
+ * Every delete is scoped to the given company; nothing runs without one.
  */
 export async function cleanupExpiredData(
   companyId: string | null
 ): Promise<{ cleaned: string[]; errors: string[] }> {
+  // A retention policy belongs to exactly one company. Without a company there
+  // is no tenant to scope the deletes to, so do nothing.
+  if (!companyId) {
+    return { cleaned: [], errors: [] }
+  }
+
   const policy = await getDataRetentionPolicy(companyId)
   if (!policy || !policy.autoDeleteEnabled) {
     return { cleaned: [], errors: [] }
@@ -359,21 +386,15 @@ export async function cleanupExpiredData(
       const cutoffDate = new Date(now)
       cutoffDate.setDate(cutoffDate.getDate() - policy.auditLogRetentionDays)
 
-      const deletedLogs = await prisma.auditLog.deleteMany({
-        where: {
-          createdAt: {
-            lt: cutoffDate,
-          },
-          ...(companyId
-            ? {
-                user: {
-                  companyId,
-                },
-              }
-            : {}),
-        },
-      })
-      cleaned.push(`Audit Logs: ${deletedLogs.count}`)
+      const where = {
+        createdAt: { lt: cutoffDate },
+        user: { companyId },
+      }
+      const deletedLogs = await deleteInBatches(
+        (take) => prisma.auditLog.findMany({ where, select: { id: true }, take }),
+        (ids) => prisma.auditLog.deleteMany({ where: { ...where, id: { in: ids } } })
+      )
+      cleaned.push(`Audit Logs: ${deletedLogs}`)
     }
 
     // Clean up old password history
@@ -383,14 +404,20 @@ export async function cleanupExpiredData(
         cutoffDate.getDate() - policy.passwordHistoryRetentionDays
       )
 
-      const deletedHistory = await prisma.passwordHistory.deleteMany({
-        where: {
-          createdAt: {
-            lt: cutoffDate,
-          },
+      // PasswordHistory has no companyId: scope through the password's owner,
+      // and skip any password stamped with a different company.
+      const where = {
+        createdAt: { lt: cutoffDate },
+        passwordEntry: {
+          owner: { companyId },
+          OR: [{ companyId }, { companyId: null }],
         },
-      })
-      cleaned.push(`Password History: ${deletedHistory.count}`)
+      }
+      const deletedHistory = await deleteInBatches(
+        (take) => prisma.passwordHistory.findMany({ where, select: { id: true }, take }),
+        (ids) => prisma.passwordHistory.deleteMany({ where: { ...where, id: { in: ids } } })
+      )
+      cleaned.push(`Password History: ${deletedHistory}`)
     }
 
     // Clean up expired sessions
@@ -398,24 +425,27 @@ export async function cleanupExpiredData(
       const cutoffDate = new Date(now)
       cutoffDate.setDate(cutoffDate.getDate() - policy.sessionRetentionDays)
 
-      const deletedSessions = await prisma.session.deleteMany({
-        where: {
-          OR: [
-            { expires: { lt: now } },
-            { lastActiveAt: { lt: cutoffDate } },
-          ],
-        },
-      })
-      cleaned.push(`Sessions: ${deletedSessions.count}`)
+      // Scoped through the session's user: Session.companyId is nullable and
+      // was added after the table existed, so it cannot be relied on alone.
+      const where = {
+        user: { companyId },
+        OR: [
+          { expires: { lt: now } },
+          { lastActiveAt: { lt: cutoffDate } },
+        ],
+      }
+      const deletedSessions = await deleteInBatches(
+        (take) => prisma.session.findMany({ where, select: { id: true }, take }),
+        (ids) => prisma.session.deleteMany({ where: { ...where, id: { in: ids } } })
+      )
+      cleaned.push(`Sessions: ${deletedSessions}`)
     }
 
     // Update last cleanup time
-    if (companyId) {
-      await prisma.dataRetentionPolicy.updateMany({
-        where: { companyId },
-        data: { lastCleanupAt: now },
-      })
-    }
+    await prisma.dataRetentionPolicy.updateMany({
+      where: { companyId },
+      data: { lastCleanupAt: now },
+    })
   } catch (error) {
     errors.push(
       error instanceof Error ? error.message : "Unknown error during cleanup"
@@ -424,5 +454,3 @@ export async function cleanupExpiredData(
 
   return { cleaned, errors }
 }
-
-

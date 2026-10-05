@@ -1,5 +1,5 @@
 import { cache } from "react"
-import { caller } from "@/trpc/server"
+import { getCurrentUserData } from "@/trpc/server-caller"
 
 /**
  * Server-side utility to get current logged-in user information
@@ -21,7 +21,8 @@ import { caller } from "@/trpc/server"
  */
 export const getCurrentUser = cache(async () => {
   try {
-    const data = await caller.auth.getCurrentUser()
+    // Shared with prefetchCurrentUser(), so the procedure runs once per request
+    const data = await getCurrentUserData()
     return {
       user: data.user,
       session: data.session,
