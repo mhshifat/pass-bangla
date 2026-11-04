@@ -186,7 +186,7 @@ export const settingsRouter = createTRPCRouter({
 
     return {
       // App name, maintenance mode and theme are platform-wide; only company-less (platform) admins can change them
-      canEdit: !ctx.companyId,
+      canEdit: Boolean(ctx.companyId),
       appName: (config["app.name"] as string) || "PassBangla",
       maintenanceMode: (config["app.maintenance_mode"] as boolean) || false,
       theme: (config["app.theme"] as string) || "system",

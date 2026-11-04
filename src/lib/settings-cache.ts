@@ -35,7 +35,8 @@ export type SettingScope = "platform" | "tenant" | "user"
  *   IP/geo/VPN toggles, threat detection, device settings); a company row overrides the
  *   global default row
  */
-const PLATFORM_KEY_PREFIXES = ["app.", "system."] as const
+// App name, theme and maintenance mode are per company: each company owns its own branding
+const PLATFORM_KEY_PREFIXES = ["system."] as const
 const USER_KEY_PREFIX = "user."
 
 export function getSettingScope(key: string): SettingScope {
