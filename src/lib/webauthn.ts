@@ -63,6 +63,26 @@ function getRPID(origin?: string): string {
     return process.env.NEXT_PUBLIC_DOMAIN || "localhost"
 }
 
+/**
+ * Browser-extension origins allowed to complete a passkey login (exact match only).
+ * Empty when EXTENSION_ORIGINS is unset, which makes extension passkey login fail closed.
+ */
+export function getAllowedExtensionOrigins(): string[] {
+    return (process.env.EXTENSION_ORIGINS || "")
+        .split(",")
+        .map((o) => o.trim())
+        .filter((o) => /^(chrome-extension|moz-extension):\/\/[^/\s]+$/.test(o))
+}
+
+export function isAllowedExtensionOrigin(origin: unknown): origin is string {
+    return typeof origin === "string" && getAllowedExtensionOrigins().includes(origin)
+}
+
+/** RP ID the web app registers passkeys under (the extension must use the same one). */
+export function getWebRPID(): string {
+    return getRPID(process.env.NEXT_PUBLIC_APP_URL)
+}
+
 function getOrigin(): string {
     if (typeof window !== "undefined") {
         return window.location.origin
@@ -242,7 +262,9 @@ export async function verifyWebAuthnAuthentication(
     response: AuthenticationResponseJSON | unknown,
     expectedChallenge: string,
     credential: WebAuthnCredential,
-    origin?: string
+    origin?: string,
+    /** Extension flow only: the clientDataJSON origin, already checked against the allow-list by the caller. */
+    extensionOrigin?: string
 ): Promise<{
     verified: boolean
     newCounter?: number
@@ -250,8 +272,11 @@ export async function verifyWebAuthnAuthentication(
 }> {
     try {
         const responseData = response as AuthenticationResponseJSON
-        const rpID = getRPID(origin)
-        const expectedOrigin = origin || getOrigin()
+        if (extensionOrigin !== undefined && !isAllowedExtensionOrigin(extensionOrigin)) {
+            return { verified: false, error: "Verification failed" }
+        }
+        const rpID = extensionOrigin !== undefined ? getWebRPID() : getRPID(origin)
+        const expectedOrigin = extensionOrigin ?? (origin || getOrigin())
         const verification: VerifiedAuthenticationResponse = await verifyAuthenticationResponse({
             response: responseData,
             expectedChallenge,

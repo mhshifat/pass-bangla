@@ -10,7 +10,9 @@ import { headers, cookies } from "next/headers";
 import { after } from "next/server";
 import { ensureSystemRolesExist } from "./system-roles";
 import { authenticateWithPassword, enforceAccessRules, createExtensionSession, runAfter, createVerifiedSession, requireSession, requireUser, getMfaSecret } from "./login-helpers";
-import { SignJWT } from "jose";
+import { SignJWT, jwtVerify } from "jose";
+import { randomUUID } from "crypto";
+import { getAllowedExtensionOrigins, isAllowedExtensionOrigin } from "@/lib/webauthn";
 import { setSignedCookie, takeSignedCookie } from "@/lib/signed-cookie";
 import { getSetting, getSettings } from "@/lib/settings-cache";
 import { createAuditLog } from "@/lib/audit-log";
@@ -65,6 +67,25 @@ async function enforceRecoveryRateLimit(action: string, email?: string) {
             message: `Too many attempts. Please try again after ${exceeded.resetAt.toLocaleTimeString()}.`,
         })
     }
+}
+
+const EXT_PASSKEY_AUDIENCE = "pb-ext-passkey"
+const EXT_PASSKEY_FAILED = "Passkey sign-in failed. Please try again or use your password."
+const EXT_PASSKEY_DISABLED = "Passkey sign-in isn't enabled for the extension."
+
+// Best-effort single use of extension challenge tokens. Per server instance only,
+// so on serverless a replay hitting another instance is stopped by the 5 minute
+// expiry and the WebAuthn counter/challenge checks, not by this set.
+const usedExtensionChallenges = new Map<string, number>()
+
+function consumeExtensionChallenge(jti: string, expiresAtMs: number): boolean {
+    const now = Date.now()
+    for (const [id, exp] of usedExtensionChallenges) {
+        if (exp < now) usedExtensionChallenges.delete(id)
+    }
+    if (usedExtensionChallenges.has(jti)) return false
+    usedExtensionChallenges.set(jti, expiresAtMs)
+    return true
 }
 
 type WebAuthnDeviceType ="singleDevice" | "multiDevice" | null
@@ -709,6 +730,183 @@ export const authRouter = createTRPCRouter({
                 },
                 // Return the session token for extension to store and use
                 sessionToken: sessionToken || undefined,
+            };
+        }),
+
+    /**
+     * Extension passkey sign-in, step 1. The extension sends no cookies, so the
+     * challenge travels in a short-lived signed token instead of a signed cookie.
+     */
+    extensionPasskeyOptions: baseProcedure
+        .input(z.object({
+            company: z.string().min(1).max(100),
+            email: z.string().email("Invalid email address"),
+        }))
+        .mutation(async ({ input }) => {
+            if (getAllowedExtensionOrigins().length === 0) {
+                throw new TRPCError({ code: "FORBIDDEN", message: EXT_PASSKEY_DISABLED });
+            }
+            const email = input.email.trim();
+            await enforceRecoveryRateLimit("EXT_PASSKEY_OPTIONS", email);
+
+            const company = await prisma.company.findUnique({
+                where: { subdomain: input.company.toLowerCase().trim() },
+                select: { id: true },
+            });
+            const user = company
+                ? await prisma.user.findFirst({
+                    where: { email, companyId: company.id },
+                    select: { id: true, _count: { select: { passkeyCredentials: true } } },
+                })
+                : null;
+            // Same answer as a failed assertion so this can't be used to probe accounts
+            if (!company || !user || user._count.passkeyCredentials === 0) {
+                throw new TRPCError({ code: "UNAUTHORIZED", message: EXT_PASSKEY_FAILED });
+            }
+
+            const { generateWebAuthnAuthenticationOptions } = await import("@/lib/webauthn");
+            // Discoverable credentials, like the web flow; ownership is checked on verify
+            const { options, challenge } = await generateWebAuthnAuthenticationOptions([], process.env.NEXT_PUBLIC_APP_URL);
+
+            const secret = new TextEncoder().encode(process.env.SESSION_SECRET || "default-secret-change-in-production");
+            const challengeToken = await new SignJWT({ challenge, userId: user.id, companyId: company.id })
+                .setProtectedHeader({ alg: "HS256" })
+                .setAudience(EXT_PASSKEY_AUDIENCE)
+                .setJti(randomUUID())
+                .setIssuedAt()
+                .setExpirationTime(`${CHALLENGE_TTL_SECONDS}s`)
+                .sign(secret);
+
+            return { options, challengeToken };
+        }),
+
+    /**
+     * Extension passkey sign-in, step 2. Same access rules as password login; no
+     * extra MFA step, matching the web passkey login (a passkey is a strong factor).
+     */
+    extensionPasskeyVerify: baseProcedure
+        .input(z.object({
+            challengeToken: z.string().min(1).max(4096),
+            response: z.unknown(),
+            origin: z.string().max(200),
+        }))
+        .mutation(async ({ input }) => {
+            if (!isAllowedExtensionOrigin(input.origin)) {
+                throw new TRPCError({ code: "FORBIDDEN", message: EXT_PASSKEY_DISABLED });
+            }
+            await enforceRecoveryRateLimit("EXT_PASSKEY_VERIFY");
+
+            const { ipAddress, userAgent } = getRequestMetadata(await headers());
+            const fail = () => new TRPCError({ code: "UNAUTHORIZED", message: EXT_PASSKEY_FAILED });
+
+            let claims: { challenge: string; userId: string; companyId: string; jti: string };
+            try {
+                const secret = new TextEncoder().encode(process.env.SESSION_SECRET || "default-secret-change-in-production");
+                const { payload } = await jwtVerify(input.challengeToken, secret, { audience: EXT_PASSKEY_AUDIENCE });
+                if (
+                    typeof payload.challenge !== "string" || typeof payload.userId !== "string" ||
+                    typeof payload.companyId !== "string" || typeof payload.jti !== "string" || typeof payload.exp !== "number"
+                ) {
+                    throw new Error("malformed");
+                }
+                claims = { challenge: payload.challenge, userId: payload.userId, companyId: payload.companyId, jti: payload.jti };
+                if (!consumeExtensionChallenge(claims.jti, payload.exp * 1000)) throw new Error("replayed");
+            } catch {
+                throw fail();
+            }
+
+            const user = await prisma.user.findFirst({
+                where: { id: claims.userId, companyId: claims.companyId },
+                include: {
+                    passkeyCredentials: true,
+                    company: { select: { id: true, name: true, subdomain: true } },
+                },
+            });
+            const response = input.response as AuthenticationResponseJSON;
+            const credential = user?.passkeyCredentials.find(
+                (c) => c.credentialId === response?.id || (!!response?.rawId && c.credentialId === response.rawId)
+            );
+            if (!user || !user.company || !credential) throw fail();
+
+            // The assertion must have been made for the origin the extension claims; the allow-list was checked above
+            const { verifyWebAuthnAuthentication } = await import("@/lib/webauthn");
+            const verification = await verifyWebAuthnAuthentication(
+                response,
+                claims.challenge,
+                {
+                    credentialID: credential.credentialId,
+                    publicKey: credential.publicKey,
+                    counter: Number(credential.counter),
+                    deviceType: credential.deviceType as "singleDevice" | "multiDevice" | undefined,
+                    backedUp: credential.backedUp,
+                    transports: credential.transports ? JSON.parse(credential.transports) : undefined,
+                },
+                undefined,
+                input.origin
+            );
+            if (!verification.verified) throw fail();
+
+            if (!user.isActive) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "Your account has been deactivated. Please contact your administrator.",
+                });
+            }
+
+            const company = user.company;
+            const resolveGeo = createGeoResolver(ipAddress ?? "");
+            const deviceFingerprint = generateClientDeviceFingerprint(userAgent, ipAddress);
+            const [settings, deviceIsTrusted] = await Promise.all([
+                getSettings(LOGIN_SETTING_KEYS, company.id),
+                isDeviceTrusted(deviceFingerprint, user.id),
+                enforceAccessRules({ user, ipAddress, userAgent, resolveGeo, source: "extension" }),
+            ]);
+
+            await prisma.passkeyCredential.update({
+                where: { id: credential.id },
+                data: {
+                    counter: BigInt(verification.newCounter || credential.counter),
+                    lastUsedAt: new Date(),
+                },
+            });
+            await prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
+
+            const timeoutMinutes = (settings.get("security.session.timeout_minutes") as number | undefined) ?? 30;
+            const { sessionToken } = await createExtensionSession({
+                userId: user.id,
+                email: user.email,
+                companyId: user.companyId || null,
+                timeoutMinutes,
+                mfaRequired: false,
+                ipAddress,
+                userAgent,
+                deviceFingerprint,
+                deviceIsTrusted,
+            });
+
+            await runAfter(async () => {
+                await createAuditLog(
+                    {
+                        action: "LOGIN_PASSKEY",
+                        resource: "User",
+                        resourceId: user.id,
+                        userId: user.id,
+                        ipAddress: ipAddress || null,
+                        userAgent: userAgent || null,
+                        details: { client: "extension", passkeyName: credential.name },
+                    },
+                    { sync: true }
+                );
+            });
+
+            return {
+                success: true,
+                mfaRequired: false,
+                mfaSetupRequired: false,
+                mfaMethod: null,
+                user: { id: user.id, name: user.name, email: user.email, role: user.role },
+                company,
+                sessionToken,
             };
         }),
 
