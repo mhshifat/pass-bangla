@@ -16,6 +16,7 @@ import { createCaptchaChallenge, verifyCaptchaToken } from "@/lib/captcha"
 import { checkGeographicRestriction, isIpWhitelisted, type GeoResolver } from "@/lib/ip-whitelist"
 import { SignJWT } from "jose"
 import { parseUserAgent } from "@/lib/device-parser"
+import { getSetting } from "@/lib/settings-cache"
 
 /** Run bookkeeping after the response; runs inline when `after()` is unavailable. Never throws. */
 export async function runAfter(task: () => Promise<void>): Promise<void> {
@@ -292,7 +293,10 @@ interface ExtensionSessionParams {
  */
 export async function createExtensionSession(params: ExtensionSessionParams) {
   const secret = new TextEncoder().encode(process.env.SESSION_SECRET || "default-secret-change-in-production")
-  const maxAge = params.timeoutMinutes * 60
+  // The extension has its own session length; fall back to the web value when it is not set
+  const configured = await getSetting<number>("security.session.extension_timeout_minutes", params.companyId)
+  const timeoutMinutes = typeof configured === "number" && configured > 0 ? configured : params.timeoutMinutes
+  const maxAge = timeoutMinutes * 60
 
   // A pending token (mfaVerified:false) is useless for protected data until extensionVerifyMfa upgrades it
   const sessionToken = await new SignJWT({
@@ -304,7 +308,7 @@ export async function createExtensionSession(params: ExtensionSessionParams) {
     mfaRequired: params.mfaRequired,
   })
     .setProtectedHeader({ alg: "HS256" })
-    .setExpirationTime(`${params.timeoutMinutes}m`)
+    .setExpirationTime(`${timeoutMinutes}m`)
     .sign(secret)
 
   const deviceInfo = parseUserAgent(params.userAgent)

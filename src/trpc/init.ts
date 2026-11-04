@@ -73,8 +73,12 @@ export const createTRPCContext = cache(async (): Promise<Context> => {
         userLoaded = true;
       }
     } catch (error) {
-      // Invalid token - session remains invalid
-      console.error("Invalid session token from header:", error);
+      // Invalid token - session remains invalid. An expired token is routine (sessions last
+      // 30 minutes and the extension keeps sending its last one), so don't log it as an error.
+      const code = (error as { code?: string } | null)?.code;
+      if (code !== "ERR_JWT_EXPIRED") {
+        console.error("Invalid session token from header:", error);
+      }
     }
   }
   

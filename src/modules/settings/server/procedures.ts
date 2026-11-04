@@ -242,6 +242,7 @@ export const settingsRouter = createTRPCRouter({
             "security.password.require_special",
             "security.password.expiry_days",
             "security.session.timeout_minutes",
+            "security.session.extension_timeout_minutes",
             "security.session.max_concurrent",
             "security.session.require_reauth",
             "security.login.max_attempts",
@@ -264,6 +265,10 @@ export const settingsRouter = createTRPCRouter({
       passwordExpiryDays: (config["security.password.expiry_days"] as number) ?? 90,
       // Session Management
       sessionTimeoutMinutes: (config["security.session.timeout_minutes"] as number) ?? 30,
+      extensionSessionTimeoutMinutes:
+        (config["security.session.extension_timeout_minutes"] as number) ??
+        (config["security.session.timeout_minutes"] as number) ??
+        30,
       sessionMaxConcurrent: (config["security.session.max_concurrent"] as number) ?? 3,
       sessionRequireReauth: (config["security.session.require_reauth"] as boolean) ?? true,
       // Login Security
@@ -285,7 +290,8 @@ export const settingsRouter = createTRPCRouter({
         passwordRequireSpecial: z.boolean(),
         passwordExpiryDays: z.number().min(0).max(3650), // 0 = never, max 10 years
         // Session Management
-        sessionTimeoutMinutes: z.number().min(1).max(1440), // 1 minute to 24 hours
+        sessionTimeoutMinutes: z.number().min(1).max(43200), // 1 minute to 30 days
+        extensionSessionTimeoutMinutes: z.number().min(1).max(43200),
         sessionMaxConcurrent: z.number().min(1).max(100),
         sessionRequireReauth: z.boolean(),
         // Login Security
@@ -307,6 +313,7 @@ export const settingsRouter = createTRPCRouter({
         writeSettings([{ key: "security.password.expiry_days", value: input.passwordExpiryDays }], ctx.companyId),
         // Session Management
         writeSettings([{ key: "security.session.timeout_minutes", value: input.sessionTimeoutMinutes }], ctx.companyId),
+        writeSettings([{ key: "security.session.extension_timeout_minutes", value: input.extensionSessionTimeoutMinutes }], ctx.companyId),
         writeSettings([{ key: "security.session.max_concurrent", value: input.sessionMaxConcurrent }], ctx.companyId),
         writeSettings([{ key: "security.session.require_reauth", value: input.sessionRequireReauth }], ctx.companyId),
         // Login Security

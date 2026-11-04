@@ -29,7 +29,8 @@ const securitySettingsSchema = z.object({
   passwordRequireSpecial: z.boolean(),
   passwordExpiryDays: z.number().min(0).max(3650),
   // Session Management
-  sessionTimeoutMinutes: z.number().min(1).max(1440),
+  sessionTimeoutMinutes: z.number().min(1).max(43200),
+  extensionSessionTimeoutMinutes: z.number().min(1).max(43200),
   sessionMaxConcurrent: z.number().min(1).max(100),
   sessionRequireReauth: z.boolean(),
   // Login Security
@@ -67,6 +68,7 @@ export function SecuritySettings() {
       passwordRequireSpecial: true,
       passwordExpiryDays: 90,
       sessionTimeoutMinutes: 30,
+      extensionSessionTimeoutMinutes: 30,
       sessionMaxConcurrent: 3,
       sessionRequireReauth: true,
       loginMaxAttempts: 5,
@@ -86,6 +88,7 @@ export function SecuritySettings() {
         passwordRequireSpecial: settings.passwordRequireSpecial,
         passwordExpiryDays: settings.passwordExpiryDays,
         sessionTimeoutMinutes: settings.sessionTimeoutMinutes,
+        extensionSessionTimeoutMinutes: settings.extensionSessionTimeoutMinutes,
         sessionMaxConcurrent: settings.sessionMaxConcurrent,
         sessionRequireReauth: settings.sessionRequireReauth,
         loginMaxAttempts: settings.loginMaxAttempts,
@@ -324,6 +327,31 @@ export function SecuritySettings() {
                   </FormControl>
                   <p className="text-xs text-muted-foreground">
                     {t("settings.security.sessionTimeoutDescription")}
+                  </p>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="extensionSessionTimeoutMinutes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("settings.security.extensionSessionTimeout", "Browser extension session (minutes)")}</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      {...field}
+                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      disabled={!canEdit}
+                    />
+                  </FormControl>
+                  <p className="text-xs text-muted-foreground">
+                    {t("settings.security.extensionSessionTimeoutDescription", "How long the browser extension stays signed in. Up to 43200 minutes (30 days).")}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("settings.security.sessionChangeNote", "New lengths apply at the next sign-in. People already signed in must sign out and back in.")}
                   </p>
                   <FormMessage />
                 </FormItem>
