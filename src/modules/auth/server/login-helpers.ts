@@ -274,7 +274,26 @@ export async function getMfaSecret(userId: string): Promise<string | null> {
   return row?.mfaSecret ?? null
 }
 
+/** Mobile sessions last 30 days (renewed on every use) unless an admin sets the extension session length. */
+const MOBILE_DEFAULT_SESSION_MINUTES = 30 * 24 * 60
+
+/**
+ * How long an extension/mobile session token lives, in minutes. The admin's extension
+ * session length wins; otherwise mobile gets a long default and the extension the web value.
+ */
+export async function resolveExtensionTimeout(
+  companyId: string | null,
+  webFallbackMinutes: number,
+  mobile = false
+): Promise<number> {
+  const configured = await getSetting<number>("security.session.extension_timeout_minutes", companyId)
+  if (typeof configured === "number" && configured > 0) return configured
+  return mobile ? MOBILE_DEFAULT_SESSION_MINUTES : webFallbackMinutes
+}
+
 interface ExtensionSessionParams {
+  /** The mobile app: long sessions that it renews with extensionRefresh */
+  mobile?: boolean
   userId: string
   email: string
   companyId: string | null
@@ -294,8 +313,7 @@ interface ExtensionSessionParams {
 export async function createExtensionSession(params: ExtensionSessionParams) {
   const secret = new TextEncoder().encode(process.env.SESSION_SECRET || "default-secret-change-in-production")
   // The extension has its own session length; fall back to the web value when it is not set
-  const configured = await getSetting<number>("security.session.extension_timeout_minutes", params.companyId)
-  const timeoutMinutes = typeof configured === "number" && configured > 0 ? configured : params.timeoutMinutes
+  const timeoutMinutes = await resolveExtensionTimeout(params.companyId, params.timeoutMinutes, params.mobile)
   const maxAge = timeoutMinutes * 60
 
   // A pending token (mfaVerified:false) is useless for protected data until extensionVerifyMfa upgrades it

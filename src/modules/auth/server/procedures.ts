@@ -9,7 +9,7 @@ import { getRequestMetadata } from "@/lib/audit-log";
 import { headers, cookies } from "next/headers";
 import { after } from "next/server";
 import { ensureSystemRolesExist } from "./system-roles";
-import { authenticateWithPassword, enforceAccessRules, createExtensionSession, runAfter, createVerifiedSession, requireSession, requireUser, getMfaSecret } from "./login-helpers";
+import { authenticateWithPassword, enforceAccessRules, createExtensionSession, resolveExtensionTimeout, runAfter, createVerifiedSession, requireSession, requireUser, getMfaSecret } from "./login-helpers";
 import { SignJWT, jwtVerify } from "jose";
 import { randomUUID } from "crypto";
 import { getAllowedExtensionOrigins, isAllowedExtensionOrigin } from "@/lib/webauthn";
@@ -622,6 +622,7 @@ export const authRouter = createTRPCRouter({
                 password: z.string().min(1, "Password is required"),
                 captchaToken: z.string().optional(),
                 captchaAnswer: z.number().optional(),
+                client: z.enum(["extension", "mobile"]).optional(),
             })
         )
         .mutation(async ({ input }) => {
@@ -678,6 +679,7 @@ export const authRouter = createTRPCRouter({
                 email: user.email,
                 companyId: user.companyId || null,
                 timeoutMinutes,
+                mobile: input.client === "mobile",
                 mfaRequired: finalMfaRequired,
                 ipAddress,
                 userAgent,
@@ -1101,6 +1103,7 @@ export const authRouter = createTRPCRouter({
         .input(z.object({
             code: z.string().min(6).max(6),
             method: z.enum(["TOTP", "SMS", "EMAIL"]).optional(),
+            client: z.enum(["extension", "mobile"]).optional(),
         }))
         .mutation(async ({ input, ctx }) => {
             if (!ctx.userId) {
@@ -1139,7 +1142,9 @@ export const authRouter = createTRPCRouter({
             const { SignJWT } = await import("jose")
             const SESSION_SECRET = process.env.SESSION_SECRET || "default-secret-change-in-production"
             const secret = new TextEncoder().encode(SESSION_SECRET)
-            const timeoutMinutes = (await getSetting<number>("security.session.timeout_minutes")) ?? 30
+            // Same length as the pending token got at login (the extension/mobile session length)
+            const webMinutes = (await getSetting<number>("security.session.timeout_minutes", user.companyId ?? null)) ?? 30
+            const timeoutMinutes = await resolveExtensionTimeout(user.companyId ?? null, webMinutes, input.client === "mobile")
             const maxAge = timeoutMinutes * 60
             const newToken = await new SignJWT({
                 userId: user.id,
@@ -1159,7 +1164,7 @@ export const authRouter = createTRPCRouter({
                 try {
                     await prisma.session.update({
                         where: { sessionToken: ctx.sessionToken },
-                        data: { sessionToken: newToken, lastActiveAt: new Date() },
+                        data: { sessionToken: newToken, lastActiveAt: new Date(), expires: new Date(Date.now() + maxAge * 1000) },
                     })
                 } catch (error) {
                     console.error("Failed to upgrade extension session after MFA:", error)
@@ -1185,6 +1190,50 @@ export const authRouter = createTRPCRouter({
             })
 
             return { success: true, sessionToken: newToken };
+        }),
+
+    /**
+     * Renews a still-valid extension/mobile session: issues a fresh token with a full
+     * lifetime and moves the database row to it. The app calls this whenever it is
+     * opened or unlocked, so regular use never hits the expiry.
+     */
+    extensionRefresh: baseProcedure
+        .input(z.object({ client: z.enum(["extension", "mobile"]).optional() }).optional())
+        .mutation(async ({ input, ctx }) => {
+            const user = ctx.user
+            if (!ctx.userId || !user || !ctx.sessionToken) {
+                throw new TRPCError({ code: "UNAUTHORIZED", message: "Not authenticated" });
+            }
+            // A token still waiting for its MFA code must not be renewed into a verified one
+            if (ctx.mfaRequired && !ctx.mfaVerified) {
+                throw new TRPCError({ code: "UNAUTHORIZED", message: "Verification required" });
+            }
+
+            const { SignJWT } = await import("jose")
+            const secret = new TextEncoder().encode(process.env.SESSION_SECRET || "default-secret-change-in-production")
+            const webMinutes = (await getSetting<number>("security.session.timeout_minutes", user.companyId ?? null)) ?? 30
+            const timeoutMinutes = await resolveExtensionTimeout(user.companyId ?? null, webMinutes, input?.client === "mobile")
+            const newToken = await new SignJWT({
+                userId: user.id,
+                email: user.email,
+                isLoggedIn: true,
+                mfaVerified: ctx.mfaVerified,
+                mfaSetupRequired: false,
+                mfaRequired: ctx.mfaRequired,
+            })
+                .setProtectedHeader({ alg: "HS256" })
+                .setExpirationTime(`${timeoutMinutes}m`)
+                .sign(secret)
+
+            const updated = await prisma.session.updateMany({
+                where: { sessionToken: ctx.sessionToken, userId: user.id },
+                data: { sessionToken: newToken, lastActiveAt: new Date(), expires: new Date(Date.now() + timeoutMinutes * 60 * 1000) },
+            })
+            if (updated.count === 0) {
+                throw new TRPCError({ code: "UNAUTHORIZED", message: "Session not found" });
+            }
+
+            return { success: true, sessionToken: newToken, expiresInMinutes: timeoutMinutes };
         }),
 
     logout: baseProcedure
