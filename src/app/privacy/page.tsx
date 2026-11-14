@@ -6,7 +6,7 @@ import Link from "next/link"
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://passbangla.com"
 
 export const metadata: Metadata = {
-  title: "Privacy Policy - PassBangla Browser Extension",
+  title: "Privacy Policy - PassBangla Browser Extension and Mobile App",
   description: "Learn how PassBangla Browser Extension collects, uses, stores, and protects your information. We are committed to protecting your privacy with zero-knowledge architecture.",
   keywords: [
     "privacy policy",
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     "data security",
   ],
   openGraph: {
-    title: "Privacy Policy - PassBangla Browser Extension",
+    title: "Privacy Policy - PassBangla Browser Extension and Mobile App",
     description: "Learn how PassBangla protects your privacy with zero-knowledge architecture and client-side encryption.",
     url: `${siteUrl}/privacy`,
     siteName: "PassBangla",
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary",
-    title: "Privacy Policy - PassBangla Browser Extension",
+    title: "Privacy Policy - PassBangla Browser Extension and Mobile App",
     description: "Learn how PassBangla protects your privacy with zero-knowledge architecture.",
   },
   alternates: {
@@ -35,6 +35,25 @@ export const metadata: Metadata = {
 }
 
 const sections = [
+  {
+    icon: Globe,
+    title: "PassBangla Mobile App",
+    content: [
+      {
+        items: [
+          "Sign-in: The app signs you in with the workspace, email and password you enter, and your two-step verification code if your account uses one. Accounts are created on the web, not in the app.",
+          "Session: A session token is kept in the phone's secure storage (Android Keystore) so you stay signed in. Signing out removes it.",
+          "Quick sign-in passphrase (optional): Your password is encrypted on the device with a passphrase you choose. The passphrase is never stored or sent anywhere.",
+          "Biometric lock (optional): Fingerprint or face unlock is handled by the phone. PassBangla never receives your biometric data.",
+          "Camera (optional): Used only when you scan an authenticator QR code. Images are not saved or sent.",
+          "Clipboard: Values you copy are cleared automatically after the time you choose in Settings.",
+          "Sharing: Sending a login to another app is always your choice, and it leaves PassBangla as plain text.",
+          "No advertising, no analytics trackers, and no data sold or shared for marketing.",
+          "Delete your data: Ask your workspace admin, or contact support@passbangla.com.",
+        ],
+      },
+    ],
+  },
   {
     icon: Shield,
     title: "Information We Collect",
